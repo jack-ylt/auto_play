@@ -1,0 +1,401 @@
+2021-05-06 08:14:58,179   ERROR  level_battle:217  level_battle: go to fight failed.
+2021-05-06 23:22:29,378   ERROR  goto_main_interface:114  goto main interface failed
+Traceback (most recent call last):
+  File "d:/auto_play_2/auto_play.py", line 446, in auto_play
+    await do_play()
+  File "d:/auto_play_2/auto_play.py", line 432, in do_play
+    await friends_interaction()
+  File "d:/auto_play_2/auto_play.py", line 327, in friends_interaction
+    res = await fight()
+  File "d:/auto_play_2/auto_play.py", line 160, in fight
+    name, pos = await monitor(['win', 'lose'])
+  File "d:/auto_play_2/auto_play.py", line 96, in monitor
+    raise FindTimeout(msg)
+FindTimeout: monitor ['win', 'lose'] timeout. (5 s)
+2021-05-06 23:37:06,694   ERROR  goto_main_interface:112  goto main interface failed
+Traceback (most recent call last):
+  File "d:/auto_play_2/auto_play.py", line 444, in auto_play
+    await do_play()
+  File "d:/auto_play_2/auto_play.py", line 432, in do_play
+    await instance_challenge()
+  File "d:/auto_play_2/auto_play.py", line 411, in instance_challenge
+    name, pos = await monitor(['ok3'])
+  File "d:/auto_play_2/auto_play.py", line 96, in monitor
+    raise FindTimeout(msg)
+FindTimeout: monitor ['ok3'] timeout. (5 s)
+2021-05-07 08:35:42,434   ERROR  goto_main_interface:112  goto main interface failed
+Traceback (most recent call last):
+  File "d:/auto_play_2/auto_play.py", line 505, in auto_play
+    await do_play()
+  File "d:/auto_play_2/auto_play.py", line 492, in do_play
+    await guild()
+  File "d:/auto_play_2/auto_play.py", line 431, in guild
+    _, pos = await monitor(['fight'])
+  File "d:/auto_play_2/auto_play.py", line 96, in monitor
+    raise FindTimeout(msg)
+FindTimeout: monitor ['fight'] timeout. (5 s)
+2021-05-07 08:42:49,230   ERROR  eye_woker:134  'dounate'
+Traceback (most recent call last):
+  File "d:\auto_play_2\auto_play.py", line 126, in eye_woker
+    img = eye.img_dict[name]
+KeyError: 'dounate'
+2021-05-07 08:43:56,015   ERROR  <module>:543  'int' object is not subscriptable
+Traceback (most recent call last):
+  File "d:/auto_play_2/auto_play.py", line 535, in <module>
+    loop.run_until_complete(auto_play())
+  File "C:\Users\liuxi\AppData\Local\Programs\Python\Python37-32\lib\asyncio\base_events.py", line 568, in run_until_complete
+    return future.result()
+  File "d:/auto_play_2/auto_play.py", line 509, in auto_play
+    await do_play()
+  File "d:/auto_play_2/auto_play.py", line 496, in do_play
+    await guild()
+  File "d:/auto_play_2/auto_play.py", line 432, in guild
+    await hand.click(pos[0], pos[1]+50)
+  File "d:\auto_play_2\player_hand.py", line 55, in click
+    x = pos[0] + random.randint(-15, 15)
+TypeError: 'int' object is not subscriptable
+2021-05-07 20:57:49,235   ERROR  <module>:549  object function can't be used in 'await' expression
+Traceback (most recent call last):
+  File "d:/auto_play_2/auto_play.py", line 541, in <module>
+    loop.run_until_complete(auto_play())
+  File "C:\Users\liuxi\AppData\Local\Programs\Python\Python37-32\lib\asyncio\base_events.py", line 568, in run_until_complete
+    return future.result()
+  File "d:/auto_play_2/auto_play.py", line 515, in auto_play
+    await do_play()
+  File "d:/auto_play_2/auto_play.py", line 502, in do_play
+    await exciting_activities
+TypeError: object function can't be used in 'await' expression
+2021-05-07 21:07:09,301   ERROR  <module>:554  object NoneType can't be used in 'await' expression
+Traceback (most recent call last):
+  File "d:/auto_play_2/auto_play.py", line 546, in <module>
+    loop.run_until_complete(auto_play())
+  File "C:\Users\liuxi\AppData\Local\Programs\Python\Python37-32\lib\asyncio\base_events.py", line 568, in run_until_complete
+    return future.result()
+  File "d:/auto_play_2/auto_play.py", line 520, in auto_play
+    await do_play()
+  File "d:/auto_play_2/auto_play.py", line 506, in do_play
+    await jedi_space()
+  File "d:/auto_play_2/auto_play.py", line 497, in jedi_space
+    await player_hand.m.drag(800, 700)
+TypeError: object NoneType can't be used in 'await' expression
+2021-05-07 21:32:53,128   ERROR  <module>:584  'tuple' object has no attribute 'x'
+Traceback (most recent call last):
+  File "d:/auto_play_2/auto_play.py", line 576, in <module>
+    loop.run_until_complete(auto_play())
+  File "C:\Users\liuxi\AppData\Local\Programs\Python\Python37-32\lib\asyncio\base_events.py", line 568, in run_until_complete
+    return future.result()
+  File "d:/auto_play_2/auto_play.py", line 550, in auto_play
+    await do_play()
+  File "d:/auto_play_2/auto_play.py", line 536, in do_play
+    drag((200, 300), (300, 300), t = 0.05)
+  File "d:/auto_play_2/auto_play.py", line 514, in drag
+    m.press(p1.x, p1.y, 1)
+AttributeError: 'tuple' object has no attribute 'x'
+2021-05-07 21:34:02,301   ERROR  <module>:584  pow() takes exactly 2 arguments (1 given)
+Traceback (most recent call last):
+  File "d:/auto_play_2/auto_play.py", line 576, in <module>
+    loop.run_until_complete(auto_play())
+  File "C:\Users\liuxi\AppData\Local\Programs\Python\Python37-32\lib\asyncio\base_events.py", line 568, in run_until_complete
+    return future.result()
+  File "d:/auto_play_2/auto_play.py", line 550, in auto_play
+    await do_play()
+  File "d:/auto_play_2/auto_play.py", line 536, in do_play
+    drag((200, 300), (300, 300), t = 0.05)
+  File "d:/auto_play_2/auto_play.py", line 519, in drag
+    while distance((x, y), p2) >= 1 :
+  File "d:/auto_play_2/auto_play.py", line 507, in distance
+    x = math.pow(p1[0] - p2[0])
+TypeError: pow() takes exactly 2 arguments (1 given)
+2021-05-07 21:35:55,008   ERROR  <module>:584  argument 1: <class 'TypeError'>: Don't know how to convert parameter 1
+Traceback (most recent call last):
+  File "d:/auto_play_2/auto_play.py", line 576, in <module>
+    loop.run_until_complete(auto_play())
+  File "C:\Users\liuxi\AppData\Local\Programs\Python\Python37-32\lib\asyncio\base_events.py", line 568, in run_until_complete
+    return future.result()
+  File "d:/auto_play_2/auto_play.py", line 550, in auto_play
+    await do_play()
+  File "d:/auto_play_2/auto_play.py", line 536, in do_play
+    drag((200, 300), (300, 300), t = 0.05)
+  File "d:/auto_play_2/auto_play.py", line 523, in drag
+    m.drag(x, y)
+  File "C:\Users\liuxi\AppData\Local\Programs\Python\Python37-32\lib\site-packages\pymouse\windows.py", line 76, in drag
+    self.release(x, y)
+  File "C:\Users\liuxi\AppData\Local\Programs\Python\Python37-32\lib\site-packages\pymouse\windows.py", line 38, in release
+    self.move(x, y)
+  File "C:\Users\liuxi\AppData\Local\Programs\Python\Python37-32\lib\site-packages\pymouse\windows.py", line 71, in move
+    windll.user32.SetCursorPos(x, y)
+ctypes.ArgumentError: argument 1: <class 'TypeError'>: Don't know how to convert parameter 1
+2021-05-07 21:37:23,263   ERROR  <module>:584  argument 1: <class 'TypeError'>: Don't know how to convert parameter 1
+Traceback (most recent call last):
+  File "d:/auto_play_2/auto_play.py", line 576, in <module>
+    loop.run_until_complete(auto_play())
+  File "C:\Users\liuxi\AppData\Local\Programs\Python\Python37-32\lib\asyncio\base_events.py", line 568, in run_until_complete
+    return future.result()
+  File "d:/auto_play_2/auto_play.py", line 550, in auto_play
+    await do_play()
+  File "d:/auto_play_2/auto_play.py", line 536, in do_play
+    drag((200, 300), (300, 300), t = 0.05)
+  File "d:/auto_play_2/auto_play.py", line 523, in drag
+    m.drag(x, y)
+  File "C:\Users\liuxi\AppData\Local\Programs\Python\Python37-32\lib\site-packages\pymouse\windows.py", line 76, in drag
+    self.release(x, y)
+  File "C:\Users\liuxi\AppData\Local\Programs\Python\Python37-32\lib\site-packages\pymouse\windows.py", line 38, in release
+    self.move(x, y)
+  File "C:\Users\liuxi\AppData\Local\Programs\Python\Python37-32\lib\site-packages\pymouse\windows.py", line 71, in move
+    windll.user32.SetCursorPos(x, y)
+ctypes.ArgumentError: argument 1: <class 'TypeError'>: Don't know how to convert parameter 1
+2021-05-07 22:04:21,388   ERROR  eye_woker:135  'jedi_space'
+Traceback (most recent call last):
+  File "d:\auto_play_2\auto_play.py", line 127, in eye_woker
+    img = eye.img_dict[name]
+KeyError: 'jedi_space'
+2021-05-08 07:54:02,694   ERROR  goto_main_interface:113  goto main interface failed
+Traceback (most recent call last):
+  File "d:/auto_play_2/auto_play.py", line 560, in auto_play
+    await do_play()
+  File "d:/auto_play_2/auto_play.py", line 543, in do_play
+    await instance_challenge()
+  File "d:/auto_play_2/auto_play.py", line 408, in instance_challenge
+    _, pos = await monitor(['ok3'])
+  File "d:/auto_play_2/auto_play.py", line 97, in monitor
+    raise FindTimeout(msg)
+FindTimeout: monitor ['ok3'] timeout. (5 s)
+2021-05-09 12:43:38,755   ERROR  <module>:636  object function can't be used in 'await' expression
+Traceback (most recent call last):
+  File "d:/auto_play_2/auto_play.py", line 628, in <module>
+    loop.run_until_complete(auto_play())
+  File "C:\Users\liuxi\AppData\Local\Programs\Python\Python37-32\lib\asyncio\base_events.py", line 568, in run_until_complete
+    return future.result()
+  File "d:/auto_play_2/auto_play.py", line 602, in auto_play
+    await do_play()
+  File "d:/auto_play_2/auto_play.py", line 588, in do_play
+    await survival_home
+TypeError: object function can't be used in 'await' expression
+2021-05-09 12:46:48,864   ERROR  <module>:637  'int' object is not subscriptable
+Traceback (most recent call last):
+  File "d:/auto_play_2/auto_play.py", line 629, in <module>
+    loop.run_until_complete(auto_play())
+  File "C:\Users\liuxi\AppData\Local\Programs\Python\Python37-32\lib\asyncio\base_events.py", line 568, in run_until_complete
+    return future.result()
+  File "d:/auto_play_2/auto_play.py", line 603, in auto_play
+    await do_play()
+  File "d:/auto_play_2/auto_play.py", line 589, in do_play
+    await survival_home()
+  File "d:/auto_play_2/auto_play.py", line 571, in survival_home
+    await hand.click(pos)
+  File "d:\auto_play_2\player_hand.py", line 62, in click
+    x = pos[0] + random.randint(-15, 15)
+TypeError: 'int' object is not subscriptable
+2021-05-09 17:39:41,234   ERROR  eye_woker:191  to_center_pos() missing 2 required positional arguments: 'h' and 'w'
+Traceback (most recent call last):
+  File "d:\auto_play_2\auto_play.py", line 185, in eye_woker
+    pos_list = eye.find_img_pos(img_bg, img, threshold)
+  File "d:\auto_play_2\player_eye.py", line 208, in find_img_pos
+    pos_list = self.to_center_pos(pos_list)
+TypeError: to_center_pos() missing 2 required positional arguments: 'h' and 'w'
+2021-05-09 17:41:40,494   ERROR  eye_woker:191  'NoneType' object is not iterable
+Traceback (most recent call last):
+  File "d:\auto_play_2\auto_play.py", line 185, in eye_woker
+    pos_list = eye.find_img_pos(img_bg, img, threshold)
+  File "d:\auto_play_2\player_eye.py", line 207, in find_img_pos
+    pos_list = self.to_center_pos(pos_list, img_target)
+  File "d:\auto_play_2\player_eye.py", line 187, in to_center_pos
+    for i, pos in enumerate(pos_list):
+TypeError: 'NoneType' object is not iterable
+2021-05-09 18:18:43,195   ERROR  eye_woker:185  's'
+Traceback (most recent call last):
+  File "d:\auto_play_2\auto_play.py", line 177, in eye_woker
+    img = eye.img_dict[name]
+KeyError: 's'
+2021-05-09 18:18:43,202   ERROR  eye_woker:185  'w'
+Traceback (most recent call last):
+  File "d:\auto_play_2\auto_play.py", line 177, in eye_woker
+    img = eye.img_dict[name]
+KeyError: 'w'
+2021-05-09 18:18:43,223   ERROR  eye_woker:185  'i'
+Traceback (most recent call last):
+  File "d:\auto_play_2\auto_play.py", line 177, in eye_woker
+    img = eye.img_dict[name]
+KeyError: 'i'
+2021-05-09 18:18:43,230   ERROR  eye_woker:185  't'
+Traceback (most recent call last):
+  File "d:\auto_play_2\auto_play.py", line 177, in eye_woker
+    img = eye.img_dict[name]
+KeyError: 't'
+2021-05-09 18:19:30,090   ERROR  eye_woker:185  'switch_map'
+Traceback (most recent call last):
+  File "d:\auto_play_2\auto_play.py", line 177, in eye_woker
+    img = eye.img_dict[name]
+KeyError: 'switch_map'
+2021-05-09 22:11:36,230   ERROR  eye_woker:186  'dounate'
+Traceback (most recent call last):
+  File "d:\auto_play_2\auto_play.py", line 178, in eye_woker
+    img = eye.img_dict[name]
+KeyError: 'dounate'
+2021-05-09 22:39:55,622   ERROR  <module>:696  'list' object cannot be interpreted as an integer
+Traceback (most recent call last):
+  File "d:/auto_play_2/auto_play.py", line 688, in <module>
+    loop.run_until_complete(auto_play())
+  File "C:\Users\liuxi\AppData\Local\Programs\Python\Python37-32\lib\asyncio\base_events.py", line 568, in run_until_complete
+    return future.result()
+  File "d:/auto_play_2/auto_play.py", line 662, in auto_play
+    await do_play()
+  File "d:/auto_play_2/auto_play.py", line 644, in do_play
+    await guild()
+  File "d:/auto_play_2/auto_play.py", line 537, in guild
+    for _ in range(pos_boxes):
+TypeError: 'list' object cannot be interpreted as an integer
+2021-05-09 22:49:08,520   ERROR  goto_main_interface:164  goto main interface failed
+NoneType: None
+2021-05-09 22:49:08,522   ERROR  <module>:696  'NoneType' object has no attribute 'group'
+Traceback (most recent call last):
+  File "d:/auto_play_2/auto_play.py", line 662, in auto_play
+    await do_play()
+  File "d:/auto_play_2/auto_play.py", line 648, in do_play
+    await survival_home()
+  File "d:/auto_play_2/auto_play.py", line 636, in survival_home
+    await goto_main_interface()
+  File "d:/auto_play_2/auto_play.py", line 165, in goto_main_interface
+    raise FindTimeout(msg)
+FindTimeout: goto main interface failed
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "d:/auto_play_2/auto_play.py", line 688, in <module>
+    loop.run_until_complete(auto_play())
+  File "C:\Users\liuxi\AppData\Local\Programs\Python\Python37-32\lib\asyncio\base_events.py", line 568, in run_until_complete
+    return future.result()
+  File "d:/auto_play_2/auto_play.py", line 665, in auto_play
+    save_timeout_pic(str(e))
+  File "d:/auto_play_2/auto_play.py", line 322, in save_timeout_pic
+    monitor_items = re.search(r'\[.+\]', msg).group()
+AttributeError: 'NoneType' object has no attribute 'group'
+2021-05-10 08:26:38,448   ERROR  goto_main_interface:163  goto main interface failed
+Traceback (most recent call last):
+  File "d:/auto_play_2/auto_play.py", line 675, in auto_play
+    await do_play()
+  File "d:/auto_play_2/auto_play.py", line 658, in do_play
+    await survival_home()
+  File "d:/auto_play_2/auto_play.py", line 637, in survival_home
+    _, p2 = await monitor(['fight6'])
+  File "d:/auto_play_2/auto_play.py", line 121, in monitor
+    raise FindTimeout(msg)
+FindTimeout: monitor ['fight6'] timeout. (5 s)
+2021-05-10 23:16:31,445   ERROR  eye_woker:181  'skip_fight'
+Traceback (most recent call last):
+  File "d:\auto_play_2\auto_play.py", line 173, in eye_woker
+    img = eye.img_dict[name]
+KeyError: 'skip_fight'
+2021-05-10 23:20:12,033   ERROR  <module>:807  nextlevel_to_fight() missing 1 required positional argument: 'pos'
+Traceback (most recent call last):
+  File "d:/auto_play_2/auto_play.py", line 799, in <module>
+    loop.run_until_complete(auto_play())
+  File "C:\Users\liuxi\AppData\Local\Programs\Python\Python37-32\lib\asyncio\base_events.py", line 568, in run_until_complete
+    return future.result()
+  File "d:/auto_play_2/auto_play.py", line 773, in auto_play
+    await do_play()
+  File "d:/auto_play_2/auto_play.py", line 759, in do_play
+    await level_battle()
+  File "d:/auto_play_2/auto_play.py", line 308, in level_battle
+    await nextlevel_to_fight()
+TypeError: nextlevel_to_fight() missing 1 required positional argument: 'pos'
+2021-05-10 23:30:55,578   ERROR  goto_main_interface:159  goto main interface failed
+NoneType: None
+2021-05-11 08:02:13,607   ERROR  goto_main_interface:178  goto main interface failed
+Traceback (most recent call last):
+  File "d:/auto_play_2/auto_play.py", line 774, in do_play
+    await func()
+  File "d:/auto_play_2/auto_play.py", line 503, in friends_interaction
+    res = await fight()
+  File "d:/auto_play_2/auto_play.py", line 233, in fight
+    name, _ = await monitor(['win', 'lose'])
+  File "d:/auto_play_2/auto_play.py", line 117, in monitor
+    raise FindTimeout(msg)
+FindTimeout: monitor ['win', 'lose'] timeout. (5 s)
+2021-05-11 08:06:26,272   ERROR  goto_main_interface:178  goto main interface failed
+Traceback (most recent call last):
+  File "d:/auto_play_2/auto_play.py", line 774, in do_play
+    await func()
+  File "d:/auto_play_2/auto_play.py", line 748, in survival_home
+    res = await fight()
+  File "d:/auto_play_2/auto_play.py", line 233, in fight
+    name, _ = await monitor(['win', 'lose'])
+  File "d:/auto_play_2/auto_play.py", line 117, in monitor
+    raise FindTimeout(msg)
+FindTimeout: monitor ['win', 'lose'] timeout. (5 s)
+2021-05-12 19:58:59,222   ERROR  <module>:863  'coroutine' object is not iterable
+Traceback (most recent call last):
+  File "d:/auto_play_3/auto_play.py", line 855, in <module>
+    loop.run_until_complete(auto_play())
+  File "C:\Users\liuxi\AppData\Local\Programs\Python\Python37-32\lib\asyncio\base_events.py", line 568, in run_until_complete
+    return future.result()
+  File "d:/auto_play_3/auto_play.py", line 834, in auto_play
+    await do_play()
+  File "d:/auto_play_3/auto_play.py", line 823, in do_play
+    await func()
+  File "d:/auto_play_3/auto_play.py", line 794, in armory
+    pos_list = sorted(pos_list, key=itemgetter(1,0))
+TypeError: 'coroutine' object is not iterable
+2021-05-12 20:21:05,903   ERROR  <module>:875  range expected 1 arguments, got 0
+Traceback (most recent call last):
+  File "d:/auto_play_3/auto_play.py", line 867, in <module>
+    loop.run_until_complete(auto_play())
+  File "C:\Users\liuxi\AppData\Local\Programs\Python\Python37-32\lib\asyncio\base_events.py", line 568, in run_until_complete
+    return future.result()
+  File "d:/auto_play_3/auto_play.py", line 846, in auto_play
+    await do_play()
+  File "d:/auto_play_3/auto_play.py", line 835, in do_play
+    await func()
+  File "d:/auto_play_3/auto_play.py", line 792, in armory
+    for i in range():
+TypeError: range expected 1 arguments, got 0
+2021-05-12 20:24:00,372   ERROR  <module>:876  'coroutine' object is not iterable
+Traceback (most recent call last):
+  File "d:/auto_play_3/auto_play.py", line 868, in <module>
+    loop.run_until_complete(auto_play())
+  File "C:\Users\liuxi\AppData\Local\Programs\Python\Python37-32\lib\asyncio\base_events.py", line 568, in run_until_complete
+    return future.result()
+  File "d:/auto_play_3/auto_play.py", line 847, in auto_play
+    await do_play()
+  File "d:/auto_play_3/auto_play.py", line 836, in do_play
+    await func()
+  File "d:/auto_play_3/auto_play.py", line 770, in invite_hero
+    for pos in pos_list:
+TypeError: 'coroutine' object is not iterable
+2021-05-12 22:57:18,588   ERROR  eye_woker:211  'hero_shard_3_4hero_shard_4_1'
+Traceback (most recent call last):
+  File "d:\auto_play_3\auto_play.py", line 203, in eye_woker
+    img = eye.img_dict[name]
+KeyError: 'hero_shard_3_4hero_shard_4_1'
+2021-05-13 07:19:59,781   ERROR  goto_main_interface:193  goto main interface failed
+Traceback (most recent call last):
+  File "d:/auto_play_3/auto_play.py", line 895, in do_play
+    await func()
+  File "d:/auto_play_3/auto_play.py", line 775, in invite_hero
+    _, pos = await monitor(['invite_hero'])
+  File "d:/auto_play_3/auto_play.py", line 119, in monitor
+    raise FindTimeout(msg)
+FindTimeout: monitor ['invite_hero'] timeout. (5 s)
+2021-05-13 23:01:27,567   ERROR  <module>:916  monitor() got an unexpected keyword argument 'threadhod'
+Traceback (most recent call last):
+  File "d:/auto_play_3/auto_play.py", line 908, in <module>
+    loop.run_until_complete(auto_play())
+  File "C:\Users\liuxi\AppData\Local\Programs\Python\Python37-32\lib\asyncio\base_events.py", line 568, in run_until_complete
+    return future.result()
+  File "d:/auto_play_3/auto_play.py", line 887, in auto_play
+    await do_play()
+  File "d:/auto_play_3/auto_play.py", line 876, in do_play
+    await func()
+  File "d:/auto_play_3/auto_play.py", line 651, in jedi_space
+    _, pos_plus = await monitor(['plus'], threadhod=0.97,  timeout=1)
+TypeError: monitor() got an unexpected keyword argument 'threadhod'
+2021-05-15 10:11:38,463   ERROR  goto_main_interface:194  goto main interface failed
+Traceback (most recent call last):
+  File "d:/auto_play_3/auto_play.py", line 876, in do_play
+    await func()
+  File "d:/auto_play_3/auto_play.py", line 562, in guild
+    _, pos = await monitor(['guild_instance'])
+  File "d:/auto_play_3/auto_play.py", line 119, in monitor
+    raise FindTimeout(msg)
+FindTimeout: monitor ['guild_instance'] timeout. (5 s)
