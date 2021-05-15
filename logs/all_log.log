@@ -27957,3 +27957,802 @@ FindTimeout: monitor ['guild_instance'] timeout. (5 s)
 2021-05-15 12:10:23,726   DEBUG  monitor:94  start monitor: ['setting']
 2021-05-15 12:10:25,080   DEBUG  service_shutdown:61  Caught signal 2
 2021-05-15 12:10:25,080   INFO  <module>:916  user stop, exiting main program
+2021-05-15 21:30:04,399   DEBUG  __init__:64  Using selector: SelectSelector
+2021-05-15 21:30:06,402   DEBUG  monitor:94  start monitor: ['friends']
+2021-05-15 21:30:07,777   DEBUG  monitor:122  monitor ['friends'] timeout. (1 s)
+2021-05-15 21:30:07,777   DEBUG  friends_interaction:465  There is no new interaction of friends.
+2021-05-15 21:30:07,778   DEBUG  monitor:94  start monitor: ['Instance_challenge']
+2021-05-15 21:30:08,449   DEBUG  monitor:114  found Instance_challenge at [(503, 490)]
+2021-05-15 21:30:08,773   DEBUG  click:76  click (503, 490) 1 times
+2021-05-15 21:30:09,815   DEBUG  find_all_pos:128  start find all positions of: ['challenge2']
+2021-05-15 21:30:10,468   DEBUG  find_all_pos:148  find_all_pos of ['challenge2'] at [(650, 444), (435, 444)]
+2021-05-15 21:30:10,777   DEBUG  click:76  click (650, 444) 1 times
+2021-05-15 21:30:11,734   DEBUG  find_all_pos:128  start find all positions of: ['challenge3', 'mop_up']
+2021-05-15 21:30:12,379   DEBUG  find_all_pos:148  find_all_pos of ['challenge3', 'mop_up'] at [(646, 284), (646, 206)]
+2021-05-15 21:30:12,695   DEBUG  click:76  click (646, 284) 1 times
+2021-05-15 21:30:13,681   DEBUG  monitor:94  start monitor: ['start_fight', 'next_game1']
+2021-05-15 21:30:14,325   DEBUG  monitor:114  found start_fight at [(667, 228)]
+2021-05-15 21:30:14,645   DEBUG  click:76  click (667, 228) 1 times
+2021-05-15 21:30:18,675   DEBUG  find_all_pos:128  start find all positions of: ['fast_forward', 'go_last']
+2021-05-15 21:30:19,332   DEBUG  find_all_pos:148  find_all_pos of ['fast_forward', 'go_last'] at [(837, 57)]
+2021-05-15 21:30:19,645   DEBUG  click:76  click (837, 57) 1 times
+2021-05-15 21:30:20,602   DEBUG  monitor:94  start monitor: ['win', 'lose']
+2021-05-15 21:30:40,848   DEBUG  monitor:114  found win at [(432, 179)]
+2021-05-15 21:30:41,162   DEBUG  click:76  click (530, 430) 1 times
+2021-05-15 21:30:44,029   DEBUG  find_all_pos:128  start find all positions of: ['fast_forward', 'go_last']
+2021-05-15 21:30:44,687   DEBUG  find_all_pos:148  find_all_pos of ['fast_forward', 'go_last'] at [(837, 57)]
+2021-05-15 21:30:44,996   DEBUG  click:76  click (837, 57) 1 times
+2021-05-15 21:30:45,966   DEBUG  monitor:94  start monitor: ['win', 'lose']
+2021-05-15 21:31:01,870   DEBUG  monitor:114  found win at [(432, 179)]
+2021-05-15 21:31:02,196   DEBUG  click:76  click (430, 430) 1 times
+2021-05-15 21:31:05,152   DEBUG  tap_key:125  tap_key 27 1 times
+2021-05-15 21:31:06,446   DEBUG  click:76  click (435, 444) 1 times
+2021-05-15 21:31:07,487   DEBUG  find_all_pos:128  start find all positions of: ['challenge3', 'mop_up']
+2021-05-15 21:31:08,135   DEBUG  find_all_pos:148  find_all_pos of ['challenge3', 'mop_up'] at [(646, 284), (646, 206)]
+2021-05-15 21:31:08,447   DEBUG  click:76  click (646, 284) 1 times
+2021-05-15 21:31:09,433   DEBUG  monitor:94  start monitor: ['start_fight', 'next_game1']
+2021-05-15 21:31:10,106   DEBUG  monitor:114  found start_fight at [(667, 228)]
+2021-05-15 21:31:10,414   DEBUG  click:76  click (667, 228) 1 times
+2021-05-15 21:31:14,371   DEBUG  find_all_pos:128  start find all positions of: ['fast_forward', 'go_last']
+2021-05-15 21:31:15,049   DEBUG  find_all_pos:148  find_all_pos of ['fast_forward', 'go_last'] at [(837, 57)]
+2021-05-15 21:31:15,366   DEBUG  click:76  click (837, 57) 1 times
+2021-05-15 21:31:16,317   DEBUG  monitor:94  start monitor: ['win', 'lose']
+2021-05-15 21:31:30,056   DEBUG  monitor:114  found win at [(432, 179)]
+2021-05-15 21:31:30,365   DEBUG  click:76  click (530, 430) 1 times
+2021-05-15 21:31:33,333   DEBUG  find_all_pos:128  start find all positions of: ['fast_forward', 'go_last']
+2021-05-15 21:31:33,989   DEBUG  find_all_pos:148  find_all_pos of ['fast_forward', 'go_last'] at [(837, 57)]
+2021-05-15 21:31:34,298   DEBUG  click:76  click (837, 57) 1 times
+2021-05-15 21:31:35,299   DEBUG  monitor:94  start monitor: ['win', 'lose']
+2021-05-15 21:31:47,102   DEBUG  monitor:114  found win at [(432, 179)]
+2021-05-15 21:31:47,415   DEBUG  click:76  click (430, 430) 1 times
+2021-05-15 21:31:50,474   DEBUG  tap_key:125  tap_key 27 1 times
+2021-05-15 21:31:51,452   DEBUG  monitor:94  start monitor: ['challenge2']
+2021-05-15 21:31:52,759   DEBUG  monitor:122  monitor ['challenge2'] timeout. (1 s)
+2021-05-15 21:31:52,760   DEBUG  instance_challenge:602  All challenge finished.
+2021-05-15 21:31:52,760   DEBUG  monitor:94  start monitor: ['setting']
+2021-05-15 21:31:54,054   DEBUG  monitor:122  monitor ['setting'] timeout. (1 s)
+2021-05-15 21:31:54,115   DEBUG  tap_key:125  tap_key 27 1 times
+2021-05-15 21:31:55,141   DEBUG  monitor:94  start monitor: ['setting']
+2021-05-15 21:31:55,791   DEBUG  monitor:114  found setting at [(827, 397)]
+2021-05-15 21:36:06,314   DEBUG  __init__:64  Using selector: SelectSelector
+2021-05-15 21:36:08,316   DEBUG  monitor:94  start monitor: ['friends']
+2021-05-15 21:36:09,015   DEBUG  monitor:114  found friends at [(32, 390)]
+2021-05-15 21:36:09,330   DEBUG  click:76  click (32, 390) 1 times
+2021-05-15 21:36:10,358   DEBUG  monitor:94  start monitor: ['receive_and_send']
+2021-05-15 21:36:11,010   DEBUG  monitor:114  found receive_and_send at [(650, 150)]
+2021-05-15 21:36:11,330   DEBUG  click:76  click (650, 150) 1 times
+2021-05-15 21:36:12,363   DEBUG  monitor:94  start monitor: ['friends_help']
+2021-05-15 21:36:13,076   DEBUG  monitor:114  found friends_help at [(770, 358)]
+2021-05-15 21:36:13,413   DEBUG  click:76  click (770, 358) 1 times
+2021-05-15 21:36:14,372   DEBUG  monitor:94  start monitor: ['search1']
+2021-05-15 21:36:15,017   DEBUG  monitor:114  found search1 at [(434, 430)]
+2021-05-15 21:36:15,331   DEBUG  click:76  click (434, 430) 1 times
+2021-05-15 21:36:16,380   DEBUG  monitor:94  start monitor: ['fight2']
+2021-05-15 21:36:20,376   DEBUG  service_shutdown:61  Caught signal 2
+2021-05-15 21:36:20,379   INFO  <module>:964  user stop, exiting main program
+2021-05-15 21:38:18,697   DEBUG  __init__:64  Using selector: SelectSelector
+2021-05-15 21:38:20,701   DEBUG  monitor:94  start monitor: ['friends']
+2021-05-15 21:38:22,096   DEBUG  monitor:122  monitor ['friends'] timeout. (1 s)
+2021-05-15 21:38:22,096   DEBUG  friends_interaction:465  There is no new interaction of friends.
+2021-05-15 21:38:22,097   DEBUG  monitor:94  start monitor: ['Instance_challenge']
+2021-05-15 21:38:22,759   DEBUG  monitor:114  found Instance_challenge at [(503, 490)]
+2021-05-15 21:38:23,082   DEBUG  click:76  click (503, 490) 1 times
+2021-05-15 21:38:24,100   DEBUG  find_all_pos:128  start find all positions of: ['challenge2']
+2021-05-15 21:38:24,758   DEBUG  find_all_pos:148  find_all_pos of ['challenge2'] at [(221, 444), (435, 444), (650, 444)]
+2021-05-15 21:38:25,071   DEBUG  click:76  click (221, 444) 1 times
+2021-05-15 21:38:26,089   DEBUG  find_all_pos:128  start find all positions of: ['challenge3', 'mop_up']
+2021-05-15 21:38:26,737   DEBUG  find_all_pos:148  find_all_pos of ['challenge3', 'mop_up'] at [(646, 206), (646, 284)]
+2021-05-15 21:38:27,054   DEBUG  click:76  click (646, 284) 1 times
+2021-05-15 21:38:28,077   DEBUG  monitor:94  start monitor: ['start_fight', 'next_game1']
+2021-05-15 21:38:28,724   DEBUG  monitor:114  found next_game1 at [(531, 430)]
+2021-05-15 21:38:29,038   DEBUG  click:76  click (531, 430) 1 times
+2021-05-15 21:38:30,321   DEBUG  click:76  click (530, 430) 1 times
+2021-05-15 21:38:31,639   DEBUG  click:76  click (430, 430) 1 times
+2021-05-15 21:38:32,691   DEBUG  tap_key:125  tap_key 27 1 times
+2021-05-15 21:38:34,038   DEBUG  click:76  click (435, 444) 1 times
+2021-05-15 21:38:35,076   DEBUG  find_all_pos:128  start find all positions of: ['challenge3', 'mop_up']
+2021-05-15 21:38:35,720   DEBUG  find_all_pos:148  find_all_pos of ['challenge3', 'mop_up'] at [(646, 206), (646, 284)]
+2021-05-15 21:38:36,037   DEBUG  click:76  click (646, 284) 1 times
+2021-05-15 21:38:37,037   DEBUG  monitor:94  start monitor: ['start_fight', 'next_game1']
+2021-05-15 21:38:37,689   DEBUG  monitor:114  found next_game1 at [(531, 430)]
+2021-05-15 21:38:38,004   DEBUG  click:76  click (531, 430) 1 times
+2021-05-15 21:38:39,304   DEBUG  click:76  click (530, 430) 1 times
+2021-05-15 21:38:40,605   DEBUG  click:76  click (430, 430) 1 times
+2021-05-15 21:38:41,625   DEBUG  tap_key:125  tap_key 27 1 times
+2021-05-15 21:38:42,972   DEBUG  click:76  click (650, 444) 1 times
+2021-05-15 21:38:43,997   DEBUG  find_all_pos:128  start find all positions of: ['challenge3', 'mop_up']
+2021-05-15 21:38:44,635   DEBUG  find_all_pos:148  find_all_pos of ['challenge3', 'mop_up'] at [(646, 206), (646, 284)]
+2021-05-15 21:38:44,955   DEBUG  click:76  click (646, 284) 1 times
+2021-05-15 21:38:45,921   DEBUG  monitor:94  start monitor: ['start_fight', 'next_game1']
+2021-05-15 21:38:46,579   DEBUG  monitor:114  found next_game1 at [(531, 430)]
+2021-05-15 21:38:46,888   DEBUG  click:76  click (531, 430) 1 times
+2021-05-15 21:38:48,237   DEBUG  click:76  click (530, 430) 1 times
+2021-05-15 21:38:49,506   DEBUG  click:76  click (430, 430) 1 times
+2021-05-15 21:38:50,605   DEBUG  tap_key:125  tap_key 27 1 times
+2021-05-15 21:38:51,609   DEBUG  monitor:94  start monitor: ['setting']
+2021-05-15 21:38:52,902   DEBUG  monitor:122  monitor ['setting'] timeout. (1 s)
+2021-05-15 21:38:52,965   DEBUG  tap_key:125  tap_key 27 1 times
+2021-05-15 21:38:53,988   DEBUG  monitor:94  start monitor: ['setting']
+2021-05-15 21:38:54,642   DEBUG  monitor:114  found setting at [(827, 397)]
+2021-05-15 21:40:52,715   DEBUG  __init__:64  Using selector: SelectSelector
+2021-05-15 21:40:54,717   DEBUG  monitor:94  start monitor: ['friends']
+2021-05-15 21:40:56,091   DEBUG  monitor:122  monitor ['friends'] timeout. (1 s)
+2021-05-15 21:40:56,091   DEBUG  friends_interaction:465  There is no new interaction of friends.
+2021-05-15 21:40:56,092   DEBUG  monitor:94  start monitor: ['Instance_challenge']
+2021-05-15 21:40:56,774   DEBUG  monitor:114  found Instance_challenge at [(503, 490)]
+2021-05-15 21:40:57,090   DEBUG  click:76  click (503, 490) 1 times
+2021-05-15 21:40:58,080   DEBUG  find_all_pos:128  start find all positions of: ['challenge2']
+2021-05-15 21:40:58,732   DEBUG  find_all_pos:148  find_all_pos of ['challenge2'] at [(221, 444), (435, 444), (650, 444)]
+2021-05-15 21:40:59,045   DEBUG  click:76  click (221, 444) 1 times
+2021-05-15 21:41:00,003   DEBUG  find_all_pos:128  start find all positions of: ['challenge3', 'mop_up']
+2021-05-15 21:41:00,641   DEBUG  find_all_pos:148  find_all_pos of ['challenge3', 'mop_up'] at [(646, 206), (646, 284)]
+2021-05-15 21:41:00,962   DEBUG  click:76  click (646, 284) 1 times
+2021-05-15 21:41:01,967   DEBUG  monitor:94  start monitor: ['start_fight', 'next_game1']
+2021-05-15 21:41:02,611   DEBUG  monitor:114  found next_game1 at [(531, 430)]
+2021-05-15 21:41:02,929   DEBUG  click:76  click (531, 430) 1 times
+2021-05-15 21:41:04,228   DEBUG  click:76  click (530, 430) 1 times
+2021-05-15 21:41:05,545   DEBUG  click:76  click (430, 430) 1 times
+2021-05-15 21:41:06,564   DEBUG  tap_key:125  tap_key 27 1 times
+2021-05-15 21:41:07,828   DEBUG  click:76  click (435, 444) 1 times
+2021-05-15 21:41:08,843   DEBUG  find_all_pos:128  start find all positions of: ['challenge3', 'mop_up']
+2021-05-15 21:41:09,496   DEBUG  find_all_pos:148  find_all_pos of ['challenge3', 'mop_up'] at [(646, 206), (646, 284)]
+2021-05-15 21:41:09,813   DEBUG  click:76  click (646, 284) 1 times
+2021-05-15 21:41:10,854   DEBUG  monitor:94  start monitor: ['start_fight', 'next_game1']
+2021-05-15 21:41:11,493   DEBUG  monitor:114  found next_game1 at [(531, 430)]
+2021-05-15 21:41:11,813   DEBUG  click:76  click (531, 430) 1 times
+2021-05-15 21:41:13,145   DEBUG  click:76  click (530, 430) 1 times
+2021-05-15 21:41:14,496   DEBUG  click:76  click (430, 430) 1 times
+2021-05-15 21:41:15,583   DEBUG  tap_key:125  tap_key 27 1 times
+2021-05-15 21:41:16,880   DEBUG  click:76  click (650, 444) 1 times
+2021-05-15 21:41:17,929   DEBUG  find_all_pos:128  start find all positions of: ['challenge3', 'mop_up']
+2021-05-15 21:41:18,586   DEBUG  find_all_pos:148  find_all_pos of ['challenge3', 'mop_up'] at [(646, 206), (646, 284)]
+2021-05-15 21:41:18,896   DEBUG  click:76  click (646, 284) 1 times
+2021-05-15 21:41:19,874   DEBUG  monitor:94  start monitor: ['start_fight', 'next_game1']
+2021-05-15 21:41:20,529   DEBUG  monitor:114  found next_game1 at [(531, 430)]
+2021-05-15 21:41:20,847   DEBUG  click:76  click (531, 430) 1 times
+2021-05-15 21:41:22,196   DEBUG  click:76  click (530, 430) 1 times
+2021-05-15 21:41:23,530   DEBUG  click:76  click (430, 430) 1 times
+2021-05-15 21:41:24,600   DEBUG  tap_key:125  tap_key 27 1 times
+2021-05-15 21:41:25,585   DEBUG  monitor:94  start monitor: ['setting']
+2021-05-15 21:41:26,879   DEBUG  monitor:122  monitor ['setting'] timeout. (1 s)
+2021-05-15 21:41:26,942   DEBUG  tap_key:125  tap_key 27 1 times
+2021-05-15 21:41:27,973   DEBUG  monitor:94  start monitor: ['setting']
+2021-05-15 21:41:28,622   DEBUG  monitor:114  found setting at [(827, 397)]
+2021-05-15 21:43:00,423   DEBUG  __init__:64  Using selector: SelectSelector
+2021-05-15 21:43:02,426   DEBUG  monitor:94  start monitor: ['friends']
+2021-05-15 21:43:03,123   DEBUG  monitor:114  found friends at [(32, 390)]
+2021-05-15 21:43:03,447   DEBUG  click:76  click (32, 390) 1 times
+2021-05-15 21:43:04,429   DEBUG  monitor:94  start monitor: ['receive_and_send']
+2021-05-15 21:43:05,074   DEBUG  monitor:114  found receive_and_send at [(650, 150)]
+2021-05-15 21:43:05,385   DEBUG  click:76  click (650, 150) 1 times
+2021-05-15 21:43:06,354   DEBUG  monitor:94  start monitor: ['friends_help']
+2021-05-15 21:43:07,001   DEBUG  monitor:114  found friends_help at [(770, 358)]
+2021-05-15 21:43:07,319   DEBUG  click:76  click (770, 358) 1 times
+2021-05-15 21:43:08,364   DEBUG  monitor:94  start monitor: ['search1']
+2021-05-15 21:43:09,028   DEBUG  monitor:114  found search1 at [(434, 430)]
+2021-05-15 21:43:09,336   DEBUG  click:76  click (434, 430) 1 times
+2021-05-15 21:43:10,329   DEBUG  monitor:94  start monitor: ['fight2']
+2021-05-15 21:43:15,522   DEBUG  monitor:122  monitor ['fight2'] timeout. (5 s)
+2021-05-15 21:43:15,545   DEBUG  monitor:94  start monitor: ['setting']
+2021-05-15 21:43:16,832   DEBUG  monitor:122  monitor ['setting'] timeout. (1 s)
+2021-05-15 21:43:16,895   DEBUG  tap_key:125  tap_key 27 1 times
+2021-05-15 21:43:17,873   DEBUG  monitor:94  start monitor: ['setting']
+2021-05-15 21:43:19,170   DEBUG  monitor:122  monitor ['setting'] timeout. (1 s)
+2021-05-15 21:43:19,230   DEBUG  tap_key:125  tap_key 27 1 times
+2021-05-15 21:43:20,207   DEBUG  monitor:94  start monitor: ['setting']
+2021-05-15 21:43:20,863   DEBUG  monitor:114  found setting at [(827, 397)]
+2021-05-15 21:43:20,864   DEBUG  monitor:94  start monitor: ['Instance_challenge']
+2021-05-15 21:43:21,545   DEBUG  monitor:114  found Instance_challenge at [(503, 490)]
+2021-05-15 21:43:21,852   DEBUG  click:76  click (503, 490) 1 times
+2021-05-15 21:43:22,863   DEBUG  find_all_pos:128  start find all positions of: ['challenge2']
+2021-05-15 21:43:23,508   DEBUG  find_all_pos:148  find_all_pos of ['challenge2'] at [(221, 444), (435, 444), (650, 444)]
+2021-05-15 21:43:23,820   DEBUG  click:76  click (221, 444) 1 times
+2021-05-15 21:43:24,830   DEBUG  find_all_pos:128  start find all positions of: ['challenge3', 'mop_up']
+2021-05-15 21:43:25,490   DEBUG  find_all_pos:148  find_all_pos of ['challenge3', 'mop_up'] at [(646, 284), (646, 206)]
+2021-05-15 21:43:25,804   DEBUG  click:76  click (646, 284) 1 times
+2021-05-15 21:43:26,815   DEBUG  monitor:94  start monitor: ['start_fight', 'next_game1']
+2021-05-15 21:43:27,472   DEBUG  monitor:114  found start_fight at [(667, 228)]
+2021-05-15 21:43:27,786   DEBUG  click:76  click (667, 228) 1 times
+2021-05-15 21:43:31,751   DEBUG  find_all_pos:128  start find all positions of: ['fast_forward', 'go_last']
+2021-05-15 21:43:32,406   DEBUG  find_all_pos:148  find_all_pos of ['fast_forward', 'go_last'] at [(837, 57)]
+2021-05-15 21:43:32,720   DEBUG  click:76  click (837, 57) 1 times
+2021-05-15 21:43:33,769   DEBUG  monitor:94  start monitor: ['win', 'lose']
+2021-05-15 21:43:50,104   DEBUG  monitor:114  found lose at [(430, 185)]
+2021-05-15 21:43:50,105   DEBUG  instance_challenge:586  Fight lose
+2021-05-15 21:43:50,421   DEBUG  click:76  click (430, 430) 1 times
+2021-05-15 21:43:53,474   DEBUG  tap_key:125  tap_key 27 1 times
+2021-05-15 21:43:54,821   DEBUG  click:76  click (435, 444) 1 times
+2021-05-15 21:43:55,813   DEBUG  find_all_pos:128  start find all positions of: ['challenge3', 'mop_up']
+2021-05-15 21:43:56,459   DEBUG  find_all_pos:148  find_all_pos of ['challenge3', 'mop_up'] at [(646, 284), (646, 206)]
+2021-05-15 21:43:56,771   DEBUG  click:76  click (646, 284) 1 times
+2021-05-15 21:43:57,766   DEBUG  monitor:94  start monitor: ['start_fight', 'next_game1']
+2021-05-15 21:43:58,414   DEBUG  monitor:114  found start_fight at [(667, 228)]
+2021-05-15 21:43:58,722   DEBUG  click:76  click (667, 228) 1 times
+2021-05-15 21:44:02,704   DEBUG  find_all_pos:128  start find all positions of: ['fast_forward', 'go_last']
+2021-05-15 21:44:03,357   DEBUG  find_all_pos:148  find_all_pos of ['fast_forward', 'go_last'] at [(837, 57)]
+2021-05-15 21:44:03,672   DEBUG  click:76  click (837, 57) 1 times
+2021-05-15 21:44:04,670   DEBUG  monitor:94  start monitor: ['win', 'lose']
+2021-05-15 21:44:18,445   DEBUG  monitor:114  found lose at [(430, 185)]
+2021-05-15 21:44:18,446   DEBUG  instance_challenge:586  Fight lose
+2021-05-15 21:44:18,756   DEBUG  click:76  click (430, 430) 1 times
+2021-05-15 21:44:21,706   DEBUG  tap_key:125  tap_key 27 1 times
+2021-05-15 21:44:23,039   DEBUG  click:76  click (650, 444) 1 times
+2021-05-15 21:44:24,032   DEBUG  find_all_pos:128  start find all positions of: ['challenge3', 'mop_up']
+2021-05-15 21:44:24,680   DEBUG  find_all_pos:148  find_all_pos of ['challenge3', 'mop_up'] at [(646, 284), (646, 206)]
+2021-05-15 21:44:24,990   DEBUG  click:76  click (646, 284) 1 times
+2021-05-15 21:44:25,977   DEBUG  monitor:94  start monitor: ['start_fight', 'next_game1']
+2021-05-15 21:44:26,625   DEBUG  monitor:114  found start_fight at [(667, 228)]
+2021-05-15 21:44:26,939   DEBUG  click:76  click (667, 228) 1 times
+2021-05-15 21:44:30,982   DEBUG  find_all_pos:128  start find all positions of: ['fast_forward', 'go_last']
+2021-05-15 21:44:31,634   DEBUG  find_all_pos:148  find_all_pos of ['fast_forward', 'go_last'] at [(779, 57), (837, 57)]
+2021-05-15 21:44:31,939   DEBUG  click:76  click (779, 57) 1 times
+2021-05-15 21:44:33,222   DEBUG  click:76  click (837, 57) 1 times
+2021-05-15 21:44:34,174   DEBUG  monitor:94  start monitor: ['win', 'lose']
+2021-05-15 21:44:41,434   DEBUG  monitor:114  found lose at [(430, 185)]
+2021-05-15 21:44:41,435   DEBUG  instance_challenge:586  Fight lose
+2021-05-15 21:44:41,741   DEBUG  click:76  click (430, 430) 1 times
+2021-05-15 21:44:44,675   DEBUG  tap_key:125  tap_key 27 1 times
+2021-05-15 21:44:45,694   DEBUG  monitor:94  start monitor: ['setting']
+2021-05-15 21:44:47,035   DEBUG  monitor:122  monitor ['setting'] timeout. (1 s)
+2021-05-15 21:44:47,097   DEBUG  tap_key:125  tap_key 27 1 times
+2021-05-15 21:44:48,054   DEBUG  monitor:94  start monitor: ['setting']
+2021-05-15 21:44:48,719   DEBUG  monitor:114  found setting at [(827, 397)]
+2021-05-15 21:49:21,905   DEBUG  __init__:64  Using selector: SelectSelector
+2021-05-15 21:49:23,907   DEBUG  monitor:94  start monitor: ['friends']
+2021-05-15 21:49:25,312   DEBUG  monitor:122  monitor ['friends'] timeout. (1 s)
+2021-05-15 21:49:25,312   DEBUG  friends_interaction:465  There is no new interaction of friends.
+2021-05-15 21:49:25,313   DEBUG  monitor:94  start monitor: ['Instance_challenge']
+2021-05-15 21:49:25,970   DEBUG  monitor:114  found Instance_challenge at [(503, 490)]
+2021-05-15 21:49:26,300   DEBUG  click:76  click (503, 490) 1 times
+2021-05-15 21:49:27,299   DEBUG  find_all_pos:128  start find all positions of: ['challenge2']
+2021-05-15 21:49:27,938   DEBUG  find_all_pos:148  find_all_pos of ['challenge2'] at [(221, 444), (435, 444), (650, 444)]
+2021-05-15 21:49:28,257   DEBUG  click:76  click (221, 444) 1 times
+2021-05-15 21:49:29,291   DEBUG  find_all_pos:128  start find all positions of: ['challenge3', 'mop_up']
+2021-05-15 21:49:29,941   DEBUG  find_all_pos:148  find_all_pos of ['challenge3', 'mop_up'] at [(646, 284), (646, 206)]
+2021-05-15 21:49:30,256   DEBUG  click:76  click (646, 284) 1 times
+2021-05-15 21:49:31,234   DEBUG  monitor:94  start monitor: ['start_fight', 'next_game1']
+2021-05-15 21:49:31,889   DEBUG  monitor:114  found start_fight at [(667, 228)]
+2021-05-15 21:49:32,208   DEBUG  click:76  click (667, 228) 1 times
+2021-05-15 21:49:36,182   DEBUG  find_all_pos:128  start find all positions of: ['fast_forward', 'fast_forward1', 'go_last']
+2021-05-15 21:49:36,492   ERROR  eye_woker:220  'fast_forward1'
+Traceback (most recent call last):
+  File "d:\auto_play\auto_play.py", line 212, in eye_woker
+    img = eye.img_dict[name]
+KeyError: 'fast_forward1'
+2021-05-15 21:49:55,162   DEBUG  service_shutdown:61  Caught signal 2
+2021-05-15 21:49:55,163   INFO  <module>:964  user stop, exiting main program
+2021-05-15 21:51:10,462   DEBUG  __init__:64  Using selector: SelectSelector
+2021-05-15 21:51:12,466   DEBUG  monitor:94  start monitor: ['friends']
+2021-05-15 21:51:13,811   DEBUG  monitor:122  monitor ['friends'] timeout. (1 s)
+2021-05-15 21:51:13,812   DEBUG  friends_interaction:465  There is no new interaction of friends.
+2021-05-15 21:51:13,812   DEBUG  monitor:94  start monitor: ['Instance_challenge']
+2021-05-15 21:51:14,473   DEBUG  monitor:114  found Instance_challenge at [(503, 490)]
+2021-05-15 21:51:14,793   DEBUG  click:76  click (503, 490) 1 times
+2021-05-15 21:51:15,795   DEBUG  find_all_pos:128  start find all positions of: ['challenge2']
+2021-05-15 21:51:16,463   DEBUG  find_all_pos:148  find_all_pos of ['challenge2'] at [(221, 444), (435, 444), (650, 444)]
+2021-05-15 21:51:16,778   DEBUG  click:76  click (221, 444) 1 times
+2021-05-15 21:51:17,791   DEBUG  find_all_pos:128  start find all positions of: ['challenge3', 'mop_up']
+2021-05-15 21:51:18,442   DEBUG  find_all_pos:148  find_all_pos of ['challenge3', 'mop_up'] at [(646, 284), (646, 206)]
+2021-05-15 21:51:18,761   DEBUG  click:76  click (646, 284) 1 times
+2021-05-15 21:51:19,766   DEBUG  monitor:94  start monitor: ['start_fight', 'next_game1']
+2021-05-15 21:51:20,419   DEBUG  monitor:114  found start_fight at [(667, 228)]
+2021-05-15 21:51:20,728   DEBUG  click:76  click (667, 228) 1 times
+2021-05-15 21:51:24,698   DEBUG  find_all_pos:128  start find all positions of: ['fast_forward', 'fast_forward1', 'go_last']
+2021-05-15 21:51:25,352   DEBUG  find_all_pos:148  find_all_pos of ['fast_forward', 'fast_forward1', 'go_last'] at [(837, 57)]
+2021-05-15 21:51:25,662   DEBUG  click:76  click (837, 57) 1 times
+2021-05-15 21:51:26,687   DEBUG  monitor:94  start monitor: ['win', 'lose']
+2021-05-15 21:51:42,382   DEBUG  monitor:114  found lose at [(430, 185)]
+2021-05-15 21:51:42,383   DEBUG  instance_challenge:586  Fight lose
+2021-05-15 21:51:42,695   DEBUG  click:76  click (430, 430) 1 times
+2021-05-15 21:51:45,707   DEBUG  tap_key:125  tap_key 27 1 times
+2021-05-15 21:51:47,045   DEBUG  click:76  click (435, 444) 1 times
+2021-05-15 21:51:48,056   DEBUG  find_all_pos:128  start find all positions of: ['challenge3', 'mop_up']
+2021-05-15 21:51:48,699   DEBUG  find_all_pos:148  find_all_pos of ['challenge3', 'mop_up'] at [(646, 284), (646, 206)]
+2021-05-15 21:51:49,013   DEBUG  click:76  click (646, 284) 1 times
+2021-05-15 21:51:49,972   DEBUG  monitor:94  start monitor: ['start_fight', 'next_game1']
+2021-05-15 21:51:50,622   DEBUG  monitor:114  found start_fight at [(667, 228)]
+2021-05-15 21:51:50,941   DEBUG  click:76  click (667, 228) 1 times
+2021-05-15 21:51:54,905   DEBUG  find_all_pos:128  start find all positions of: ['fast_forward', 'fast_forward1', 'go_last']
+2021-05-15 21:51:55,561   DEBUG  find_all_pos:148  find_all_pos of ['fast_forward', 'fast_forward1', 'go_last'] at [(837, 57)]
+2021-05-15 21:51:55,881   DEBUG  click:76  click (837, 57) 1 times
+2021-05-15 21:51:56,876   DEBUG  monitor:94  start monitor: ['win', 'lose']
+2021-05-15 21:51:57,669   DEBUG  service_shutdown:61  Caught signal 2
+2021-05-15 21:51:57,671   INFO  <module>:964  user stop, exiting main program
+2021-05-15 21:54:14,639   DEBUG  __init__:64  Using selector: SelectSelector
+2021-05-15 21:54:16,642   DEBUG  monitor:94  start monitor: ['friends']
+2021-05-15 21:54:18,001   DEBUG  monitor:122  monitor ['friends'] timeout. (1 s)
+2021-05-15 21:54:18,001   DEBUG  friends_interaction:465  There is no new interaction of friends.
+2021-05-15 21:54:18,002   DEBUG  monitor:94  start monitor: ['Instance_challenge']
+2021-05-15 21:54:18,660   DEBUG  monitor:114  found Instance_challenge at [(503, 490)]
+2021-05-15 21:54:18,981   DEBUG  click:76  click (503, 490) 1 times
+2021-05-15 21:54:19,994   DEBUG  find_all_pos:128  start find all positions of: ['challenge2']
+2021-05-15 21:54:20,636   DEBUG  find_all_pos:148  find_all_pos of ['challenge2'] at [(221, 444), (435, 444), (650, 444)]
+2021-05-15 21:54:20,955   DEBUG  click:76  click (221, 444) 1 times
+2021-05-15 21:54:21,961   DEBUG  find_all_pos:128  start find all positions of: ['challenge3', 'mop_up']
+2021-05-15 21:54:22,601   DEBUG  find_all_pos:148  find_all_pos of ['challenge3', 'mop_up'] at [(646, 284), (646, 206)]
+2021-05-15 21:54:22,921   DEBUG  click:76  click (646, 284) 1 times
+2021-05-15 21:54:23,891   DEBUG  monitor:94  start monitor: ['start_fight', 'next_game1']
+2021-05-15 21:54:24,534   DEBUG  monitor:114  found start_fight at [(667, 228)]
+2021-05-15 21:54:24,854   DEBUG  click:76  click (667, 228) 1 times
+2021-05-15 21:54:28,806   DEBUG  find_all_pos:128  start find all positions of: ['fast_forward', 'fast_forward1', 'go_last']
+2021-05-15 21:54:29,489   DEBUG  find_all_pos:148  find_all_pos of ['fast_forward', 'fast_forward1', 'go_last'] at [(787, 58), (779, 57), (837, 57)]
+2021-05-15 21:54:29,804   DEBUG  click:76  click (787, 58) 1 times
+2021-05-15 21:54:31,138   DEBUG  click:76  click (779, 57) 1 times
+2021-05-15 21:54:32,454   DEBUG  click:76  click (837, 57) 1 times
+2021-05-15 21:54:33,406   DEBUG  monitor:94  start monitor: ['win', 'lose']
+2021-05-15 21:54:45,926   DEBUG  monitor:114  found lose at [(430, 185)]
+2021-05-15 21:54:45,927   DEBUG  instance_challenge:586  Fight lose
+2021-05-15 21:54:46,238   DEBUG  click:76  click (430, 430) 1 times
+2021-05-15 21:54:49,312   DEBUG  tap_key:125  tap_key 27 1 times
+2021-05-15 21:54:50,672   DEBUG  click:76  click (435, 444) 1 times
+2021-05-15 21:54:51,640   DEBUG  find_all_pos:128  start find all positions of: ['challenge3', 'mop_up']
+2021-05-15 21:54:52,302   DEBUG  find_all_pos:148  find_all_pos of ['challenge3', 'mop_up'] at [(646, 284), (646, 206)]
+2021-05-15 21:54:52,623   DEBUG  click:76  click (646, 284) 1 times
+2021-05-15 21:54:53,671   DEBUG  monitor:94  start monitor: ['start_fight', 'next_game1']
+2021-05-15 21:54:54,325   DEBUG  monitor:114  found start_fight at [(667, 228)]
+2021-05-15 21:54:54,640   DEBUG  click:76  click (667, 228) 1 times
+2021-05-15 21:54:58,677   DEBUG  find_all_pos:128  start find all positions of: ['fast_forward', 'fast_forward1', 'go_last']
+2021-05-15 21:54:59,334   DEBUG  find_all_pos:148  find_all_pos of ['fast_forward', 'fast_forward1', 'go_last'] at [(779, 57), (787, 58), (837, 57)]
+2021-05-15 21:54:59,640   DEBUG  click:76  click (779, 57) 1 times
+2021-05-15 21:55:00,956   DEBUG  click:76  click (787, 58) 1 times
+2021-05-15 21:55:02,273   DEBUG  click:76  click (837, 57) 1 times
+2021-05-15 21:55:03,282   DEBUG  monitor:94  start monitor: ['win', 'lose']
+2021-05-15 21:55:13,745   DEBUG  monitor:114  found lose at [(430, 185)]
+2021-05-15 21:55:13,746   DEBUG  instance_challenge:586  Fight lose
+2021-05-15 21:55:14,057   DEBUG  click:76  click (430, 430) 1 times
+2021-05-15 21:55:17,280   DEBUG  tap_key:125  tap_key 27 1 times
+2021-05-15 21:55:18,605   DEBUG  click:76  click (650, 444) 1 times
+2021-05-15 21:55:19,574   DEBUG  find_all_pos:128  start find all positions of: ['challenge3', 'mop_up']
+2021-05-15 21:55:20,246   DEBUG  find_all_pos:150  no find any pos of ['challenge3', 'mop_up']
+2021-05-15 21:55:20,248   ERROR  <module>:968  list index out of range
+Traceback (most recent call last):
+  File "d:/auto_play/auto_play.py", line 960, in <module>
+    loop.run_until_complete(auto_play())
+  File "C:\Users\liuxi\AppData\Local\Programs\Python\Python37-32\lib\asyncio\base_events.py", line 568, in run_until_complete
+    return future.result()
+  File "d:/auto_play/auto_play.py", line 939, in auto_play
+    await do_play()
+  File "d:/auto_play/auto_play.py", line 928, in do_play
+    await func()
+  File "d:/auto_play/auto_play.py", line 578, in instance_challenge
+    pos = filter_bottom(pos_list)
+  File "d:/auto_play/auto_play.py", line 87, in filter_bottom
+    pos = lst[-1]
+IndexError: list index out of range
+2021-05-15 21:56:38,376   DEBUG  __init__:64  Using selector: SelectSelector
+2021-05-15 21:56:40,379   DEBUG  monitor:94  start monitor: ['friends']
+2021-05-15 21:56:41,771   DEBUG  monitor:122  monitor ['friends'] timeout. (1 s)
+2021-05-15 21:56:41,771   DEBUG  friends_interaction:465  There is no new interaction of friends.
+2021-05-15 21:56:41,772   DEBUG  monitor:94  start monitor: ['Instance_challenge']
+2021-05-15 21:56:42,420   DEBUG  monitor:114  found Instance_challenge at [(503, 490)]
+2021-05-15 21:56:42,740   DEBUG  click:76  click (503, 490) 1 times
+2021-05-15 21:56:43,755   DEBUG  find_all_pos:128  start find all positions of: ['challenge2']
+2021-05-15 21:56:44,394   DEBUG  find_all_pos:148  find_all_pos of ['challenge2'] at [(221, 444), (435, 444), (650, 444)]
+2021-05-15 21:56:44,712   DEBUG  click:76  click (221, 444) 1 times
+2021-05-15 21:56:45,751   DEBUG  find_all_pos:128  start find all positions of: ['challenge3', 'mop_up']
+2021-05-15 21:56:46,394   DEBUG  find_all_pos:148  find_all_pos of ['challenge3', 'mop_up'] at [(646, 284), (646, 206)]
+2021-05-15 21:56:46,712   DEBUG  click:76  click (646, 284) 1 times
+2021-05-15 21:56:47,714   DEBUG  monitor:94  start monitor: ['start_fight', 'next_game1']
+2021-05-15 21:56:48,370   DEBUG  monitor:114  found start_fight at [(667, 228)]
+2021-05-15 21:56:48,679   DEBUG  click:76  click (667, 228) 1 times
+2021-05-15 21:56:52,730   DEBUG  find_all_pos:128  start find all positions of: ['fast_forward1', 'go_last']
+2021-05-15 21:56:53,389   DEBUG  find_all_pos:148  find_all_pos of ['fast_forward1', 'go_last'] at [(787, 58), (837, 57)]
+2021-05-15 21:56:53,695   DEBUG  click:76  click (787, 58) 1 times
+2021-05-15 21:56:54,996   DEBUG  click:76  click (837, 57) 1 times
+2021-05-15 21:56:55,996   DEBUG  monitor:94  start monitor: ['win', 'lose']
+2021-05-15 21:57:05,215   DEBUG  monitor:114  found lose at [(430, 185)]
+2021-05-15 21:57:05,216   DEBUG  instance_challenge:586  Fight lose
+2021-05-15 21:57:05,530   DEBUG  click:76  click (430, 430) 1 times
+2021-05-15 21:57:08,685   DEBUG  tap_key:125  tap_key 27 1 times
+2021-05-15 21:57:10,030   DEBUG  click:76  click (435, 444) 1 times
+2021-05-15 21:57:11,059   DEBUG  find_all_pos:128  start find all positions of: ['challenge3', 'mop_up']
+2021-05-15 21:57:11,716   DEBUG  find_all_pos:148  find_all_pos of ['challenge3', 'mop_up'] at [(646, 284), (646, 206)]
+2021-05-15 21:57:12,030   DEBUG  click:76  click (646, 284) 1 times
+2021-05-15 21:57:13,015   DEBUG  monitor:94  start monitor: ['start_fight', 'next_game1']
+2021-05-15 21:57:13,668   DEBUG  monitor:114  found start_fight at [(667, 228)]
+2021-05-15 21:57:13,980   DEBUG  click:76  click (667, 228) 1 times
+2021-05-15 21:57:17,983   DEBUG  find_all_pos:128  start find all positions of: ['fast_forward1', 'go_last']
+2021-05-15 21:57:18,645   DEBUG  find_all_pos:148  find_all_pos of ['fast_forward1', 'go_last'] at [(837, 57)]
+2021-05-15 21:57:18,970   DEBUG  click:76  click (837, 57) 1 times
+2021-05-15 21:57:19,926   DEBUG  monitor:94  start monitor: ['win', 'lose']
+2021-05-15 21:57:28,538   DEBUG  monitor:114  found lose at [(430, 185)]
+2021-05-15 21:57:28,539   DEBUG  instance_challenge:586  Fight lose
+2021-05-15 21:57:28,846   DEBUG  click:76  click (430, 430) 1 times
+2021-05-15 21:57:32,033   DEBUG  tap_key:125  tap_key 27 1 times
+2021-05-15 21:57:33,331   DEBUG  click:76  click (650, 444) 1 times
+2021-05-15 21:57:34,314   DEBUG  find_all_pos:128  start find all positions of: ['challenge3', 'mop_up']
+2021-05-15 21:57:34,969   DEBUG  find_all_pos:148  find_all_pos of ['challenge3', 'mop_up'] at [(646, 284), (646, 206)]
+2021-05-15 21:57:35,281   DEBUG  click:76  click (646, 284) 1 times
+2021-05-15 21:57:36,239   DEBUG  monitor:94  start monitor: ['start_fight', 'next_game1']
+2021-05-15 21:57:36,909   DEBUG  monitor:114  found start_fight at [(667, 228)]
+2021-05-15 21:57:37,215   DEBUG  click:76  click (667, 228) 1 times
+2021-05-15 21:57:41,224   DEBUG  find_all_pos:128  start find all positions of: ['fast_forward1', 'go_last']
+2021-05-15 21:57:41,875   DEBUG  find_all_pos:148  find_all_pos of ['fast_forward1', 'go_last'] at [(837, 57)]
+2021-05-15 21:57:42,181   DEBUG  click:76  click (837, 57) 1 times
+2021-05-15 21:57:43,157   DEBUG  monitor:94  start monitor: ['win', 'lose']
+2021-05-15 21:57:51,761   DEBUG  monitor:114  found lose at [(430, 185)]
+2021-05-15 21:57:51,762   DEBUG  instance_challenge:586  Fight lose
+2021-05-15 21:57:52,065   DEBUG  click:76  click (430, 430) 1 times
+2021-05-15 21:57:54,980   DEBUG  tap_key:125  tap_key 27 1 times
+2021-05-15 21:57:55,971   DEBUG  monitor:94  start monitor: ['setting']
+2021-05-15 21:57:57,271   DEBUG  monitor:122  monitor ['setting'] timeout. (1 s)
+2021-05-15 21:57:57,335   DEBUG  tap_key:125  tap_key 27 1 times
+2021-05-15 21:57:58,375   DEBUG  monitor:94  start monitor: ['setting']
+2021-05-15 21:57:59,032   DEBUG  monitor:114  found setting at [(827, 397)]
+2021-05-15 22:33:00,987   DEBUG  __init__:64  Using selector: SelectSelector
+2021-05-15 22:33:02,991   DEBUG  monitor:94  start monitor: ['guild']
+2021-05-15 22:33:03,709   DEBUG  monitor:114  found guild at [(793, 797), (584, 489)]
+2021-05-15 22:33:04,060   DEBUG  click:76  click (793, 797) 1 times
+2021-05-15 22:33:05,076   DEBUG  monitor:94  start monitor: ['sign_in']
+2021-05-15 22:33:06,383   DEBUG  monitor:122  monitor ['sign_in'] timeout. (1 s)
+2021-05-15 22:33:06,737   DEBUG  click:76  click (700, 460) 1 times
+2021-05-15 22:33:07,724   DEBUG  monitor:94  start monitor: ['guild_instance']
+2021-05-15 22:33:11,008   DEBUG  service_shutdown:61  Caught signal 2
+2021-05-15 22:33:11,010   INFO  <module>:957  user stop, exiting main program
+2021-05-15 22:33:39,005   DEBUG  __init__:64  Using selector: SelectSelector
+2021-05-15 22:33:41,009   DEBUG  monitor:94  start monitor: ['guild']
+2021-05-15 22:33:41,725   DEBUG  monitor:114  found guild at [(793, 797), (584, 489)]
+2021-05-15 22:33:42,078   DEBUG  click:76  click (793, 797) 1 times
+2021-05-15 22:33:43,122   DEBUG  monitor:94  start monitor: ['sign_in']
+2021-05-15 22:33:44,416   DEBUG  monitor:122  monitor ['sign_in'] timeout. (1 s)
+2021-05-15 22:33:44,839   DEBUG  click:76  click (700, 460) 1 times
+2021-05-15 22:33:45,856   DEBUG  monitor:94  start monitor: ['guild_instance']
+2021-05-15 22:33:51,072   DEBUG  monitor:122  monitor ['guild_instance'] timeout. (5 s)
+2021-05-15 22:33:51,108   DEBUG  monitor:94  start monitor: ['setting']
+2021-05-15 22:33:51,774   DEBUG  monitor:114  found setting at [(827, 397)]
+2021-05-15 22:34:19,132   DEBUG  __init__:64  Using selector: SelectSelector
+2021-05-15 22:34:21,136   DEBUG  monitor:94  start monitor: ['guild']
+2021-05-15 22:34:21,844   DEBUG  monitor:114  found guild at [(584, 489)]
+2021-05-15 22:34:22,176   DEBUG  click:76  click (584, 489) 1 times
+2021-05-15 22:34:23,202   DEBUG  monitor:94  start monitor: ['sign_in']
+2021-05-15 22:34:23,841   DEBUG  monitor:114  found sign_in at [(772, 252)]
+2021-05-15 22:34:24,147   DEBUG  click:76  click (772, 252) 1 times
+2021-05-15 22:34:25,432   DEBUG  click:76  click (700, 460) 1 times
+2021-05-15 22:34:26,476   DEBUG  monitor:94  start monitor: ['guild_instance']
+2021-05-15 22:34:27,145   DEBUG  monitor:114  found guild_instance at [(369, 162)]
+2021-05-15 22:34:27,466   DEBUG  click:76  click (369, 162) 1 times
+2021-05-15 22:34:28,438   DEBUG  monitor:94  start monitor: ['boss_card']
+2021-05-15 22:34:29,082   DEBUG  monitor:114  found boss_card at [(174, 125)]
+2021-05-15 22:34:29,398   DEBUG  click:76  click (174, 175) 1 times
+2021-05-15 22:34:30,361   DEBUG  monitor:94  start monitor: ['fight4', 'fight5']
+2021-05-15 22:34:31,019   DEBUG  monitor:114  found fight5 at [(754, 366)]
+2021-05-15 22:34:31,331   DEBUG  click:76  click (754, 366) 1 times
+2021-05-15 22:34:32,338   DEBUG  monitor:94  start monitor: ['start_fight']
+2021-05-15 22:34:32,988   DEBUG  monitor:114  found start_fight at [(667, 228)]
+2021-05-15 22:34:33,299   DEBUG  click:76  click (667, 228) 1 times
+2021-05-15 22:34:36,260   DEBUG  find_all_pos:128  start find all positions of: ['fast_forward1', 'go_last']
+2021-05-15 22:34:36,932   DEBUG  find_all_pos:148  find_all_pos of ['fast_forward1', 'go_last'] at [(837, 57)]
+2021-05-15 22:34:37,249   DEBUG  click:76  click (837, 57) 1 times
+2021-05-15 22:34:38,228   DEBUG  monitor:94  start monitor: ['ok']
+2021-05-15 22:34:38,884   DEBUG  monitor:114  found ok at [(338, 430)]
+2021-05-15 22:34:39,199   DEBUG  click:76  click (338, 430) 1 times
+2021-05-15 22:34:42,171   DEBUG  tap_key:125  tap_key 27 1 times
+2021-05-15 22:34:43,133   DEBUG  monitor:94  start monitor: ['guild_factory']
+2021-05-15 22:34:44,430   DEBUG  monitor:122  monitor ['guild_factory'] timeout. (1 s)
+2021-05-15 22:34:44,490   DEBUG  tap_key:125  tap_key 27 1 times
+2021-05-15 22:34:45,503   DEBUG  monitor:94  start monitor: ['guild_factory']
+2021-05-15 22:34:46,151   DEBUG  monitor:114  found guild_factory at [(651, 405)]
+2021-05-15 22:34:46,465   DEBUG  click:76  click (651, 405) 1 times
+2021-05-15 22:34:47,540   DEBUG  tap_key:125  tap_key 27 1 times
+2021-05-15 22:34:48,497   DEBUG  monitor:94  start monitor: ['guild_factory']
+2021-05-15 22:34:49,151   DEBUG  monitor:114  found guild_factory at [(651, 405)]
+2021-05-15 22:34:49,465   DEBUG  click:76  click (651, 405) 1 times
+2021-05-15 22:34:50,508   DEBUG  monitor:94  start monitor: ['get_order']
+2021-05-15 22:34:51,160   DEBUG  monitor:114  found get_order at [(657, 151)]
+2021-05-15 22:34:51,466   DEBUG  click:76  click (657, 151) 1 times
+2021-05-15 22:34:52,493   DEBUG  find_all_pos:128  start find all positions of: ['start_order']
+2021-05-15 22:34:53,148   DEBUG  find_all_pos:148  find_all_pos of ['start_order'] at [(244, 424)]
+2021-05-15 22:34:53,466   DEBUG  click:76  click (244, 424) 1 times
+2021-05-15 22:34:56,490   DEBUG  find_all_pos:128  start find all positions of: ['start_order']
+2021-05-15 22:34:57,129   DEBUG  find_all_pos:150  no find any pos of ['start_order']
+2021-05-15 22:34:57,433   DEBUG  click:76  click (770, 270) 1 times
+2021-05-15 22:34:58,482   DEBUG  monitor:94  start monitor: ['donate']
+2021-05-15 22:34:59,130   DEBUG  monitor:114  found donate at [(210, 443)]
+2021-05-15 22:34:59,450   DEBUG  click:76  click (210, 443) 1 times
+2021-05-15 22:35:00,481   DEBUG  monitor:94  start monitor: ['ok5']
+2021-05-15 22:35:01,780   DEBUG  monitor:122  monitor ['ok5'] timeout. (1 s)
+2021-05-15 22:35:02,102   DEBUG  click:76  click (200, 170) 1 times
+2021-05-15 22:35:03,127   DEBUG  monitor:94  start monitor: ['ok4']
+2021-05-15 22:35:04,412   DEBUG  monitor:122  monitor ['ok4'] timeout. (1 s)
+2021-05-15 22:35:04,716   DEBUG  click:76  click (310, 170) 1 times
+2021-05-15 22:35:05,690   DEBUG  monitor:94  start monitor: ['ok4']
+2021-05-15 22:35:06,985   DEBUG  monitor:122  monitor ['ok4'] timeout. (1 s)
+2021-05-15 22:35:07,300   DEBUG  click:76  click (540, 170) 1 times
+2021-05-15 22:35:08,305   DEBUG  monitor:94  start monitor: ['ok4']
+2021-05-15 22:35:09,597   DEBUG  monitor:122  monitor ['ok4'] timeout. (1 s)
+2021-05-15 22:35:09,917   DEBUG  click:76  click (700, 170) 1 times
+2021-05-15 22:35:10,917   DEBUG  monitor:94  start monitor: ['ok4']
+2021-05-15 22:35:12,222   DEBUG  monitor:122  monitor ['ok4'] timeout. (1 s)
+2021-05-15 22:35:12,223   DEBUG  monitor:94  start monitor: ['setting']
+2021-05-15 22:35:13,513   DEBUG  monitor:122  monitor ['setting'] timeout. (1 s)
+2021-05-15 22:35:13,576   DEBUG  tap_key:125  tap_key 27 1 times
+2021-05-15 22:35:14,553   DEBUG  monitor:94  start monitor: ['setting']
+2021-05-15 22:35:15,857   DEBUG  monitor:122  monitor ['setting'] timeout. (1 s)
+2021-05-15 22:35:15,919   DEBUG  tap_key:125  tap_key 27 1 times
+2021-05-15 22:35:16,879   DEBUG  monitor:94  start monitor: ['setting']
+2021-05-15 22:35:18,183   DEBUG  monitor:122  monitor ['setting'] timeout. (1 s)
+2021-05-15 22:35:18,245   DEBUG  tap_key:125  tap_key 27 1 times
+2021-05-15 22:35:19,261   DEBUG  monitor:94  start monitor: ['setting']
+2021-05-15 22:35:19,903   DEBUG  monitor:114  found setting at [(827, 397)]
+2021-05-15 23:40:58,116   DEBUG  __init__:64  Using selector: SelectSelector
+2021-05-15 23:41:02,153   DEBUG  monitor:94  start monitor: ['arena']
+2021-05-15 23:41:02,857   DEBUG  monitor:114  found arena at [(151, 268)]
+2021-05-15 23:41:03,162   DEBUG  click:76  click (151, 268) 1 times
+2021-05-15 23:41:04,182   DEBUG  monitor:94  start monitor: ['enter']
+2021-05-15 23:41:04,818   DEBUG  monitor:114  found enter at [(749, 469)]
+2021-05-15 23:41:05,129   DEBUG  click:76  click (749, 469) 1 times
+2021-05-15 23:41:06,119   DEBUG  monitor:94  start monitor: ['fight7']
+2021-05-15 23:41:11,205   DEBUG  monitor:122  monitor ['fight7'] timeout. (5 s)
+2021-05-15 23:41:11,223   DEBUG  monitor:94  start monitor: ['setting']
+2021-05-15 23:41:12,483   DEBUG  monitor:122  monitor ['setting'] timeout. (1 s)
+2021-05-15 23:41:12,546   DEBUG  tap_key:125  tap_key 27 1 times
+2021-05-15 23:41:13,565   DEBUG  monitor:94  start monitor: ['setting']
+2021-05-15 23:41:14,210   DEBUG  monitor:114  found setting at [(827, 397)]
+2021-05-15 23:41:24,410   DEBUG  __init__:64  Using selector: SelectSelector
+2021-05-15 23:41:28,454   DEBUG  monitor:94  start monitor: ['arena']
+2021-05-15 23:41:29,134   DEBUG  monitor:114  found arena at [(181, 268)]
+2021-05-15 23:41:29,447   DEBUG  click:76  click (181, 268) 1 times
+2021-05-15 23:41:30,453   DEBUG  monitor:94  start monitor: ['enter']
+2021-05-15 23:41:31,085   DEBUG  monitor:114  found enter at [(749, 469)]
+2021-05-15 23:41:31,396   DEBUG  click:76  click (749, 469) 1 times
+2021-05-15 23:41:32,422   DEBUG  monitor:94  start monitor: ['fight7']
+2021-05-15 23:41:33,050   DEBUG  monitor:114  found fight7 at [(704, 334)]
+2021-05-15 23:41:33,364   DEBUG  click:76  click (704, 334) 1 times
+2021-05-15 23:41:34,334   DEBUG  monitor:94  start monitor: ['fight8']
+2021-05-15 23:41:34,968   DEBUG  monitor:114  found fight8 at [(659, 415), (658, 250), (659, 332)]
+2021-05-15 23:41:35,280   DEBUG  click:76  click (659, 415) 1 times
+2021-05-15 23:41:36,272   DEBUG  monitor:94  start monitor: ['start_fight']
+2021-05-15 23:41:36,916   DEBUG  monitor:114  found start_fight at [(667, 228)]
+2021-05-15 23:41:37,230   DEBUG  click:76  click (667, 228) 1 times
+2021-05-15 23:41:40,252   DEBUG  find_all_pos:128  start find all positions of: ['fast_forward1', 'go_last']
+2021-05-15 23:41:40,898   DEBUG  find_all_pos:148  find_all_pos of ['fast_forward1', 'go_last'] at [(787, 58), (837, 57)]
+2021-05-15 23:41:41,214   DEBUG  click:76  click (787, 58) 1 times
+2021-05-15 23:41:42,514   DEBUG  click:76  click (837, 57) 1 times
+2021-05-15 23:41:43,485   DEBUG  monitor:94  start monitor: ['card']
+2021-05-15 23:41:52,562   DEBUG  monitor:114  found card at [(596, 274), (272, 273), (434, 274)]
+2021-05-15 23:41:52,881   DEBUG  click:76  click (596, 274) 1 times
+2021-05-15 23:41:54,147   DEBUG  click:76  click (596, 274) 1 times
+2021-05-15 23:41:55,189   DEBUG  monitor:94  start monitor: ['win', 'lose']
+2021-05-15 23:41:55,822   DEBUG  monitor:114  found win at [(432, 179)]
+2021-05-15 23:41:56,132   DEBUG  click:76  click (430, 430) 1 times
+2021-05-15 23:41:59,198   DEBUG  monitor:94  start monitor: ['fight7']
+2021-05-15 23:41:59,839   DEBUG  monitor:114  found fight7 at [(704, 334)]
+2021-05-15 23:42:00,148   DEBUG  click:76  click (704, 334) 1 times
+2021-05-15 23:42:01,182   DEBUG  monitor:94  start monitor: ['fight8']
+2021-05-15 23:42:01,826   DEBUG  monitor:114  found fight8 at [(659, 415), (658, 250), (659, 332)]
+2021-05-15 23:42:02,132   DEBUG  click:76  click (659, 415) 1 times
+2021-05-15 23:42:03,107   DEBUG  monitor:94  start monitor: ['start_fight']
+2021-05-15 23:42:03,742   DEBUG  monitor:114  found start_fight at [(667, 228)]
+2021-05-15 23:42:04,047   DEBUG  click:76  click (667, 228) 1 times
+2021-05-15 23:42:06,900   DEBUG  find_all_pos:128  start find all positions of: ['fast_forward1', 'go_last']
+2021-05-15 23:42:07,557   DEBUG  find_all_pos:148  find_all_pos of ['fast_forward1', 'go_last'] at [(837, 57)]
+2021-05-15 23:42:07,866   DEBUG  click:76  click (837, 57) 1 times
+2021-05-15 23:42:08,911   DEBUG  monitor:94  start monitor: ['card']
+2021-05-15 23:42:17,310   DEBUG  monitor:114  found card at [(272, 274), (434, 273), (596, 273)]
+2021-05-15 23:42:17,615   DEBUG  click:76  click (272, 274) 1 times
+2021-05-15 23:42:18,915   DEBUG  click:76  click (272, 274) 1 times
+2021-05-15 23:42:19,933   DEBUG  monitor:94  start monitor: ['win', 'lose']
+2021-05-15 23:42:20,579   DEBUG  monitor:114  found win at [(432, 179)]
+2021-05-15 23:42:20,900   DEBUG  click:76  click (430, 430) 1 times
+2021-05-15 23:42:23,873   DEBUG  monitor:94  start monitor: ['fight7']
+2021-05-15 23:42:24,520   DEBUG  monitor:114  found fight7 at [(704, 334)]
+2021-05-15 23:42:24,833   DEBUG  click:76  click (704, 334) 1 times
+2021-05-15 23:42:25,833   DEBUG  monitor:94  start monitor: ['fight8']
+2021-05-15 23:42:26,473   DEBUG  monitor:114  found fight8 at [(659, 415), (658, 250), (659, 332)]
+2021-05-15 23:42:26,784   DEBUG  click:76  click (659, 415) 1 times
+2021-05-15 23:42:27,759   DEBUG  monitor:94  start monitor: ['start_fight']
+2021-05-15 23:42:28,395   DEBUG  monitor:114  found start_fight at [(667, 228)]
+2021-05-15 23:42:28,699   DEBUG  click:76  click (667, 228) 1 times
+2021-05-15 23:42:31,646   DEBUG  find_all_pos:128  start find all positions of: ['fast_forward1', 'go_last']
+2021-05-15 23:42:32,296   DEBUG  find_all_pos:148  find_all_pos of ['fast_forward1', 'go_last'] at [(837, 57)]
+2021-05-15 23:42:32,599   DEBUG  click:76  click (837, 57) 1 times
+2021-05-15 23:42:33,589   DEBUG  monitor:94  start monitor: ['card']
+2021-05-15 23:42:45,874   DEBUG  monitor:114  found card at [(272, 274), (434, 274), (596, 274)]
+2021-05-15 23:42:46,186   DEBUG  click:76  click (272, 274) 1 times
+2021-05-15 23:42:47,534   DEBUG  click:76  click (272, 274) 1 times
+2021-05-15 23:42:48,568   DEBUG  monitor:94  start monitor: ['win', 'lose']
+2021-05-15 23:42:49,209   DEBUG  monitor:114  found win at [(432, 179)]
+2021-05-15 23:42:49,517   DEBUG  click:76  click (430, 430) 1 times
+2021-05-15 23:42:52,565   DEBUG  monitor:94  start monitor: ['setting']
+2021-05-15 23:42:53,842   DEBUG  monitor:122  monitor ['setting'] timeout. (1 s)
+2021-05-15 23:42:53,904   DEBUG  tap_key:125  tap_key 27 1 times
+2021-05-15 23:42:54,868   DEBUG  monitor:94  start monitor: ['setting']
+2021-05-15 23:42:55,530   DEBUG  monitor:114  found setting at [(827, 397)]
+2021-05-16 00:08:57,576   DEBUG  __init__:64  Using selector: SelectSelector
+2021-05-16 00:09:00,595   DEBUG  monitor:94  start monitor: ['survival_home']
+2021-05-16 00:09:01,306   DEBUG  monitor:114  found survival_home at [(333, 414)]
+2021-05-16 00:09:01,617   DEBUG  click:76  click (333, 414) 1 times
+2021-05-16 00:09:04,551   DEBUG  find_all_pos:128  start find all positions of: ['food', 'gold', 'oil']
+2021-05-16 00:09:05,195   DEBUG  find_all_pos:148  find_all_pos of ['food', 'gold', 'oil'] at [(684, 857), (793, 856), (243, 975)]
+2021-05-16 00:09:05,533   DEBUG  click:76  click (684, 857) 1 times
+2021-05-16 00:09:06,147   DEBUG  click:76  click (793, 856) 1 times
+2021-05-16 00:09:06,650   DEBUG  click:76  click (243, 975) 1 times
+2021-05-16 00:09:07,178   DEBUG  click:76  click (830, 490) 1 times
+2021-05-16 00:09:08,164   DEBUG  monitor:94  start monitor: ['switch_map']
+2021-05-16 00:09:08,817   DEBUG  monitor:114  found switch_map at [(51, 468)]
+2021-05-16 00:09:09,134   DEBUG  click:76  click (51, 468) 1 times
+2021-05-16 00:09:11,261   DEBUG  find_all_pos:128  start find all positions of: ['field_map']
+2021-05-16 00:09:11,917   DEBUG  find_all_pos:148  find_all_pos of ['field_map'] at [(40, 340), (39, 307), (39, 374)]
+2021-05-16 00:09:12,234   DEBUG  click:76  click (39, 374) 1 times
+2021-05-16 00:09:14,145   DEBUG  find_all_pos:128  start find all positions of: ['box']
+2021-05-16 00:09:14,786   DEBUG  find_all_pos:150  no find any pos of ['box']
+2021-05-16 00:09:15,101   DEBUG  click:76  click (40, 340) 1 times
+2021-05-16 00:09:17,136   DEBUG  find_all_pos:128  start find all positions of: ['box']
+2021-05-16 00:09:17,791   DEBUG  find_all_pos:150  no find any pos of ['box']
+2021-05-16 00:09:18,101   DEBUG  click:76  click (39, 307) 1 times
+2021-05-16 00:09:20,050   DEBUG  find_all_pos:128  start find all positions of: ['box']
+2021-05-16 00:09:20,707   DEBUG  find_all_pos:150  no find any pos of ['box']
+2021-05-16 00:09:21,878   DEBUG  find_all_pos:128  start find all positions of: ['field_map']
+2021-05-16 00:09:22,535   DEBUG  find_all_pos:148  find_all_pos of ['field_map'] at [(40, 321), (41, 287), (39, 355), (40, 422)]
+2021-05-16 00:09:22,851   DEBUG  click:76  click (40, 422) 1 times
+2021-05-16 00:09:24,902   DEBUG  find_all_pos:128  start find all positions of: ['box']
+2021-05-16 00:09:25,565   DEBUG  find_all_pos:150  no find any pos of ['box']
+2021-05-16 00:09:25,886   DEBUG  click:76  click (39, 355) 1 times
+2021-05-16 00:09:27,883   DEBUG  find_all_pos:128  start find all positions of: ['box']
+2021-05-16 00:09:28,538   DEBUG  find_all_pos:150  no find any pos of ['box']
+2021-05-16 00:09:28,852   DEBUG  click:76  click (40, 321) 1 times
+2021-05-16 00:09:30,938   DEBUG  find_all_pos:128  start find all positions of: ['box']
+2021-05-16 00:09:31,588   DEBUG  find_all_pos:148  find_all_pos of ['box'] at [(69, 171)]
+2021-05-16 00:09:31,902   DEBUG  click:76  click (69, 171) 1 times
+2021-05-16 00:09:32,397   DEBUG  click:76  click (41, 287) 1 times
+2021-05-16 00:09:34,315   DEBUG  find_all_pos:128  start find all positions of: ['box']
+2021-05-16 00:09:34,973   DEBUG  find_all_pos:148  find_all_pos of ['box'] at [(364, 409)]
+2021-05-16 00:09:35,286   DEBUG  click:76  click (364, 409) 1 times
+2021-05-16 00:09:36,655   DEBUG  find_all_pos:128  start find all positions of: ['field_map']
+2021-05-16 00:09:37,308   DEBUG  find_all_pos:148  find_all_pos of ['field_map'] at [(40, 340), (39, 306), (39, 374)]
+2021-05-16 00:09:37,618   DEBUG  click:76  click (40, 340) 1 times
+2021-05-16 00:09:39,624   DEBUG  find_all_pos:128  start find all positions of: ['boss']
+2021-05-16 00:09:40,274   DEBUG  find_all_pos:150  no find any pos of ['boss']
+2021-05-16 00:09:40,586   DEBUG  click:76  click (39, 306) 1 times
+2021-05-16 00:09:42,508   DEBUG  find_all_pos:128  start find all positions of: ['boss']
+2021-05-16 00:09:43,153   DEBUG  find_all_pos:150  no find any pos of ['boss']
+2021-05-16 00:09:44,302   DEBUG  find_all_pos:128  start find all positions of: ['field_map']
+2021-05-16 00:09:44,938   DEBUG  find_all_pos:148  find_all_pos of ['field_map'] at [(40, 321), (41, 287), (39, 355), (40, 422)]
+2021-05-16 00:09:45,253   DEBUG  click:76  click (40, 422) 1 times
+2021-05-16 00:09:47,196   DEBUG  find_all_pos:128  start find all positions of: ['boss']
+2021-05-16 00:09:47,857   DEBUG  find_all_pos:150  no find any pos of ['boss']
+2021-05-16 00:09:48,170   DEBUG  click:76  click (39, 355) 1 times
+2021-05-16 00:09:50,086   DEBUG  find_all_pos:128  start find all positions of: ['boss']
+2021-05-16 00:09:50,753   DEBUG  find_all_pos:148  find_all_pos of ['boss'] at [(187, 158)]
+2021-05-16 00:09:51,071   DEBUG  click:76  click (187, 158) 1 times
+2021-05-16 00:09:52,095   DEBUG  monitor:94  start monitor: ['fight6']
+2021-05-16 00:09:52,738   DEBUG  monitor:114  found fight6 at [(444, 443)]
+2021-05-16 00:09:53,053   DEBUG  click:76  click (444, 443) 1 times
+2021-05-16 00:09:54,064   DEBUG  monitor:94  start monitor: ['start_fight']
+2021-05-16 00:09:54,726   DEBUG  monitor:114  found start_fight at [(667, 228)]
+2021-05-16 00:09:54,727   DEBUG  monitor:94  start monitor: ['skip_fight']
+2021-05-16 00:09:56,024   DEBUG  monitor:122  monitor ['skip_fight'] timeout. (1 s)
+2021-05-16 00:09:56,336   DEBUG  click:76  click (667, 228) 1 times
+2021-05-16 00:10:00,308   DEBUG  find_all_pos:128  start find all positions of: ['fast_forward1', 'go_last']
+2021-05-16 00:10:00,967   DEBUG  find_all_pos:148  find_all_pos of ['fast_forward1', 'go_last'] at [(837, 57)]
+2021-05-16 00:10:01,287   DEBUG  click:76  click (837, 57) 1 times
+2021-05-16 00:10:02,270   DEBUG  monitor:94  start monitor: ['win', 'lose']
+2021-05-16 00:10:02,923   DEBUG  monitor:114  found win at [(432, 179)]
+2021-05-16 00:10:03,237   DEBUG  click:76  click (430, 430) 1 times
+2021-05-16 00:10:06,519   DEBUG  click:76  click (40, 321) 1 times
+2021-05-16 00:10:08,444   DEBUG  find_all_pos:128  start find all positions of: ['boss']
+2021-05-16 00:10:09,092   DEBUG  find_all_pos:150  no find any pos of ['boss']
+2021-05-16 00:10:09,403   DEBUG  click:76  click (41, 287) 1 times
+2021-05-16 00:10:11,310   DEBUG  find_all_pos:128  start find all positions of: ['boss']
+2021-05-16 00:10:11,983   DEBUG  find_all_pos:150  no find any pos of ['boss']
+2021-05-16 00:10:11,984   DEBUG  monitor:94  start monitor: ['setting']
+2021-05-16 00:10:13,292   DEBUG  monitor:122  monitor ['setting'] timeout. (1 s)
+2021-05-16 00:10:13,356   DEBUG  tap_key:125  tap_key 27 1 times
+2021-05-16 00:10:14,360   DEBUG  monitor:94  start monitor: ['setting']
+2021-05-16 00:10:15,658   DEBUG  monitor:122  monitor ['setting'] timeout. (1 s)
+2021-05-16 00:10:15,721   DEBUG  tap_key:125  tap_key 27 1 times
+2021-05-16 00:10:16,689   DEBUG  monitor:94  start monitor: ['setting']
+2021-05-16 00:10:17,370   DEBUG  monitor:114  found setting at [(827, 397)]
+2021-05-16 00:13:02,292   DEBUG  __init__:64  Using selector: SelectSelector
+2021-05-16 00:13:05,321   DEBUG  monitor:94  start monitor: ['survival_home']
+2021-05-16 00:13:08,648   DEBUG  monitor:114  found survival_home at [(333, 312)]
+2021-05-16 00:13:08,963   DEBUG  click:76  click (333, 312) 1 times
+2021-05-16 00:13:11,883   DEBUG  find_all_pos:128  start find all positions of: ['food', 'gold', 'oil']
+2021-05-16 00:13:12,537   DEBUG  find_all_pos:150  no find any pos of ['food', 'gold', 'oil']
+2021-05-16 00:13:12,847   DEBUG  click:76  click (830, 490) 1 times
+2021-05-16 00:13:13,872   DEBUG  monitor:94  start monitor: ['switch_map']
+2021-05-16 00:13:14,514   DEBUG  monitor:114  found switch_map at [(51, 468)]
+2021-05-16 00:13:14,831   DEBUG  click:76  click (51, 468) 1 times
+2021-05-16 00:13:17,001   DEBUG  find_all_pos:128  start find all positions of: ['field_map']
+2021-05-16 00:13:17,645   DEBUG  find_all_pos:148  find_all_pos of ['field_map'] at [(40, 340), (39, 306)]
+2021-05-16 00:13:17,964   DEBUG  click:76  click (40, 340) 1 times
+2021-05-16 00:13:19,907   DEBUG  find_all_pos:128  start find all positions of: ['box']
+2021-05-16 00:13:20,565   DEBUG  find_all_pos:150  no find any pos of ['box']
+2021-05-16 00:13:20,882   DEBUG  click:76  click (39, 306) 1 times
+2021-05-16 00:13:22,909   DEBUG  find_all_pos:128  start find all positions of: ['box']
+2021-05-16 00:13:23,579   DEBUG  find_all_pos:150  no find any pos of ['box']
+2021-05-16 00:13:24,760   DEBUG  find_all_pos:128  start find all positions of: ['field_map']
+2021-05-16 00:13:25,424   DEBUG  find_all_pos:148  find_all_pos of ['field_map'] at [(40, 321), (41, 287), (39, 355), (40, 422)]
+2021-05-16 00:13:25,731   DEBUG  click:76  click (40, 422) 1 times
+2021-05-16 00:13:27,740   DEBUG  find_all_pos:128  start find all positions of: ['box']
+2021-05-16 00:13:28,386   DEBUG  find_all_pos:150  no find any pos of ['box']
+2021-05-16 00:13:28,698   DEBUG  click:76  click (39, 355) 1 times
+2021-05-16 00:13:30,782   DEBUG  find_all_pos:128  start find all positions of: ['box']
+2021-05-16 00:13:31,446   DEBUG  find_all_pos:150  no find any pos of ['box']
+2021-05-16 00:13:31,765   DEBUG  click:76  click (40, 321) 1 times
+2021-05-16 00:13:33,802   DEBUG  find_all_pos:128  start find all positions of: ['box']
+2021-05-16 00:13:34,458   DEBUG  find_all_pos:150  no find any pos of ['box']
+2021-05-16 00:13:34,764   DEBUG  click:76  click (41, 287) 1 times
+2021-05-16 00:13:36,757   DEBUG  find_all_pos:128  start find all positions of: ['box']
+2021-05-16 00:13:37,432   DEBUG  find_all_pos:150  no find any pos of ['box']
+2021-05-16 00:13:38,565   DEBUG  find_all_pos:128  start find all positions of: ['field_map']
+2021-05-16 00:13:39,220   DEBUG  find_all_pos:148  find_all_pos of ['field_map'] at [(40, 340), (39, 306), (39, 374)]
+2021-05-16 00:13:39,531   DEBUG  click:76  click (40, 340) 1 times
+2021-05-16 00:13:41,458   DEBUG  find_all_pos:128  start find all positions of: ['boss']
+2021-05-16 00:13:42,155   DEBUG  find_all_pos:150  no find any pos of ['boss']
+2021-05-16 00:13:42,465   DEBUG  click:76  click (39, 306) 1 times
+2021-05-16 00:13:44,401   DEBUG  find_all_pos:128  start find all positions of: ['boss']
+2021-05-16 00:13:45,057   DEBUG  find_all_pos:150  no find any pos of ['boss']
+2021-05-16 00:13:46,243   DEBUG  find_all_pos:128  start find all positions of: ['field_map']
+2021-05-16 00:13:46,905   DEBUG  find_all_pos:148  find_all_pos of ['field_map'] at [(40, 321), (41, 287), (39, 355), (40, 422)]
+2021-05-16 00:13:47,217   DEBUG  click:76  click (40, 422) 1 times
+2021-05-16 00:13:49,125   DEBUG  find_all_pos:128  start find all positions of: ['boss']
+2021-05-16 00:13:49,770   DEBUG  find_all_pos:150  no find any pos of ['boss']
+2021-05-16 00:13:50,082   DEBUG  click:76  click (39, 355) 1 times
+2021-05-16 00:13:52,004   DEBUG  find_all_pos:128  start find all positions of: ['boss']
+2021-05-16 00:13:52,662   DEBUG  find_all_pos:150  no find any pos of ['boss']
+2021-05-16 00:13:52,983   DEBUG  click:76  click (40, 321) 1 times
+2021-05-16 00:13:54,990   DEBUG  find_all_pos:128  start find all positions of: ['boss']
+2021-05-16 00:13:55,636   DEBUG  find_all_pos:148  find_all_pos of ['boss'] at [(807, 209)]
+2021-05-16 00:13:55,948   DEBUG  click:76  click (807, 209) 1 times
+2021-05-16 00:13:56,933   DEBUG  monitor:94  start monitor: ['fight6']
+2021-05-16 00:13:57,588   DEBUG  monitor:114  found fight6 at [(444, 443)]
+2021-05-16 00:13:57,898   DEBUG  click:76  click (444, 443) 1 times
+2021-05-16 00:13:58,897   DEBUG  monitor:94  start monitor: ['start_fight']
+2021-05-16 00:13:59,548   DEBUG  monitor:114  found start_fight at [(667, 228)]
+2021-05-16 00:13:59,549   DEBUG  monitor:94  start monitor: ['skip_fight']
+2021-05-16 00:14:00,848   DEBUG  monitor:122  monitor ['skip_fight'] timeout. (1 s)
+2021-05-16 00:14:01,166   DEBUG  click:76  click (667, 228) 1 times
+2021-05-16 00:14:05,118   DEBUG  find_all_pos:128  start find all positions of: ['fast_forward1', 'go_last']
+2021-05-16 00:14:05,771   DEBUG  find_all_pos:148  find_all_pos of ['fast_forward1', 'go_last'] at [(837, 57)]
+2021-05-16 00:14:06,084   DEBUG  click:76  click (837, 57) 1 times
+2021-05-16 00:14:07,051   DEBUG  monitor:94  start monitor: ['win', 'lose']
+2021-05-16 00:14:07,726   DEBUG  monitor:114  found win at [(432, 179)]
+2021-05-16 00:14:08,034   DEBUG  click:76  click (430, 430) 1 times
+2021-05-16 00:14:10,917   DEBUG  monitor:94  start monitor: ['switch_map']
+2021-05-16 00:14:11,570   DEBUG  monitor:114  found switch_map at [(51, 468)]
+2021-05-16 00:14:11,883   DEBUG  click:76  click (51, 468) 1 times
+2021-05-16 00:14:13,199   DEBUG  click:76  click (41, 287) 1 times
+2021-05-16 00:14:15,204   DEBUG  find_all_pos:128  start find all positions of: ['boss']
+2021-05-16 00:14:15,852   DEBUG  find_all_pos:148  find_all_pos of ['boss'] at [(324, 279), (781, 191)]
+2021-05-16 00:14:16,167   DEBUG  click:76  click (324, 279) 1 times
+2021-05-16 00:14:17,195   DEBUG  monitor:94  start monitor: ['fight6']
+2021-05-16 00:14:17,855   DEBUG  monitor:114  found fight6 at [(444, 443)]
+2021-05-16 00:14:18,167   DEBUG  click:76  click (444, 443) 1 times
+2021-05-16 00:14:19,158   DEBUG  monitor:94  start monitor: ['start_fight']
+2021-05-16 00:14:19,802   DEBUG  monitor:114  found start_fight at [(667, 228)]
+2021-05-16 00:14:19,803   DEBUG  monitor:94  start monitor: ['skip_fight']
+2021-05-16 00:14:21,104   DEBUG  monitor:122  monitor ['skip_fight'] timeout. (1 s)
+2021-05-16 00:14:21,417   DEBUG  click:76  click (667, 228) 1 times
+2021-05-16 00:14:25,438   DEBUG  find_all_pos:128  start find all positions of: ['fast_forward1', 'go_last']
+2021-05-16 00:14:26,093   DEBUG  find_all_pos:148  find_all_pos of ['fast_forward1', 'go_last'] at [(837, 57)]
+2021-05-16 00:14:26,400   DEBUG  click:76  click (837, 57) 1 times
+2021-05-16 00:14:27,392   DEBUG  monitor:94  start monitor: ['win', 'lose']
+2021-05-16 00:14:28,040   DEBUG  monitor:114  found win at [(432, 179)]
+2021-05-16 00:14:28,350   DEBUG  click:76  click (430, 430) 1 times
+2021-05-16 00:14:31,734   DEBUG  click:76  click (781, 191) 1 times
+2021-05-16 00:14:32,730   DEBUG  monitor:94  start monitor: ['fight6']
+2021-05-16 00:14:33,383   DEBUG  monitor:114  found fight6 at [(444, 443)]
+2021-05-16 00:14:33,701   DEBUG  click:76  click (444, 443) 1 times
+2021-05-16 00:14:34,666   DEBUG  monitor:94  start monitor: ['start_fight']
+2021-05-16 00:14:35,317   DEBUG  monitor:114  found start_fight at [(667, 228)]
+2021-05-16 00:14:35,318   DEBUG  monitor:94  start monitor: ['skip_fight']
+2021-05-16 00:14:36,615   DEBUG  monitor:122  monitor ['skip_fight'] timeout. (1 s)
+2021-05-16 00:14:36,935   DEBUG  click:76  click (667, 228) 1 times
+2021-05-16 00:14:40,948   DEBUG  find_all_pos:128  start find all positions of: ['fast_forward1', 'go_last']
+2021-05-16 00:14:41,607   DEBUG  find_all_pos:148  find_all_pos of ['fast_forward1', 'go_last'] at [(837, 57)]
+2021-05-16 00:14:41,919   DEBUG  click:76  click (837, 57) 1 times
+2021-05-16 00:14:42,894   DEBUG  monitor:94  start monitor: ['win', 'lose']
+2021-05-16 00:14:43,538   DEBUG  monitor:114  found win at [(432, 179)]
+2021-05-16 00:14:43,852   DEBUG  click:76  click (430, 430) 1 times
+2021-05-16 00:14:46,862   DEBUG  monitor:94  start monitor: ['switch_map']
+2021-05-16 00:14:47,506   DEBUG  monitor:114  found switch_map at [(51, 468)]
+2021-05-16 00:14:47,818   DEBUG  click:76  click (51, 468) 1 times
+2021-05-16 00:14:48,798   DEBUG  monitor:94  start monitor: ['setting']
+2021-05-16 00:14:50,139   DEBUG  monitor:122  monitor ['setting'] timeout. (1 s)
+2021-05-16 00:14:50,202   DEBUG  tap_key:125  tap_key 27 1 times
+2021-05-16 00:14:51,230   DEBUG  monitor:94  start monitor: ['setting']
+2021-05-16 00:14:52,547   DEBUG  monitor:122  monitor ['setting'] timeout. (1 s)
+2021-05-16 00:14:52,607   DEBUG  tap_key:125  tap_key 27 1 times
+2021-05-16 00:14:53,631   DEBUG  monitor:94  start monitor: ['setting']
+2021-05-16 00:14:54,292   DEBUG  monitor:114  found setting at [(827, 397)]

@@ -71,7 +71,7 @@ class Hand(object):
 
         for _ in range(n):
             await self._do_click((x, y))
-            # await asyncio.sleep(0.05)
+            await asyncio.sleep(0.2)
 
         logger.debug(f"click {pos} {n} times")
         if delay:

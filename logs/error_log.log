@@ -399,3 +399,23 @@ Traceback (most recent call last):
   File "d:/auto_play_3/auto_play.py", line 119, in monitor
     raise FindTimeout(msg)
 FindTimeout: monitor ['guild_instance'] timeout. (5 s)
+2021-05-15 21:49:36,492   ERROR  eye_woker:220  'fast_forward1'
+Traceback (most recent call last):
+  File "d:\auto_play\auto_play.py", line 212, in eye_woker
+    img = eye.img_dict[name]
+KeyError: 'fast_forward1'
+2021-05-15 21:55:20,248   ERROR  <module>:968  list index out of range
+Traceback (most recent call last):
+  File "d:/auto_play/auto_play.py", line 960, in <module>
+    loop.run_until_complete(auto_play())
+  File "C:\Users\liuxi\AppData\Local\Programs\Python\Python37-32\lib\asyncio\base_events.py", line 568, in run_until_complete
+    return future.result()
+  File "d:/auto_play/auto_play.py", line 939, in auto_play
+    await do_play()
+  File "d:/auto_play/auto_play.py", line 928, in do_play
+    await func()
+  File "d:/auto_play/auto_play.py", line 578, in instance_challenge
+    pos = filter_bottom(pos_list)
+  File "d:/auto_play/auto_play.py", line 87, in filter_bottom
+    pos = lst[-1]
+IndexError: list index out of range

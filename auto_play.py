@@ -124,7 +124,7 @@ async def monitor(names, threshold=0.9, timeout=5, filter_func=filter_first):
 
 
 async def find_all_pos(names, threshold=0.8):
-    """return (name, pos), all rease timeout_error"""
+    """return list of pos"""
     logger.debug(f'start find all positions of: {names}')
 
     all_pos = []
@@ -222,42 +222,26 @@ def eye_woker(find_queue, screen_dict, found_queue):
 
 
 async def fight():
-    # done vip 可以跳过战斗
-    try:
-        name, pos = await monitor(['fight', 'fight1', 'start_fight', 'go_last'])
-    except FindTimeout:
-        return 'skip'
+    """do fight, return win or lose"""
+    _, pos = await monitor(['start_fight', 'fight1'])
+    await hand.click(pos, delay=3)
 
-    # 点‘下一场’可能会直接进入战斗
+    try:
+        _, pos = await monitor(['fast_forward1'], timeout=1)
+        await hand.click(pos)
+    except FindTimeout:
+        pass
+
+    await asyncio.sleep(10)
+
+    name, pos = await monitor(['go_last', 'win', 'lose'], timeout=180)
     if name == 'go_last':
         await hand.click(pos)
-        name, _ = await monitor(['win', 'lose'], timeout=180)
-        return name
-    else:
-        try:
-            await monitor(['skip_fight'], threshold=0.97, timeout=1)
-            skip_fight = True
-        except FindTimeout:
-            skip_fight = False
+        name, pos = await monitor(['win', 'lose'], timeout=180)
+    pos_ok = (430, 430)
+    await hand.click(pos_ok, delay=3)
 
-        await hand.click(pos)
-
-        if not skip_fight:
-            await asyncio.sleep(3)
-            try:
-                name, pos = await monitor(['fast_forward', 'go_last'], threshold=0.97)
-                if name == 'fast_forward':
-                    await hand.click(pos)
-                    await asyncio.sleep(5)
-                if name == 'go_last':
-                    await hand.click(pos)
-            except FindTimeout:
-                pass
-            name, pos = await monitor(['win', 'lose', 'go_last'], timeout=180)
-            await hand.click(pos)
-
-        name, _ = await monitor(['win', 'lose'], timeout=180)
-        return name
+    return name
 
 
 async def nextlevel_to_fight(pos):
@@ -418,6 +402,45 @@ async def collect_mail():
     await hand.click(pos)
     await goto_main_interface()
 
+async def fight_friend(max_try=3):
+    max_try = max_try
+    win = False
+    count = 0
+    pos_ok = (340, 430)
+    pos_next = (530, 430)
+    _, pos_fight = await monitor(['start_fight'])
+    try:
+        await monitor(['skip_fight'], threshold=0.97, timeout=1)
+        skip_fight = True
+    except FindTimeout:
+        skip_fight = False
+
+    await hand.click(pos_fight)
+
+    while (not win) and (count < max_try):
+        count += 1
+        if not skip_fight:
+            await asyncio.sleep(3)
+            # 25级以下无法加速，60以下无法快进
+            for _ in range(3):
+                pos_list = await find_all_pos(['fast_forward1', 'go_last'], threshold=0.9)
+                if pos_list:
+                    for pos in pos_list:
+                        await hand.click(pos)
+                    break
+                await asyncio.sleep(1)
+        _, pos = await monitor(['card'], timeout=180)
+        await hand.click(pos)    # 卡片点两次，才会消失
+        await hand.click(pos)
+        fight_res, pos = await monitor(['win', 'lose'])
+        if fight_res == 'win':
+            win = True
+            await hand.click(pos_ok)
+        else:
+            await hand.click(pos_next)
+
+    return fight_res
+
 
 async def friends_interaction():
     try:
@@ -440,24 +463,24 @@ async def friends_interaction():
     await hand.click(pos)
 
     while True:
-        _, pos = await monitor(['search1'])
-        await hand.click(pos)
-        name, pos = await monitor(['fight2', 'ok2'])
-        if name == 'ok2':
+        try:
+            _, pos = await monitor(['search1'], threshold=0.97, timeout=1)
+            await hand.click(pos)
+        except FindTimeout:
+            logger.debug("There is no more boss.")
             await goto_main_interface()
             return
 
+        _, pos = await monitor(['fight2'])
         await hand.click(pos)
         _, pos = await monitor(['fight3'])
         await hand.click(pos)
 
-        res = await fight()
-
-        name, pos = await monitor(['card'])
-        await hand.click(pos)
-        await hand.click(pos)
-        _, pos = await monitor(['ok'])
-        await hand.click(pos)
+        res = await fight_friend()
+        if res != 'win':
+            logger.debug("Can't win the boos")
+            await goto_main_interface()
+            return
 
 
 async def community_assistant():
@@ -508,57 +531,78 @@ async def community_assistant():
     await goto_main_interface()
 
 
+async def fight_challenge():
+    # 25级以下无法加速，60以下无法快进
+    for _ in range(3):
+        pos_list = await find_all_pos(['fast_forward1', 'go_last'], threshold=0.9)
+        if pos_list:
+            for pos in pos_list:
+                await hand.click(pos)
+            break
+        await asyncio.sleep(1)
+
+    fight_res, pos = await monitor(['win', 'lose'], timeout=180)
+    return fight_res
+
+
 async def instance_challenge():
     try:
-        _, pos = await monitor(['challenge1'], threshold=0.98, timeout=1)
+        _, pos = await monitor(['Instance_challenge'], threshold=0.98, timeout=1)
+        await hand.click(pos)
     except FindTimeout:
         logger.debug("No new challenge.")
         return
-    await hand.click(pos)
-
-    while True:
-        try:
-            _, pos = await monitor(['challenge2'], threshold=0.95, timeout=1)
-        except FindTimeout:
-            logger.debug("All challenge finished.")
-            await goto_main_interface()
-            return
+    
+    challenge_list = await find_all_pos(['challenge2'], threshold=0.93)
+    pos_ok = (430, 430)
+    pos_next = (530, 430)
+    for pos in challenge_list:
         await hand.click(pos)
-
-        for _ in range(2):
-            name, pos = await monitor(['challenge3', 'mop_up'], filter_func=filter_bottom)
-            if name == 'challenge3':
-                await hand.click(pos)
-
-                res = await fight()
-
-                name, pos = await monitor(['ok3'])
-                await hand.click(pos)
-                continue   # 第二次直接扫荡，不考虑打不过的情况
+        pos_list = await find_all_pos(['challenge3', 'mop_up'])
+        pos = filter_bottom(pos_list)
+        await hand.click(pos)
+        name, pos = await monitor(['start_fight', 'next_game1'])
+        await hand.click(pos)
+        if name == 'start_fight':
+            await asyncio.sleep(3)
+            res = await fight_challenge()
+            if res != 'win':
+                logger.debug("Fight lose")
             else:
-                await hand.click(pos)
-                try:
-                    _, pos = await monitor(['next_game1'])
-                    await hand.click(pos)
-                except FindTimeout:
-                    pass
-                _, pos = await monitor(['ok3'])
-                await hand.click(pos)
-                break    # 完成了两次扫荡
-
+                await hand.click(pos_next, delay=3)
+                await fight_challenge()
+            await hand.click(pos_ok, delay=3)
+        else:
+            await hand.click(pos_next)
+            await hand.click(pos_ok)
+            
         await hand.tap_key(player_hand.k.escape_key, delay=1)
+    
+    await goto_main_interface()
 
+
+async def fight_guild():
+    _, pos = await monitor(['start_fight'])
+    await hand.click(pos, delay=3)
+    pos_list = await find_all_pos(['fast_forward1', 'go_last'], threshold=0.9)
+    for pos in pos_list:
+        await hand.click(pos)
+    _, pos = await monitor(['ok'], timeout=180)
+    await hand.click(pos, delay=3)
 
 async def guild():
     try:
         _, pos = await monitor(['guild'], threshold=0.97, timeout=1)
+        await hand.click(pos)
     except FindTimeout:
         logger.debug("No new guild event.")
         return
-    await hand.click(pos)
 
-    _, pos = await monitor(['sign_in'])
-    await hand.click(pos)
+    try:
+        _, pos = await monitor(['sign_in'], threshold=0.97, timeout=1)
+        await hand.click(pos)
+    except:
+        pass
     pos_guild_territory = (700, 460)
     await hand.click(pos_guild_territory)
 
@@ -572,10 +616,7 @@ async def guild():
         await hand.click(pos)
         _, pos = await monitor(['fight4', 'fight5'], threshold=0.97, timeout=1)
         await hand.click(pos)
-        res = await fight()
-        _, pos = await monitor(['ok'])
-        await hand.click(pos)
-        await asyncio.sleep(3)
+        await fight_guild()
     except FindTimeout:
         pass
 
@@ -650,7 +691,7 @@ async def jedi_space():
     pos_mop_up = (650, 150)
     await hand.click(pos_mop_up)
 
-    # TODO 这里要改成图像识别，因为点击pos_mop_up的结果不是确定的
+    # done 这里要改成图像识别，因为点击pos_mop_up的结果不是确定的
     try:
         _, pos_plus = await monitor(['plus'], threshold=0.98, timeout=1)
     except FindTimeout:
@@ -661,6 +702,45 @@ async def jedi_space():
     await hand.click(pos_ok)
 
     await goto_main_interface()
+
+
+async def fight_home(max_try=3):
+    max_try = max_try
+    count = 0
+    pos_ok_win = (430, 430)
+    pos_ok_lose = (340, 430)
+    pos_next = (530, 430)
+    _, pos_fight = await monitor(['start_fight'])
+    try:
+        await monitor(['skip_fight'], threshold=0.97, timeout=1)
+        skip_fight = True
+    except FindTimeout:
+        skip_fight = False
+
+    await hand.click(pos_fight)
+
+    while True:
+        count += 1
+        if not skip_fight:
+            await asyncio.sleep(3)
+            # 25级以下无法加速，60以下无法快进
+            for _ in range(3):
+                pos_list = await find_all_pos(['fast_forward1', 'go_last'], threshold=0.9)
+                if pos_list:
+                    for pos in pos_list:
+                        await hand.click(pos)
+                    break
+                await asyncio.sleep(1)
+        fight_res, pos = await monitor(['win', 'lose'], timeout=180)
+        if fight_res == 'win':
+            await hand.click(pos_ok_win, delay=3)
+            return fight_res
+        else:
+            if count < max_try:
+                await hand.click(pos_next, delay=3)
+            else:
+                await hand.click(pos_ok_lose, delay=3)
+                return fight_res
 
 
 async def survival_home():
@@ -675,26 +755,29 @@ async def survival_home():
     pos_fight = (830, 490)
     await hand.click(pos_fight)
 
-    skip_last_map = False
+    # collect box
+    _, pos = await monitor(['switch_map'])
+    await hand.click(pos)
     for num in [-3, 3]:
-        _, pos = await monitor(['switch_map'])
-        await hand.click(pos)
         await hand.move(50, 350)
         await hand.scroll(num)
         map_list = await find_all_pos(['field_map'])
         map_list = sorted(map_list, key=lambda x: x[1], reverse=True)
-
-        # collect box
         for pos in map_list:
             await hand.click(pos, delay=2)
             pos_list = await find_all_pos(['box'])
             for p1 in pos_list:
                 await hand.click(p1, delay=0.2)
 
-        # fight boss
-        pos_ok = (420, 430)
-        pos_next = (530, 430)
-        # 一般，最后一关是打不过的
+    # fight boss
+    skip_last_map = False
+    for num in [-3, 3]:
+        await hand.move(50, 350)
+        await hand.scroll(num)
+        map_list = await find_all_pos(['field_map'])
+        map_list = sorted(map_list, key=lambda x: x[1], reverse=True)
+
+        # 一般，最下那层是打不过的
         if not skip_last_map:
             if len(map_list) > 1:
                 new_map_list = map_list[1:]
@@ -711,15 +794,15 @@ async def survival_home():
                 await hand.click(p1, cheat=False)
                 _, p2 = await monitor(['fight6'])
                 await hand.click(p2)
-                res = await fight()
-                # if res == 'win':
-                #     await hand.click(pos_ok)
-                # else:
-                #     await hand.click(pos_next)
-                while res != 'win':
-                    await hand.click(pos_next)
-                    res = await fight()
-                    
+                res = await fight_home()
+                if res != 'win':
+                    # 打不过，就去打上一层
+                    break
+            # 战斗后，地图会缩回去
+            if pos_list:
+                _, pos = await monitor(['switch_map'])
+                await hand.click(pos)
+                                
     await goto_main_interface()
 
 
@@ -828,11 +911,27 @@ async def market():
             return await goto_main_interface()
             
 
+async def fight_arena():
+    _, pos = await monitor(['start_fight'])
+    await hand.click(pos, delay=3)
+    # 25级以下无法加速，60以下无法快进
+    for _ in range(3):
+        pos_list = await find_all_pos(['fast_forward1', 'go_last'], threshold=0.9)
+        if pos_list:
+            for pos in pos_list:
+                await hand.click(pos)
+            break
+        await asyncio.sleep(1)
+
+    _, pos = await monitor(['card'], timeout=180)
+    await hand.click(pos)
+    await hand.click(pos)
+    fight_res, pos = await monitor(['win', 'lose'])
+    pos_ok = (430, 430)
+    await hand.click(pos_ok, delay=3)
+    return fight_res
+
 async def arena():
-    # "arena": "./pics/arena/arena.jpg",
-    # "enter": "./pics/arena/enter.jpg",
-    # "fight7": "./pics/arena/fight.jpg",
-    # "fight8": "./pics/arena/fight1.jpg",
     await move_to_center()
     _, pos = await monitor(['arena'])
     await hand.click(pos)
@@ -845,33 +944,34 @@ async def arena():
         await hand.click(pos)
         _, pos = await monitor(['fight8'], filter_func=filter_bottom)
         await hand.click(pos)
-        res = await fight()
-        _, pos = await monitor(['card'])
-        await hand.click(pos)
-        await hand.click(pos)
-        _, pos = await monitor(['ok'])
-        await hand.click(pos)
+        res = await fight_arena()
+        if res != 'win':
+            logger.debug('Fight lose.')
+            break
+    
+    await goto_main_interface()
+    
 
 
 
 
 async def do_play():
     funcs = [
-        collect_mail,
-        friends_interaction,
-        community_assistant,
-        instance_challenge,
-        guild,
-        exciting_activities,
-        jedi_space,
+        # collect_mail,
+        # friends_interaction,
+        # community_assistant,
+        # instance_challenge,
+        # guild,
+        # exciting_activities,
+        # jedi_space,
         survival_home,
-        invite_hero,
-        armory,
-        market,
-        arena,
+        # invite_hero,
+        # armory,
+        # market,
+        # arena,
 
-        level_battle,
-        tower_battle,
+        # level_battle,
+        # tower_battle,
     ]
 
     count = 0

@@ -42,6 +42,7 @@ PIC_DICT = {
     'skip_fight': './pics/fight/skip_fight.jpg',
     'start_fight': './pics/fight/start_fight.jpg',
     'fast_forward': './pics/fight/fast_forward.jpg',
+    'fast_forward1': './pics/fight/fast_forward1.jpg',
     'go_last': './pics/fight/go_last.jpg',
     'win': './pics/fight/win.jpg',
     'lose': './pics/fight/lose.jpg',
@@ -77,7 +78,7 @@ PIC_DICT = {
     
     
     "community_assistant": "./pics/main_interface/community_assistant.jpg",
-    "challenge1": "./pics/main_interface/challenge.jpg",
+    # "challenge1": "./pics/main_interface/challenge.jpg",
 
     # mail
     "mail": "./pics/mail/mail.jpg",
@@ -105,6 +106,7 @@ PIC_DICT = {
     "gift_over": "./pics/community_assistant/gift_over.jpg",
 
     # Instance_challenge
+    "Instance_challenge": "./pics/instance_challenge/Instance_challenge.jpg",
     "challenge2": "./pics/instance_challenge/challenge.jpg",
     "challenge3": "./pics/instance_challenge/challenge1.jpg",
     "mop_up": "./pics/instance_challenge/mop_up.jpg",
