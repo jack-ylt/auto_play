@@ -48,7 +48,7 @@ PIC_DICT = {
     'lose': './pics/fight/lose.jpg',
     'ok': './pics/fight/ok.jpg',
     'card': './pics/fight/card.jpg',
-    
+
 
     # level_battle
     'level_battle': './pics/level_battle/level_battle.jpg',
@@ -75,15 +75,15 @@ PIC_DICT = {
     "setting": "./pics/main_interface/setting.jpg",
     # "mail": "./pics/main_interface/mail.jpg",
     # "friends": "./pics/main_interface/friends.jpg",
-    
-    
+
+
     "community_assistant": "./pics/main_interface/community_assistant.jpg",
     # "challenge1": "./pics/main_interface/challenge.jpg",
 
     # mail
     "mail": "./pics/mail/mail.jpg",
     "one_click_collection": "./pics/mail/one_click_collection.jpg",
-    
+
     # friends
     "friends": "./pics/friends/friends.jpg",
     "receive_and_send": "./pics/friends/receive_and_send.jpg",
@@ -148,6 +148,11 @@ PIC_DICT = {
     "invite_soda": "./pics/invite_hero/invite_soda.jpg",
     "invite_beer": "./pics/invite_hero/invite_beer.jpg",
     "ok6": "./pics/invite_hero/ok.jpg",
+    "buy": "./pics/invite_hero/buy.jpg",
+    "close": "./pics/invite_hero/close.jpg",
+    "dismiss_hero": "./pics/invite_hero/dismiss_hero.jpg",
+    "dismiss": "./pics/invite_hero/dismiss.jpg",
+    "receive1": "./pics/invite_hero/receive1.jpg",
 
     # armory
     "armory": "./pics/armory/armory.jpg",
@@ -187,8 +192,10 @@ PIC_DICT = {
     "fight7": "./pics/arena/fight.jpg",
     "fight8": "./pics/arena/fight1.jpg",
 
+    # brave_instance
+    "brave_instance": "./pics/brave_instance/brave_instance.jpg",
+    "current_level": "./pics/brave_instance/current_level.jpg",
 }
-
 
 
 class Eye(object):
@@ -218,8 +225,6 @@ class Eye(object):
         img = cv2.imread(pic_path, 0)
         return img
 
-
-
     def de_duplication(self, pos_list, offset=3):
         """去掉匹配到的重复的图像坐标"""
         new_list = []
@@ -230,7 +235,7 @@ class Eye(object):
             else:
                 for (x1, y1) in new_list[:]:
                     if x1 - offset < x < x1 + offset and \
-                        y1 - offset < y < y1 + offset :
+                            y1 - offset < y < y1 + offset:
                         break
                 else:
                     new_list.append((x, y))
@@ -247,10 +252,8 @@ class Eye(object):
             pos_list[i] = (x, y)
 
         return pos_list
-        
 
-
-    def find_img_pos(self, img_bg, img_target, threshold=0.9):
+    def find_img_pos(self, img_bg, img_target, threshold=0.9, debug=False):
         """find the position of the target_image in background_image.
 
         return a list of postions
@@ -258,6 +261,10 @@ class Eye(object):
         res = cv2.matchTemplate(img_bg, img_target, cv2.TM_CCOEFF_NORMED)
         min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(res)
         locs = np.where(res >= threshold)
+        if debug:
+            msg = 'max_val:', max_val, 'max_loc', max_loc
+            print(msg)
+
         if len(locs[0]) == 0:
             return []
 
@@ -266,10 +273,13 @@ class Eye(object):
         pos_list = self.de_duplication(pos_list)
         pos_list = self.to_center_pos(pos_list, img_target)
         # logger.debug(f"pos_list: {pos_list}")
-        print('max_val:', max_val, 'max_loc', max_loc)
+
+        if debug:
+            print('len:', len(pos_list), 'pos_list:', pos_list)
+
         return pos_list
 
-        # TODO 返回 去重后的 中心坐标 pos_list 就好，过滤交给业务去做
+        # done 返回 去重后的 中心坐标 pos_list 就好，过滤交给业务去做
     def cut_image(self, image, x, y, w, h):
         """cut image file according to (left top width hight)"""
         region = image.crop((x, y, x+w, y+h))
@@ -361,16 +371,40 @@ class Eye(object):
     #     return None
 
 
-if __name__ == '__main__':
+def test(pic_path, similarity=0.96, quantity=1):
+    """寻找合适的目标截图与匹配度
+
+    使得成功匹配率在90%以上，且不会误匹配"""
+    total = 100
+    sucess = 0
+    miss = 0
+    error = 0
     eye = Eye()
-    pos_list = [
-        (3, 3),
-        (1, 3),
-        (9, 9),
-        (10, 11),
-        (9, 20),
-        (99, 21),
-        (99, 100),
-        (2, 2),
-    ]
-    print(eye.de_duplication(pos_list))
+    img_target = eye.read_pic(pic_path)
+
+    for i in range(total):
+        print(i)
+        img_bg = eye.screenshot('./pics/screen.jpg')
+        pos_list = eye.find_img_pos(
+            img_bg, img_target, threshold=similarity, debug=True)
+        if len(pos_list) == quantity:
+            sucess += 1
+        elif len(pos_list) > quantity:
+            # 可以偶尔匹配不上，但不能错匹配
+            error += 1
+        else:
+            miss += 1
+        # sleep(0.1)
+
+    print(f"total: {total}, sucess: {sucess}, miss: {miss}, error: {error}")
+    if error == 0 and (sucess / total > 0.9):
+        print("Test result: pass")
+    else:
+        print("Test result: failed")
+
+
+if __name__ == '__main__':
+    pic_path = "./pics/brave_instance/current_level.jpg"
+    similarity = 0.96
+    quantity = 1
+    test(pic_path, similarity=similarity, quantity=quantity)

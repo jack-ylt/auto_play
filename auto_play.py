@@ -31,7 +31,7 @@ fh.setLevel(logging.DEBUG)
 errh = logging.FileHandler('logs/error_log.log')
 errh.setLevel(logging.ERROR)
 ch = logging.StreamHandler()
-ch.setLevel(logging.DEBUG)
+ch.setLevel(logging.INFO)
 formatter = logging.Formatter(
     '%(asctime)s   %(levelname)s  %(funcName)s:%(lineno)d  %(message)s')
 fh.setFormatter(formatter)
@@ -73,9 +73,6 @@ def filter_rightmost(pos_list):
     """get the rightmost position"""
     pos = max(pos_list)
     return pos
-
-    # TODO 往右偏移50个像素点, 应该移到业务逻辑那里去
-
 
 def filter_first(pos_list):
     pos = pos_list[0]
@@ -157,14 +154,14 @@ def init_worker():
 
 
 async def move_to_left_top():
-    print('move_to_left_top')
+    logger.debug('move_to_left_top')
     p1 = (200, 300)
     p2 = (800, 400)
     await hand.drag(p1, p2)
 
 
 async def move_to_right_top():
-    print('move_to_right_top')
+    logger.debug('move_to_right_top')
     p1 = (700, 200)
     p2 = (200, 400)
     await hand.drag(p1, p2)
@@ -172,7 +169,7 @@ async def move_to_right_top():
 
 
 async def move_to_center():
-    print('move_to_center')
+    logger.debug('move_to_center')
     await move_to_left_top()
     p1 = (500, 300)
     p2 = (200, 300)
@@ -180,6 +177,7 @@ async def move_to_center():
 
 
 async def move_to_left_down():
+    logger.debug('move_to_left_down')
     p1 = (200, 400)
     p2 = (700, 200)
     await hand.drag(p1, p2)
@@ -269,6 +267,7 @@ async def nextlevel_to_fight(pos):
 
 
 async def passed_to_fight():
+    """go from already_passed to fight"""
     try:
         name, pos = await monitor(['next_level2', 'next_level3'], threshold=0.85)
     except FindTimeout:
@@ -283,6 +282,7 @@ async def passed_to_fight():
 
 
 async def hand_upgraded():
+
     await asyncio.sleep(5)
 
     try:
@@ -333,16 +333,11 @@ async def level_battle():
 
     while True:
         res = await fight()
-        # await hand.click(pos)
-        _, pos = await monitor(['ok'])
-        await hand.click(pos)
 
         if res == 'lose':
             logger.debug('Fight fail, so exit')
             # 打不过，就需要升级英雄，更新装备了
             return await goto_main_interface()
-
-        await asyncio.sleep(3)
 
         name, pos = await monitor(['upgraded', 'next_level1'])
         if name == 'upgraded':
@@ -372,15 +367,11 @@ async def tower_battle():
         await hand.click(pos)
 
         res = await fight()
-        _, pos = await monitor(['ok'])
-        await hand.click(pos)
 
         if res == 'lose':
             logger.debug('Fight fail, so exit')
             # 打不过，就需要升级英雄，更新装备了
             return await goto_main_interface()
-            
-        await asyncio.sleep(3)
 
 
 def save_timeout_pic(msg):
@@ -389,6 +380,7 @@ def save_timeout_pic(msg):
     monitor_items = re.search(r'\[.+\]', msg).group()
     log_pic = os.path.join('./timeout_pics', f"{timestr}_{monitor_items}.jpg")
     shutil.copyfile(screen_pic, log_pic)
+    logger.info(f"save_timeout_pic: {monitor_items}")
 
 
 async def collect_mail():
@@ -404,9 +396,9 @@ async def collect_mail():
 
 async def fight_friend(max_try=3):
     max_try = max_try
-    win = False
     count = 0
-    pos_ok = (340, 430)
+    pos_ok_win = (430, 430)
+    pos_ok_lose = (340, 430)
     pos_next = (530, 430)
     _, pos_fight = await monitor(['start_fight'])
     try:
@@ -417,7 +409,7 @@ async def fight_friend(max_try=3):
 
     await hand.click(pos_fight)
 
-    while (not win) and (count < max_try):
+    while True:
         count += 1
         if not skip_fight:
             await asyncio.sleep(3)
@@ -434,11 +426,17 @@ async def fight_friend(max_try=3):
         await hand.click(pos)
         fight_res, pos = await monitor(['win', 'lose'])
         if fight_res == 'win':
-            win = True
-            await hand.click(pos_ok)
+            await hand.click(pos_ok_win)
+            break
         else:
-            await hand.click(pos_next)
+            if count < max_try:
+                await hand.click(pos_next)
+            else:
+                await hand.click(pos_ok_lose)
+                break
 
+    if not skip_fight:
+        await asyncio.sleep(3)
     return fight_res
 
 
@@ -733,14 +731,18 @@ async def fight_home(max_try=3):
                 await asyncio.sleep(1)
         fight_res, pos = await monitor(['win', 'lose'], timeout=180)
         if fight_res == 'win':
-            await hand.click(pos_ok_win, delay=3)
-            return fight_res
+            await hand.click(pos_ok_win)
+            break
         else:
             if count < max_try:
-                await hand.click(pos_next, delay=3)
+                await hand.click(pos_next)
             else:
-                await hand.click(pos_ok_lose, delay=3)
-                return fight_res
+                await hand.click(pos_ok_lose)
+                break
+
+    if not skip_fight:
+        await asyncio.sleep(3)
+    return fight_res
 
 
 async def survival_home():
@@ -806,16 +808,51 @@ async def survival_home():
     await goto_main_interface()
 
 
-async def invite_hero():
+async def dismiss_heroes():
+    _, pos = await monitor(['dismiss_hero'])
+    await hand.click(pos, delay=2)
+    pos_1 = (520, 425)
+    pos_2 = (580, 425)
+    pos_put_into = (150, 440)
+    pos_dismiss = (320, 440)
+
+    await hand.click(pos_1)
+    await hand.click(pos_put_into)
+    await hand.click(pos_dismiss)
+    try:
+        _, pos = await monitor(['receive1'], timeout=1)
+        await hand.click(pos)
+    except FindTimeout:
+        pass
+
+    await hand.click(pos_2)
+    await hand.click(pos_put_into)
+    await hand.click(pos_dismiss)
+    try:
+        _, pos = await monitor(['receive1'], timeout=1)
+        await hand.click(pos)
+    except FindTimeout:
+        pass
+
+    await goto_main_interface()
+
+async def invite_heroes():
     await move_to_left_down()
     _, pos = await monitor(['invite_hero'])
     await hand.click(pos, delay=2)
     pos_list = await find_all_pos(['invite_free', 'invite_soda', 'invite_beer'])
-    print('pos_list', pos_list)
+    
     for pos in pos_list:
         await hand.click(pos)
-        _, pos = await monitor(['ok6'])
+        name, pos = await monitor(['ok6', 'close'])
         await hand.click(pos)
+        # 如果英雄列表满了，就遣散英雄
+        if name == 'close':
+            await goto_main_interface()
+            await dismiss_heroes()
+            _, pos = await monitor(['invite_hero'])
+            await hand.click(pos, delay=2)
+        
     await goto_main_interface()
 
 
@@ -834,7 +871,6 @@ async def armory():
     # 不能每次都薅同一只羊
     len_num = len(pos_types)
     idx = random.choice(range(len_num))
-    print('idx', idx)
     for i in range(len_num):
         pos_type = pos_types[(idx + i) % len_num]
         await hand.click(pos_type)
@@ -964,8 +1000,8 @@ async def do_play():
         # guild,
         # exciting_activities,
         # jedi_space,
-        survival_home,
-        # invite_hero,
+        # survival_home,
+        invite_heroes,
         # armory,
         # market,
         # arena,
@@ -976,6 +1012,7 @@ async def do_play():
 
     count = 0
     for func in funcs:
+        logger.info("Start to run: " + func.__name__)
         try:
             await func()
         except FindTimeout as e:
@@ -983,6 +1020,7 @@ async def do_play():
             save_timeout_pic(str(e))
             await goto_main_interface()
             if count > 3:
+                logger.error('Timeout too many times, so exit')
                 break
 
 
@@ -992,6 +1030,7 @@ async def auto_play():
 
 
 if __name__ == '__main__':
+    start_time = time.time()
     manager = Manager()
     find_queue = manager.Queue()
     found_queue = manager.Queue()
@@ -1026,6 +1065,8 @@ if __name__ == '__main__':
         while not found_queue.empty():
             _ = find_queue.get()
         print('finally')
+        end_time = time.time()
+        print('Cost time:', end_time - start_time)
         # for p in workers:
         #     find_queue.put('STOP')
         #     p.join()
@@ -1059,6 +1100,16 @@ if __name__ == '__main__':
 # 原来是 910 * 520 现在是 960 * 550
 # => 着是多开器搞的鬼，开2个窗口是 960 * 550， 3个则是910 * 520
 # 记录下窗口大小参数，不确定的地方采用图像识别，别的一律用坐标
+
+# TODO timeout 就应该直接退出，方便debug
+
+# TODO 监控boos，设别率太低
+
+# TODO 英雄列表已满
+
+# TODO 页面不打debug，只打印info，每个任务，skip原因
+
+# TODO 解决图像识别率达不够高，导致bug的问题
 
 
 # add one line
