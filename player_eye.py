@@ -133,9 +133,10 @@ PIC_DICT = {
 
     # survival_home
     "survival_home": "./pics/survival_home/survival_home.jpg",
-    "gold": "./pics/survival_home/gold.jpg",
-    "food": "./pics/survival_home/food.jpg",
-    "oil": "./pics/survival_home/oil.jpg",
+    # "gold": "./pics/survival_home/gold.jpg",
+    # "food": "./pics/survival_home/food.jpg",
+    # "oil": "./pics/survival_home/oil.jpg",
+    "resources": "./pics/survival_home/resources.jpg",
     "box": "./pics/survival_home/box.jpg",
     "boss": "./pics/survival_home/boss.jpg",
     "switch_map": "./pics/survival_home/switch_map.jpg",
@@ -195,6 +196,8 @@ PIC_DICT = {
     # brave_instance
     "brave_instance": "./pics/brave_instance/brave_instance.jpg",
     "current_level": "./pics/brave_instance/current_level.jpg",
+    "challenge4": "./pics/brave_instance/challenge4.jpg",
+
 }
 
 
@@ -375,7 +378,7 @@ def test(pic_path, similarity=0.96, quantity=1):
     """寻找合适的目标截图与匹配度
 
     使得成功匹配率在90%以上，且不会误匹配"""
-    total = 100
+    total = 10
     sucess = 0
     miss = 0
     error = 0
@@ -404,7 +407,7 @@ def test(pic_path, similarity=0.96, quantity=1):
 
 
 if __name__ == '__main__':
-    pic_path = "./pics/brave_instance/current_level.jpg"
-    similarity = 0.96
-    quantity = 1
+    pic_path = PIC_DICT['resources']
+    similarity = 0.75
+    quantity = 6
     test(pic_path, similarity=similarity, quantity=quantity)
