@@ -52,9 +52,6 @@ PIC_DICT = {
 
     # level_battle
     'level_battle': './pics/level_battle/level_battle.jpg',
-    # 'box': './pics/level_battle/box.jpg',
-    # 'box1': './pics/level_battle/box1.jpg',
-    # 'box2': './pics/level_battle/box2.jpg',
     'receive': './pics/level_battle/receive.jpg',
     'upgraded': './pics/level_battle/upgraded.jpg',
     'map_unlocked': './pics/level_battle/map_unlocked.jpg',
@@ -62,6 +59,7 @@ PIC_DICT = {
     'search': './pics/level_battle/search.jpg',
     'level_map': './pics/level_battle/level_map.jpg',
     'point': './pics/level_battle/point.jpg',
+    'point3': './pics/level_battle/point3.jpg',
     'ok1': './pics/level_battle/ok1.jpg',
     'already_passed': './pics/level_battle/already_passed.jpg',
     'next_level2': './pics/level_battle/next_level2.jpg',
@@ -122,10 +120,14 @@ PIC_DICT = {
     "fight5": "./pics/guild/fight1.jpg",
     "ok4": "./pics/guild/ok.jpg",
     "ok5": "./pics/guild/ok1.jpg",
+    "ok13": "./pics/guild/ok2.jpg",
     "guild_factory": "./pics/guild/guild_factory.jpg",
+    "order_completed": "./pics/guild/order_completed.jpg",
     "get_order": "./pics/guild/get_order.jpg",
     "start_order": "./pics/guild/start_order.jpg",
     "donate": "./pics/guild/donate.jpg",
+    "box1": "./pics/guild/box1.jpg",
+    "box2": "./pics/guild/box2.jpg",
 
     # jedi_space
     "jedi_space": "./pics/jedi_space/jedi_space.jpg",
@@ -171,6 +173,7 @@ PIC_DICT = {
     "ok7": "./pics/market/ok.jpg",
     "ok8": "./pics/market/ok8.jpg",
     "ok9": "./pics/market/ok9.jpg",
+    "ok10": "./pics/market/ok10.jpg",
     "lack_of_gold": "./pics/market/lack_of_gold.jpg",
 
     "hero_badge": "./pics/market/hero_badge.jpg",
@@ -192,11 +195,16 @@ PIC_DICT = {
     "enter": "./pics/arena/enter.jpg",
     "fight7": "./pics/arena/fight.jpg",
     "fight8": "./pics/arena/fight1.jpg",
+    "reward": "./pics/arena/reward.jpg",
+    "receive2": "./pics/arena/receive2.jpg",
+    "ok12": "./pics/arena/ok12.jpg",
+    
 
     # brave_instance
     "brave_instance": "./pics/brave_instance/brave_instance.jpg",
     "current_level": "./pics/brave_instance/current_level.jpg",
     "challenge4": "./pics/brave_instance/challenge4.jpg",
+    "team_empty": "./pics/brave_instance/team_empty.jpg",
 
 }
 
@@ -224,7 +232,8 @@ class Eye(object):
         # img_rgb = cv2.imread(pic_path)
         # img_gray = cv2.cvtColor(img_rgb, cv2.COLOR_BGR2GRAY)
         if not os.path.exists(pic_path):
-            raise Exception(f"The {pic_path} isn't exists.")
+            msg = f"The {pic_path} isn't exists."
+            raise Exception(msg)
         img = cv2.imread(pic_path, 0)
         return img
 
@@ -374,25 +383,40 @@ class Eye(object):
     #     return None
 
 
-def test(pic_path, similarity=0.96, quantity=1):
+def test(pic_path_list, similarity=0.96, quantity=1):
     """寻找合适的目标截图与匹配度
 
-    使得成功匹配率在90%以上，且不会误匹配"""
-    total = 10
+    使得成功匹配率在90%以上，且不会误匹配
+    有些标志物会动，可能需要多个图片来综合匹配
+    """
+    total = 5
     sucess = 0
     miss = 0
     error = 0
     eye = Eye()
-    img_target = eye.read_pic(pic_path)
+    img_targets = []
+    for pic_path in pic_path_list:
+        img_target = eye.read_pic(pic_path)
+        img_targets.append(img_target)
 
+    all_pos = []
     for i in range(total):
         print(i)
         img_bg = eye.screenshot('./pics/screen.jpg')
-        pos_list = eye.find_img_pos(
-            img_bg, img_target, threshold=similarity, debug=True)
-        if len(pos_list) == quantity:
+
+        for img_target in img_targets:
+            pos_list = eye.find_img_pos(
+                img_bg, img_target, threshold=similarity, debug=True)
+            all_pos.extend(pos_list)
+
+        all_pos = eye.de_duplication(all_pos)
+
+        num_found = len(all_pos)
+        print('num_found:', num_found)
+
+        if num_found== quantity:
             sucess += 1
-        elif len(pos_list) > quantity:
+        elif num_found > quantity:
             # 可以偶尔匹配不上，但不能错匹配
             error += 1
         else:
@@ -407,7 +431,7 @@ def test(pic_path, similarity=0.96, quantity=1):
 
 
 if __name__ == '__main__':
-    pic_path = PIC_DICT['resources']
-    similarity = 0.75
-    quantity = 6
-    test(pic_path, similarity=similarity, quantity=quantity)
+    pic_paths = [PIC_DICT['box1'], PIC_DICT['point3']]
+    similarity = 0.9
+    quantity = 1
+    test(pic_paths, similarity=similarity, quantity=quantity)

@@ -39,10 +39,10 @@ class Hand(object):
                 if not self.during_click:
                     self.during_click = True
                     # 点击，有时候会没反应
-                    m.click(*pos)
-                    # m.press(*pos)
+                    # m.click(*pos)
+                    m.press(*pos)
                     await asyncio.sleep(0.1)
-                    # m.release(*pos)
+                    m.release(*pos)
                     self.during_click = False
                     return 
                 await asyncio.sleep(0.1)
@@ -64,8 +64,8 @@ class Hand(object):
         # if fdelay:
         #     sleep(0.03)   # make shure not click at the same time
         if cheat:
-            x = pos[0] + random.randint(-15, 15)
-            y = pos[1] + random.randint(-8, 8)
+            x = pos[0] + random.randint(-10, 10)
+            y = pos[1] + random.randint(-5, 5)
         else:
             x, y = pos
 
@@ -77,7 +77,7 @@ class Hand(object):
         if delay:
             await self.delay(delay)    # the game need some time to response for the click
         
-    async def drag(self, p1, p2, t = 0.5):
+    async def drag(self, p1, p2, t = 0.2):
         """drag from position 1 to position 2"""
         x = p1[0]
         y = p1[1]
@@ -88,27 +88,31 @@ class Hand(object):
             y += (p2[1] - y)/step
             step -= 1
             m.move(int(x), int(y))
-            await asyncio.sleep(0.05)
+            await asyncio.sleep(0.02)
         m.release(p2[0], p2[1])
         await asyncio.sleep(t)
+        logger.debug(f"drag from {p1} to {p2}")
 
     async def scroll(self, vertical_num, delay=0.5):
         """垂直滚动"""
-        if vertical_num > 0:
-            while vertical_num > 0:
-                vertical_num -= 1
+        num = vertical_num
+        if num > 0:
+            while num > 0:
+                num -= 1
                 m.scroll(1)
-                await asyncio.sleep(0.05)
-        elif vertical_num < 0:
-            while vertical_num < 0:
-                vertical_num += 1
+                await asyncio.sleep(0.1)
+        elif num < 0:
+            while num < 0:
+                num += 1
                 m.scroll(-1)
-                await asyncio.sleep(0.05)
+                await asyncio.sleep(0.1)
         else:
-            return
-
-        if delay:
-            await self.delay(delay)
+            if delay:
+                await self.delay(delay)
+            if vertical_num < 0:
+                logger.debug(f"scroll down {vertical_num}")
+            else:
+                logger.debug(f"scroll up {vertical_num}")
 
     async def move(self, x, y, delay=0.5):
         m.move(x, y)
