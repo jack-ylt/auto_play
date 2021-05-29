@@ -1,6 +1,9 @@
-import cursor
-with cursor.HiddenCursor():     ## Cursor will stay hidden
-    import time                 ## while code is being executed;
-    for a in range(1,100):      ## afterwards it will show up again
-        print(a)
-        time.sleep(0.05)
+
+def f2():
+    print(name)
+
+def f(name):
+    f2()
+
+if __name__ == '__main__':
+    f('jack')

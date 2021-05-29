@@ -16,6 +16,10 @@ from time import sleep, time
 from aip import AipOcr
 from datetime import date
 import os
+import asyncio
+
+from ui_data import PIC_DICT, WIDTH, HIGH
+
 
 # TODAY = str(date.today())
 # LOG_FILE = 'log_' + TODAY + '.log'
@@ -33,180 +37,24 @@ options = {
     'detect_language': 'true'}
 
 # {name: pic_path, ...}
-PIC_DICT = {
-    'screen': './pics/screen.jpg',
-
-    # fight
-    'fight': './pics/fight/fight.jpg',
-    'fight1': './pics/fight/fight1.jpg',
-    'skip_fight': './pics/fight/skip_fight.jpg',
-    'start_fight': './pics/fight/start_fight.jpg',
-    'fast_forward': './pics/fight/fast_forward.jpg',
-    'fast_forward1': './pics/fight/fast_forward1.jpg',
-    'go_last': './pics/fight/go_last.jpg',
-    'win': './pics/fight/win.jpg',
-    'lose': './pics/fight/lose.jpg',
-    'ok': './pics/fight/ok.jpg',
-    'card': './pics/fight/card.jpg',
 
 
-    # level_battle
-    'level_battle': './pics/level_battle/level_battle.jpg',
-    'receive': './pics/level_battle/receive.jpg',
-    'upgraded': './pics/level_battle/upgraded.jpg',
-    'map_unlocked': './pics/level_battle/map_unlocked.jpg',
-    'next_level1': './pics/level_battle/next_level1.jpg',
-    'search': './pics/level_battle/search.jpg',
-    'level_map': './pics/level_battle/level_map.jpg',
-    'point': './pics/level_battle/point.jpg',
-    'point3': './pics/level_battle/point3.jpg',
-    'ok1': './pics/level_battle/ok1.jpg',
-    'already_passed': './pics/level_battle/already_passed.jpg',
-    'next_level2': './pics/level_battle/next_level2.jpg',
-    'next_level3': './pics/level_battle/next_level3.jpg',
+def de_duplication(pos_list, offset=5):
+    """去掉匹配到的重复的图像坐标"""
+    new_list = []
 
-    # warriors_tower
-    'warriors_tower': './pics/warriors_tower/warriors_tower.jpg',
-    'challenge': './pics/warriors_tower/challenge.jpg',
+    for (x, y) in pos_list:
+        if not new_list:
+            new_list.append((x, y))
+        else:
+            for (x1, y1) in new_list[:]:
+                if x1 - offset < x < x1 + offset and \
+                        y1 - offset < y < y1 + offset:
+                    break
+            else:
+                new_list.append((x, y))
 
-    # main_interface
-    "setting": "./pics/main_interface/setting.jpg",
-    # "mail": "./pics/main_interface/mail.jpg",
-    # "friends": "./pics/main_interface/friends.jpg",
-
-
-    "community_assistant": "./pics/main_interface/community_assistant.jpg",
-    # "challenge1": "./pics/main_interface/challenge.jpg",
-
-    # mail
-    "mail": "./pics/mail/mail.jpg",
-    "one_click_collection": "./pics/mail/one_click_collection.jpg",
-
-    # friends
-    "friends": "./pics/friends/friends.jpg",
-    "receive_and_send": "./pics/friends/receive_and_send.jpg",
-    "30_friends": "./pics/friends/30_friends.jpg",
-    "apply": "./pics/friends/apply.jpg",
-    "friends_help": "./pics/friends/friends_help.jpg",
-    "search1": "./pics/friends/search1.jpg",
-    "fight2": "./pics/friends/fight2.jpg",
-    "fight3": "./pics/friends/fight3.jpg",
-    "ok2": "./pics/friends/ok2.jpg",
-
-
-    # community_assistant
-    "guess_ring": "./pics/community_assistant/guess_ring.jpg",
-    "cup": "./pics/community_assistant/cup.jpg",
-    "next_game": "./pics/community_assistant/next_game.jpg",
-    "have_a_drink": "./pics/community_assistant/have_a_drink.jpg",
-    "gift": "./pics/community_assistant/gift.jpg",
-    "start_turntable": "./pics/community_assistant/start_turntable.jpg",
-    "gift_over": "./pics/community_assistant/gift_over.jpg",
-
-    # Instance_challenge
-    "Instance_challenge": "./pics/instance_challenge/Instance_challenge.jpg",
-    "challenge2": "./pics/instance_challenge/challenge.jpg",
-    "challenge3": "./pics/instance_challenge/challenge1.jpg",
-    "mop_up": "./pics/instance_challenge/mop_up.jpg",
-    "next_game1": "./pics/instance_challenge/next_game.jpg",
-    "ok3": "./pics/instance_challenge/ok.jpg",
-
-    # guild
-    "guild": "./pics/guild/guild.jpg",
-    "sign_in": "./pics/guild/sign_in.jpg",
-    "guild_instance": "./pics/guild/guild_instance.jpg",
-    "boss_card": "./pics/guild/boss_card.jpg",
-    "fight4": "./pics/guild/fight.jpg",
-    "fight5": "./pics/guild/fight1.jpg",
-    "ok4": "./pics/guild/ok.jpg",
-    "ok5": "./pics/guild/ok1.jpg",
-    "ok13": "./pics/guild/ok2.jpg",
-    "guild_factory": "./pics/guild/guild_factory.jpg",
-    "order_completed": "./pics/guild/order_completed.jpg",
-    "get_order": "./pics/guild/get_order.jpg",
-    "start_order": "./pics/guild/start_order.jpg",
-    "donate": "./pics/guild/donate.jpg",
-    "box1": "./pics/guild/box1.jpg",
-    "box2": "./pics/guild/box2.jpg",
-
-    # jedi_space
-    "jedi_space": "./pics/jedi_space/jedi_space.jpg",
-    "plus": "./pics/jedi_space/plus.jpg",
-
-    # survival_home
-    "survival_home": "./pics/survival_home/survival_home.jpg",
-    # "gold": "./pics/survival_home/gold.jpg",
-    # "food": "./pics/survival_home/food.jpg",
-    # "oil": "./pics/survival_home/oil.jpg",
-    "resources": "./pics/survival_home/resources.jpg",
-    "box": "./pics/survival_home/box.jpg",
-    "boss": "./pics/survival_home/boss.jpg",
-    "switch_map": "./pics/survival_home/switch_map.jpg",
-    "field_map": "./pics/survival_home/field_map.jpg",
-    "fight6": "./pics/survival_home/fight.jpg",
-
-    # invite_hero
-    "invite_hero": "./pics/invite_hero/invite_hero.jpg",
-    "invite_free": "./pics/invite_hero/invite_free.jpg",
-    "invite_soda": "./pics/invite_hero/invite_soda.jpg",
-    "invite_beer": "./pics/invite_hero/invite_beer.jpg",
-    "ok6": "./pics/invite_hero/ok.jpg",
-    "buy": "./pics/invite_hero/buy.jpg",
-    "close": "./pics/invite_hero/close.jpg",
-    "dismiss_hero": "./pics/invite_hero/dismiss_hero.jpg",
-    "dismiss": "./pics/invite_hero/dismiss.jpg",
-    "receive1": "./pics/invite_hero/receive1.jpg",
-
-    # armory
-    "armory": "./pics/armory/armory.jpg",
-    "arms": "./pics/armory/arms.jpg",
-
-    # market
-    "market": "./pics/market/market.jpg",
-    "refresh": "./pics/market/refresh.jpg",
-    "refresh1": "./pics/market/refresh1.jpg",
-    "refresh2": "./pics/market/refresh2.jpg",
-    "refresh3": "./pics/market/refresh3.jpg",
-    "get_for_free": "./pics/market/get_for_free.jpg",
-    "get_for_free1": "./pics/market/get_for_free1.jpg",
-    "get_for_free2": "./pics/market/get_for_free2.jpg",
-    "ok7": "./pics/market/ok.jpg",
-    "ok8": "./pics/market/ok8.jpg",
-    "ok9": "./pics/market/ok9.jpg",
-    "ok10": "./pics/market/ok10.jpg",
-    "lack_of_gold": "./pics/market/lack_of_gold.jpg",
-
-    "hero_badge": "./pics/market/hero_badge.jpg",
-    "task_ticket": "./pics/market/task_ticket.jpg",
-    "soda_water1": "./pics/market/soda_water1.jpg",
-    "soda_water2": "./pics/market/soda_water2.jpg",
-    "soda_water3": "./pics/market/soda_water3.jpg",
-
-    "hero_shard_3_1": "./pics/market/hero_shard_3_1.jpg",
-    "hero_shard_3_2": "./pics/market/hero_shard_3_2.jpg",
-    "hero_shard_3_3": "./pics/market/hero_shard_3_3.jpg",
-    "hero_shard_3_4": "./pics/market/hero_shard_3_4.jpg",
-    "hero_shard_4_1": "./pics/market/hero_shard_4_1.jpg",
-    "hero_shard_4_2": "./pics/market/hero_shard_4_2.jpg",
-    "hero_shard_4_3": "./pics/market/hero_shard_4_3.jpg",
-
-    # arena
-    "arena": "./pics/arena/arena.jpg",
-    "enter": "./pics/arena/enter.jpg",
-    "fight7": "./pics/arena/fight.jpg",
-    "fight8": "./pics/arena/fight1.jpg",
-    "reward": "./pics/arena/reward.jpg",
-    "receive2": "./pics/arena/receive2.jpg",
-    "ok12": "./pics/arena/ok12.jpg",
-    
-
-    # brave_instance
-    "brave_instance": "./pics/brave_instance/brave_instance.jpg",
-    "current_level": "./pics/brave_instance/current_level.jpg",
-    "challenge4": "./pics/brave_instance/challenge4.jpg",
-    "team_empty": "./pics/brave_instance/team_empty.jpg",
-
-}
+    return new_list
 
 
 class Eye(object):
@@ -237,22 +85,7 @@ class Eye(object):
         img = cv2.imread(pic_path, 0)
         return img
 
-    def de_duplication(self, pos_list, offset=3):
-        """去掉匹配到的重复的图像坐标"""
-        new_list = []
 
-        for (x, y) in pos_list:
-            if not new_list:
-                new_list.append((x, y))
-            else:
-                for (x1, y1) in new_list[:]:
-                    if x1 - offset < x < x1 + offset and \
-                            y1 - offset < y < y1 + offset:
-                        break
-                else:
-                    new_list.append((x, y))
-
-        return new_list
 
     def to_center_pos(self, pos_list, img_target):
         """转化为图像中心的坐标"""
@@ -282,7 +115,7 @@ class Eye(object):
 
         pos_list = list(zip(*locs[::-1]))
         pos_list.insert(0, max_loc)    # 使得默认能获取匹配度最高的位置
-        pos_list = self.de_duplication(pos_list)
+        pos_list = de_duplication(pos_list)
         pos_list = self.to_center_pos(pos_list, img_target)
         # logger.debug(f"pos_list: {pos_list}")
 
@@ -409,7 +242,7 @@ def test(pic_path_list, similarity=0.96, quantity=1):
                 img_bg, img_target, threshold=similarity, debug=True)
             all_pos.extend(pos_list)
 
-        all_pos = eye.de_duplication(all_pos)
+        all_pos = de_duplication(all_pos)
 
         num_found = len(all_pos)
         print('num_found:', num_found)
@@ -429,6 +262,68 @@ def test(pic_path_list, similarity=0.96, quantity=1):
     else:
         print("Test result: failed")
 
+
+eye = Eye()
+
+async def dispatch(queue, event, exe, found):
+    def find(*args):
+        return eye.find_img_pos(*args)
+    
+    bg_dict = {}
+
+    while True:
+        asyncio.sleep(1)
+        item_list = []
+        
+        while not queue.empty():
+            item = await queue.get()
+            item_list.append(item)
+
+        if not item_list:
+            continue
+        
+        for k in ['left_top', 'left_down']:
+            found[k] = []
+
+        screen = eye.screenshot(PIC_DICT['screen'])
+        bg_dict['left_top'] = eye.cut_image(screen, 0, 0, WIDTH, HIGH)
+        bg_dict['left_down'] = eye.cut_image(screen, 0, HIGH, WIDTH, HIGH)
+
+        to_be_find = []
+        name_list = []
+        for item in item_list:
+            window_name, pic_name_list, threshold = item
+            img_bg = bg_dict[window_name]
+            for pic_name in pic_name_list:
+                name_list.append((window_name, pic_name))
+                img = eye.img_dict[pic_name]
+                to_be_find.append(img_bg, img, threshold)
+        
+        idx = 0
+        pre_name = None
+        for pos_list in exe.map(find, to_be_find):
+            window_name, pic_name = name_list[idx]
+            print("found", window_name, pic_name, 'at', pos_list)
+
+            if pre_name is None:
+                pre_name = window_name
+            if window_name != pre_name:
+                event.set()    # 某个客户端的所有查找任务都完成了，发通知
+                print('pre_name', pre_name, 'set event')
+                pre_name = window_name
+                event.clear()
+
+            found[window_name].append((pic_name, pos_list))
+
+            idx += 1
+
+        event.set()    # 最后一个客户端的所有查找任务都完成了，发通知
+        print('the last window_name', window_name, 'set event')
+        event.clear()
+
+
+
+ 
 
 if __name__ == '__main__':
     pic_paths = [PIC_DICT['box1'], PIC_DICT['point3']]

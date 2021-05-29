@@ -6,11 +6,11 @@
 
 from logging import handlers
 import logging
-import concurrent.futures
 from multiprocessing import Process, Manager, Pool
 import time
 import os
 import asyncio
+from asyncio import wait_for, TimeoutError
 import sys
 import signal
 import shutil
@@ -20,9 +20,13 @@ import math
 import random
 from operator import itemgetter
 from playsound import playsound
+import concurrent.futures
 
 import player_eye
 import player_hand
+
+from player import FindTimeout
+
 
 skip_fight = None
 
@@ -71,13 +75,6 @@ def service_shutdown(signum, frame):
     raise ServiceExit
 
 
-class FindTimeout(Exception):
-    """
-    when no found and timeout, raise 
-    """
-    pass
-
-
 def filter_rightmost(pos_list):
     """get the rightmost position"""
     pos = max(pos_list)
@@ -93,76 +90,6 @@ def filter_bottom(pos_list):
     lst = sorted(pos_list, key=lambda x: x[1])
     pos = lst[-1]
     return pos
-
-
-async def monitor(names, threshold=0.8, timeout=5, filter_func=filter_first):
-    """return (name, pos), all rease timeout_error"""
-    start_time = time.time()
-    logger.debug(f'start monitor: {names}')
-
-    count = 0
-    result = None
-    while time.time() - start_time < timeout:
-        # logger.debug(f'count: {count}')
-        count += 1
-        # player_hand.m.move(-10, -10)    # hide the mouse
-        # 移走鼠标，很难结束程序
-        screen = eye.screenshot(player_eye.PIC_DICT['screen'])
-        screen_dict['screen'] = screen
-        for name in names:
-            find_queue.put((name, threshold))
-            # 有时候一个页面可能有多个标志物，所以需要个优先级
-            await asyncio.sleep(0.05)
-
-        await asyncio.sleep(0.5)
-
-        for _ in range(len(names)):
-            name, pos_list = found_queue.get()
-            # logger.debug(f'name: {name} pos: {pos}')
-            if pos_list:
-                logger.debug(f'found {name} at {pos_list}')
-                if result is None:
-                    # 已第一个found的结果为准
-                    pos = filter_func(pos_list)
-                    result = (name, pos)  # 这会导致后面的res覆盖前面的
-
-        if result:
-            return result
-
-    msg = (f"monitor {names} timeout. ({timeout} s)")
-    logger.debug(msg)
-    raise FindTimeout(msg)
-
-
-async def find_all_pos(names, threshold=0.8):
-    """return list of pos"""
-    logger.debug(f'start find all positions of: {names}')
-
-    all_pos = []
-
-    screen = eye.screenshot(player_eye.PIC_DICT['screen'])
-    screen_dict['screen'] = screen
-    for name in names:
-        find_queue.put((name, threshold))
-
-    await asyncio.sleep(0.5)
-
-    for _ in range(len(names)):
-        name, pos_list = found_queue.get()
-        if pos_list:
-            all_pos.extend(pos_list)
-
-    # 多个pic的情况下，可能会有重合
-    all_pos = eye.de_duplication(all_pos)
-    all_pos.sort()
-
-    if all_pos:
-        logger.debug(f'find_all_pos of {names} at {all_pos}')
-    else:
-        logger.debug(f'no find any pos of {names}')
-
-    return all_pos
-
 
 def init_worker():
     signal.signal(signal.SIGINT, signal.SIG_IGN)
@@ -744,8 +671,8 @@ async def jedi_space():
         return await goto_main_interface()
     for _ in range(5):
         await hand.click(pos_plus, cheat=False, delay=0.2)
-    pos_ok = (420, 360)
-    await hand.click(pos_ok)
+    pos_ok1 = (420, 360)
+    await hand.click(pos_ok1)
 
     await goto_main_interface()
 
@@ -936,7 +863,7 @@ async def armory():
         (820, 440),
     ]
     pos_quantity = (220, 330)
-    pos_ok = (810, 480)
+    pos_enter = (810, 480)
     pos_forging = (250, 450)
     # 不能每次都薅同一只羊
     len_num = len(pos_types)
@@ -954,7 +881,7 @@ async def armory():
             await hand.click(pos)
             await hand.click(pos_quantity)
             await hand.tap_key('3')
-            await hand.click(pos_ok)
+            await hand.click(pos_enter)
             await hand.click(pos_forging)
             break
     else:
@@ -1183,7 +1110,7 @@ def need_run(func):
 
     name = func.__name__
 
-    if name in ['arena', 'armory', 'invite_heroes']:
+    if name in ['arena', 'armory', 'invite_heroes', 'jedi_space']:
         # 只在下午运行
         if is_pm():
             return True
@@ -1191,6 +1118,7 @@ def need_run(func):
             logger.info(f"Skip to run {name}, for it isn't PM now.")
     elif name in ['brave_instance']:
         # 只在单数日期运行
+        return True
         if is_odd_day() and is_pm():
             return True
         else:
@@ -1202,21 +1130,21 @@ def need_run(func):
 
 async def do_play():
     funcs = [
-        # collect_mail,
-        # friends_interaction,
-        # community_assistant,
-        # instance_challenge,
+        collect_mail,
+        friends_interaction,
+        community_assistant,
+        instance_challenge,
         guild,
-        # exciting_activities,
-        # jedi_space,
-        # survival_home,
-        # market,
-        # invite_heroes,
-        # level_battle,
-        # arena,
-        # armory,
-        # tower_battle,
-        # brave_instance,
+        exciting_activities,
+        jedi_space,
+        survival_home,
+        market,
+        invite_heroes,
+        level_battle,
+        arena,
+        armory,
+        tower_battle,
+        brave_instance,
     ]
 
     count = 0
@@ -1240,6 +1168,23 @@ async def auto_play():
     await asyncio.sleep(2)
     await do_play()
 
+
+async def play(windows_name):
+    print(windows_name)
+    await asyncio.sleep(2)
+    print(windows_name, '2')
+
+
+
+
+
+    # with concurrent.futures.ProcessPoolExecutor() as pool:
+    #     while True:
+    #         items = []
+    #         while not queue.empty():
+    #             items.append(await queue.get())
+    #         result = await loop.run_in_executor(pool, eye_woker())
+    #         print("custom process pool", result)
 
 if __name__ == '__main__':
     start_time = time.time()
