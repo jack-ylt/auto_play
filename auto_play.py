@@ -1,78 +1,19 @@
-# -*-coding:utf-8-*-
-##############################################################################
-# 模拟玩家，自动玩游戏，打怪升级、做任务。
-#
-##############################################################################
-
-from logging import handlers
-import logging
-from multiprocessing import Process, Manager, Pool
 import time
 import os
 import asyncio
-from asyncio import wait_for, TimeoutError
-import sys
-import signal
 import shutil
 import datetime
 import re
-import math
 import random
 from operator import itemgetter
 from playsound import playsound
-import concurrent.futures
+from ui_data import SCREEN_DICT
+from player import Player, FindTimeout
 
-import player_eye
-import player_hand
-
-from player import FindTimeout
-
+import logging
+logger = logging.getLogger(__name__)
 
 skip_fight = None
-
-# log 设置：先设置root logger, 然后再每个模块引入自己的logger（名字是自己的模块名，设置继承root logger
-logger = logging.getLogger()
-logger.setLevel(logging.DEBUG)
-fh = handlers.TimedRotatingFileHandler('logs/all_log.log', when='D')
-fh.setLevel(logging.DEBUG)
-errh = logging.FileHandler('logs/error_log.log')
-errh.setLevel(logging.ERROR)
-ch = logging.StreamHandler()
-
-debug = True
-if debug:
-    ch.setLevel(logging.DEBUG)
-else:
-    ch.setLevel(logging.INFO)
-
-formatter = logging.Formatter(
-    '%(asctime)s   %(levelname)s  %(funcName)s:%(lineno)d  %(message)s')
-fh.setFormatter(formatter)
-ch.setFormatter(formatter)
-errh.setFormatter(formatter)
-logger.addHandler(fh)
-logger.addHandler(errh)
-logger.addHandler(ch)
-
-
-eye = player_eye.Eye()
-hand = player_hand.Hand()
-
-
-#
-# stop script
-#
-class ServiceExit(Exception):
-    """
-    Custom exception which is used to trigger the clean exit
-    of all running threads and the main program.
-    """
-    pass
-
-
-def service_shutdown(signum, frame):
-    logger.debug('Caught signal %d' % signum)
-    raise ServiceExit
 
 
 def filter_rightmost(pos_list):
@@ -91,243 +32,1015 @@ def filter_bottom(pos_list):
     pos = lst[-1]
     return pos
 
-def init_worker():
-    signal.signal(signal.SIGINT, signal.SIG_IGN)
 
+class AutoPlay(object):
+    def __init__(self, player):
+        self.player = player
 
-async def move_to_left_top():
-    logger.debug('move_to_left_top')
-    p1 = (200, 300)
-    p2 = (800, 400)
-    await hand.drag(p1, p2)
-    await hand.drag(p1, p2)
+    #
+    # public functions
+    #
+    async def _move_to_left_top(self):
+        logger.debug('_move_to_left_top')
+        p1 = (200, 300)
+        p2 = (800, 400)
+        await self.player.drag(p1, p2)
+        await self.player.drag(p1, p2)
 
+    async def _move_to_right_top(self):
+        logger.debug('_move_to_right_top')
+        p1 = (700, 200)
+        p2 = (200, 400)
+        await self.player.drag(p1, p2)
+        await self.player.drag(p1, p2)
 
-async def move_to_right_top():
-    logger.debug('move_to_right_top')
-    p1 = (700, 200)
-    p2 = (200, 400)
-    await hand.drag(p1, p2)
-    await hand.drag(p1, p2)
+    async def _move_to_center(self):
+        logger.debug('_move_to_center')
+        await self._move_to_left_top()
+        p1 = (500, 300)
+        p2 = (200, 300)
+        await self.player.drag(p1, p2)
 
+    async def _move_to_left_down(self):
+        logger.debug('_move_to_left_down')
+        p1 = (200, 400)
+        p2 = (700, 200)
+        await self.player.drag(p1, p2)
+        await self.player.drag(p1, p2)
 
-async def move_to_center():
-    logger.debug('move_to_center')
-    await move_to_left_top()
-    p1 = (500, 300)
-    p2 = (200, 300)
-    await hand.drag(p1, p2)
+    async def goto_main_interface(self):
+        for _ in range(5):
+            try:
+                _, pos = await self.player.monitor(['setting'], timeout=1)
+                # await self.player.click((855, 45), cheat=False)    # 去掉一些遗留界面
+                break
+            except FindTimeout:
+                await self.player.go_back()
+        else:
+            msg = "goto main interface failed"
+            logger.error(msg, exc_info=True)
+            raise Exception(msg)
 
-
-async def move_to_left_down():
-    logger.debug('move_to_left_down')
-    p1 = (200, 400)
-    p2 = (700, 200)
-    await hand.drag(p1, p2)
-    await hand.drag(p1, p2)
-
-
-async def goto_main_interface():
-    for _ in range(5):
+    async def _equip_team(self):
         try:
-            _, pos = await monitor(['setting'], timeout=1)
-            # await hand.click((855, 45), cheat=False)    # 去掉一些遗留界面
-            break
+            _, _ = await self.player.monitor(['team_empty'], timeout=2)
         except FindTimeout:
-            await hand.tap_key(player_hand.k.escape_key, delay=1)
-    else:
-        msg = "goto main interface failed"
-        logger.error(msg, exc_info=True)
-        raise FindTimeout(msg)
+            return True
 
+        x = 120
+        y = 450
+        dx = 65
+        for _ in range(6):
+            await self.player.click((x, y), delay=0.2)
+            x += dx
 
-def eye_woker(find_queue, screen_dict, found_queue):
-    while True:
+        return True
+
+    async def _fight(self):
+        """do fight, return win or lose"""
+        _, pos = await self.player.monitor(['start_fight', 'fight1'])
+        await self.player.click(pos, delay=3)
+
         try:
-            if not find_queue.empty():
-                item = find_queue.get()
-                if item == 'STOP':
-                    logger.debug('get STOP, so exit')
-                    break
-                name, threshold = item
-                # logger.info(f'{name}, {threshold}, {filter_func}')
-                img = eye.img_dict[name]
-                img_bg = screen_dict['screen']
-                pos_list = eye.find_img_pos(img_bg, img, threshold)
-                found_queue.put((name, pos_list))
-            time.sleep(0.2)
-        except KeyboardInterrupt:
-            logger.info('eye_woker stoped by user')
-        except Exception as e:
-            logger.error(str(e), exc_info=True)
-            break
+            _, pos = await self.player.monitor(['fast_forward1'], timeout=1)
+            await self.player.click(pos)
+        except FindTimeout:
+            pass
 
-
-async def fight():
-    """do fight, return win or lose"""
-    _, pos = await monitor(['start_fight', 'fight1'])
-    await hand.click(pos, delay=3)
-
-    try:
-        _, pos = await monitor(['fast_forward1'], timeout=1)
-        await hand.click(pos)
-    except FindTimeout:
-        pass
-
-    await asyncio.sleep(10)
-
-    name, pos = await monitor(['go_last', 'win', 'lose'], timeout=180)
-    if name == 'go_last':
-        await hand.click(pos)
-        name, pos = await monitor(['win', 'lose'], timeout=180)
-    pos_ok = (430, 430)
-    await hand.click(pos_ok, delay=3)
-
-    return name
-
-
-async def nextlevel_to_fight(pos):
-    """go from next_level to fight"""
-    await hand.click(pos)
-    try:
-        name, pos = await monitor(['search', 'level_map'])
-    except FindTimeout:
-        return False
-        # 打到当前等级的关卡上限了
-    if name == 'search':
-        await hand.click(pos)
-        await asyncio.sleep(10)    # TODO vip no need 10s
-    else:
-        # await asyncio.sleep(3)
-        # _, pos = await monitor(['point'], threshold=0.9, filter_func=filter_rightmost)
-        await asyncio.sleep(5)
-        pos_list = await find_all_pos(['point', 'point3'], threshold=0.9)
-        pos = filter_rightmost(pos_list)
-        await hand.click((pos[0] + 50, pos[1]))    # 往右偏移一点，刚好能点击进入到下一个大关卡
-        _, pos = await monitor(['ok1'])
-        await hand.click(pos)
         await asyncio.sleep(10)
 
-    _, pos = await monitor(['fight'])
-    await hand.click(pos)
-    return True
+        name, pos = await self.player.monitor(['go_last', 'win', 'lose'], timeout=240)
+        if name == 'go_last':
+            await self.player.click(pos)
+            name, pos = await self.player.monitor(['win', 'lose'], timeout=240)
+        pos_ok = (430, 430)
+        await self.player.click(pos_ok, delay=3)
 
+        return name
 
-async def passed_to_fight():
-    """go from already_passed to fight"""
-    try:
-        name, pos = await monitor(['next_level2', 'next_level3'], threshold=0.85)
-    except FindTimeout:
-        return False
-    await hand.click(pos, cheat=False)
-    _, pos = await monitor(['search'])
-    await hand.click(pos)
-    await asyncio.sleep(10)
-    _, pos = await monitor(['fight'])
-    await hand.click(pos)
-    return True
+    #
+    # level_battle
+    #
 
+    async def _nextlevel_to_fight(self, pos):
+        """go from next_level to fight"""
+        await self.player.click(pos)
+        try:
+            name, pos = await self.player.monitor(['search', 'level_map'])
+        except FindTimeout:
+            return False
+            # 打到当前等级的关卡上限了
+        if name == 'search':
+            await self.player.click(pos)
+            await asyncio.sleep(10)    # TODO vip no need 10s
+        else:
+            # await asyncio.sleep(3)
+            # _, pos = await self.player.monitor(['point'], threshold=0.9, filter_func=filter_rightmost)
+            await asyncio.sleep(5)
+            pos_list = await self.player.find_all_pos(['point', 'point3'], threshold=0.9)
+            pos = filter_rightmost(pos_list)
+            # 往右偏移一点，刚好能点击进入到下一个大关卡
+            await self.player.click((pos[0] + 50, pos[1]))
+            _, pos = await self.player.monitor(['ok1'])
+            await self.player.click(pos)
+            await asyncio.sleep(10)
 
-async def hand_upgraded():
+        _, pos = await self.player.monitor(['fight'])
+        await self.player.click(pos)
+        return True
 
-    await asyncio.sleep(5)
+    async def _passed_to_fight(self):
+        """go from already_passed to fight"""
+        try:
+            name, pos = await self.player.monitor(['next_level2', 'next_level3'], threshold=0.85)
+        except FindTimeout:
+            return False
+        await self.player.click(pos, cheat=False)
+        _, pos = await self.player.monitor(['search'])
+        await self.player.click(pos)
+        await asyncio.sleep(10)
+        _, pos = await self.player.monitor(['fight'])
+        await self.player.click(pos)
+        return True
 
-    try:
-        _, pos = await monitor(['map_unlocked'])
-    except FindTimeout:
-        pass
-    else:
-        await hand.click(pos)
+    async def _hand_upgraded(self):
+
         await asyncio.sleep(5)
-        await goto_main_interface()
-        await move_to_center()
-        _, pos = await monitor(['level_battle'])
-        await hand.click(pos, delay=3)
-    finally:
-        name, pos = await monitor(['next_level1', 'already_passed', 'fight'])
-
-    return (name, pos)
-
-
-async def level_battle():
-    """关卡战斗"""
-    await move_to_center()
-    name, pos = await monitor(['level_battle'])
-    await hand.click(pos, delay=3)
-
-    pos_box = (750, 470)
-    await hand.click(pos_box)
-    try:
-        _, pos = await monitor(['receive'])
-        await hand.click(pos, delay=2)
-    except FindTimeout:
-        pass
-
-    name, pos = await monitor(['upgraded', 'next_level1', 'already_passed', 'fight'])
-    if name == 'upgraded':
-        name, pos = await hand_upgraded()
-
-    if name == 'next_level1':
-        success = await nextlevel_to_fight(pos)
-        if not success:
-            return await goto_main_interface()
-    elif name == 'already_passed':
-        success = await passed_to_fight()
-        if not success:
-            return await goto_main_interface()
-    else:
-        await hand.click(pos)
-
-    while True:
-        res = await fight()
-
-        if res == 'lose':
-            logger.debug('Fight fail, so exit')
-            # 打不过，就需要升级英雄，更新装备了
-            return await goto_main_interface()
 
         try:
-            name, pos = await monitor(['upgraded', 'next_level1'])
+            _, pos = await self.player.monitor(['map_unlocked'])
         except FindTimeout:
-            # 打到最新关了
-            return await goto_main_interface()
+            pass
+        else:
+            await self.player.click(pos)
+            await asyncio.sleep(5)
+            await self.goto_main_interface()
+            await self._move_to_center()
+            _, pos = await self.player.monitor(['level_battle'])
+            await self.player.click(pos, delay=3)
+        finally:
+            name, pos = await self.player.monitor(['next_level1', 'already_passed', 'fight'])
 
+        return (name, pos)
+
+    async def level_battle(self):
+        """关卡战斗"""
+        await self._move_to_center()
+        name, pos = await self.player.monitor(['level_battle'])
+        await self.player.click(pos, delay=3)
+
+        pos_box = (750, 470)
+        await self.player.click(pos_box)
+        try:
+            _, pos = await self.player.monitor(['receive'])
+            await self.player.click(pos, delay=2)
+        except FindTimeout:
+            pass
+
+        name, pos = await self.player.monitor(['upgraded', 'next_level1', 'already_passed', 'fight'])
         if name == 'upgraded':
-            name, pos = await hand_upgraded()
+            name, pos = await self._hand_upgraded()
 
-        await nextlevel_to_fight(pos)
+        if name == 'next_level1':
+            success = await self._nextlevel_to_fight(pos)
+            if not success:
+                return await self.goto_main_interface()
+        elif name == 'already_passed':
+            success = await self._passed_to_fight()
+            if not success:
+                return await self.goto_main_interface()
+        else:
+            await self.player.click(pos)
 
+        while True:
+            res = await self._fight()
 
-async def tower_battle():
-    await asyncio.sleep(1)
-    await move_to_right_top()
+            if res == 'lose':
+                logger.debug('Fight fail, so exit')
+                # 打不过，就需要升级英雄，更新装备了
+                return await self.goto_main_interface()
 
-    _, pos = await monitor(['warriors_tower'])
-    await hand.click(pos, delay=2)
-    pos_list = [
-        (150, 360),
-        (400, 360),
-        (650, 360),
-    ]
+            try:
+                name, pos = await self.player.monitor(['upgraded', 'next_level1'])
+            except FindTimeout:
+                # 打到最新关了
+                return await self.goto_main_interface()
 
-    while True:
-        for pos in pos_list:
-            await hand.click(pos, delay=0.2)
+            if name == 'upgraded':
+                name, pos = await self._hand_upgraded()
+
+            await self._nextlevel_to_fight(pos)
+
+    #
+    # tower_battle
+    #
+
+    async def tower_battle(self):
         await asyncio.sleep(1)
+        await self._move_to_right_top()
 
-        _, pos = await monitor(['challenge'])
-        await hand.click(pos)
+        _, pos = await self.player.monitor(['warriors_tower'])
+        await self.player.click(pos, delay=2)
+        pos_list = [
+            (150, 360),
+            (400, 360),
+            (650, 360),
+        ]
 
-        res = await fight()
+        while True:
+            for pos in pos_list:
+                await self.player.click(pos, delay=0.2)
+            await asyncio.sleep(1)
 
-        if res == 'lose':
-            logger.debug('Fight fail, so exit')
-            # 打不过，就需要升级英雄，更新装备了
-            return await goto_main_interface()
+            _, pos = await self.player.monitor(['challenge'])
+            await self.player.click(pos)
+
+            res = await self._fight()
+
+            if res == 'lose':
+                logger.debug('Fight fail, so exit')
+                # 打不过，就需要升级英雄，更新装备了
+                return await self.goto_main_interface()
+
+    #
+    # collect_mail
+    #
+
+    async def collect_mail(self):
+        try:
+            _, pos = await self.player.monitor(['mail'], threshold=0.97, timeout=1)
+        except FindTimeout:
+            logger.debug("There is no new mail.")
+            return
+        await self.player.click(pos)
+        _, pos = await self.player.monitor(['one_click_collection'])
+        await self.player.click(pos)
+        await self.goto_main_interface()
+
+    #
+    # friends_interaction
+    #
+
+    async def _fight_friend(self, max_try=3):
+        max_try = max_try
+        count = 0
+        pos_ok_win = (430, 430)
+        pos_ok_lose = (340, 430)
+        pos_next = (530, 430)
+        _, pos_fight = await self.player.monitor(['start_fight'])
+        global skip_fight
+        if skip_fight is None:
+            try:
+                await self.player.monitor(['skip_fight'], threshold=0.9, timeout=1)
+                skip_fight = True
+            except FindTimeout:
+                skip_fight = False
+
+        await self.player.click(pos_fight)
+
+        while True:
+            count += 1
+            if not skip_fight:
+                await asyncio.sleep(3)
+                # 25级以下无法加速，60以下无法快进
+                for _ in range(3):
+                    pos_list = await self.player.find_all_pos(['fast_forward1', 'go_last'], threshold=0.9)
+                    if pos_list:
+                        for pos in pos_list:
+                            await self.player.click(pos)
+                        break
+                    await asyncio.sleep(1)
+            _, pos = await self.player.monitor(['card'], timeout=240)
+            await self.player.click(pos)    # 卡片点两次，才会消失
+            await self.player.click(pos)
+            fight_res, pos = await self.player.monitor(['win', 'lose'])
+            if fight_res == 'win':
+                await self.player.click(pos_ok_win)
+                break
+            else:
+                if count < max_try:
+                    await self.player.click(pos_next)
+                else:
+                    await self.player.click(pos_ok_lose)
+                    break
+
+        if not skip_fight:
+            await asyncio.sleep(3)
+        return fight_res
+
+    async def friends_interaction(self):
+        try:
+            _, pos = await self.player.monitor(['friends'], threshold=0.95, timeout=1)
+        except FindTimeout:
+            logger.debug("There is no new interaction of friends.")
+            return
+
+        await self.player.click(pos)
+        _, pos = await self.player.monitor(['receive_and_send'])
+        await self.player.click(pos)
+
+        try:
+            _, pos = await self.player.monitor(['friends_help'], threshold=0.9, timeout=1)
+        except FindTimeout:
+            logger.debug("There is no friend need help.")
+            await self.goto_main_interface()
+            return
+
+        await self.player.click(pos)
+
+        while True:
+            try:
+                _, (x, y) = await self.player.monitor(['search1'], threshold=0.9, timeout=1)
+                pos = (x, y + 15)
+                await self.player.click(pos)
+            except FindTimeout:
+                logger.debug("There is no more boss.")
+                await self.goto_main_interface()
+                return
+
+            name, pos = await self.player.monitor(['fight2', 'ok', 'ok9'])
+            if name in ['ok', 'ok9']:
+                await self.goto_main_interface()
+                return
+
+            await self.player.click(pos)
+            _, pos = await self.player.monitor(['fight3'])
+            await self.player.click(pos)
+
+            res = await self._fight_friend()
+            if res != 'win':
+                logger.debug("Can't win the boos")
+                await self.goto_main_interface()
+                return
+
+    #
+    # community_assistant
+    #
+
+    async def community_assistant(self):
+        _, pos = await self.player.monitor(['community_assistant'])
+        await self.player.click(pos)
+
+        try:
+            _, pos = await self.player.monitor(['guess_ring'], threshold=0.97, timeout=1)
+            await self.player.click(pos, delay=2)
+        except FindTimeout:
+            logger.debug("Fress guess had been used up.")
+            await self.goto_main_interface()
+            return
+
+        _, pos = await self.player.monitor(['cup'])
+        await self.player.click(pos, delay=4)
+        for _ in range(2):
+            _, pos = await self.player.monitor(['next_game'])
+            await self.player.click(pos, delay=2)
+            try:
+                _, pos = await self.player.monitor(['cup'])
+                await self.player.click(pos, delay=4)
+            except FindTimeout:
+                break
+
+        await self.player.go_back()
+        try:
+            _, pos = await self.player.monitor(['have_a_drink'], timeout=2)
+            await self.player.click(pos, delay=5)
+        except FindTimeout:
+            pass
+
+        _, pos = await self.player.monitor(['gift'])
+        await self.player.click(pos)
+        pos_select_gift = (70, 450)
+        pos_send_gift = (810, 450)
+        while True:
+            try:
+                _, pos = await self.player.monitor(['gift_over'], threshold=0.92, timeout=1)
+                break
+            except FindTimeout:
+                await self.player.click(pos_select_gift, delay=0.2)
+                await self.player.click(pos_send_gift)
+                try:
+                    _, pos = await self.player.monitor(['start_turntable'], timeout=1)
+                    await self.player.click(pos)
+                    await asyncio.sleep(5)
+                except FindTimeout:
+                    pass
+
+        await self.goto_main_interface()
+
+    #
+    # instance_challenge
+    #
+
+    async def _fight_challenge(self):
+        # 25级以下无法加速，60以下无法快进
+        for _ in range(3):
+            pos_list = await self.player.find_all_pos(['fast_forward1', 'go_last'], threshold=0.9)
+            if pos_list:
+                for pos in pos_list:
+                    await self.player.click(pos)
+                break
+            await asyncio.sleep(1)
+
+        fight_res, pos = await self.player.monitor(['win', 'lose'], timeout=240)
+        return fight_res
+
+    async def instance_challenge(self):
+        try:
+            _, pos = await self.player.monitor(['Instance_challenge'], threshold=0.97, timeout=1)
+            await self.player.click(pos)
+        except FindTimeout:
+            logger.debug("No new challenge.")
+            return
+
+        challenge_list = await self.player.find_all_pos(['challenge2'], threshold=0.93)
+        pos_ok = (430, 430)
+        pos_next = (530, 430)
+        for pos in challenge_list:
+            await self.player.click(pos)
+            pos_list = await self.player.find_all_pos(['challenge3', 'mop_up'])
+            pos = filter_bottom(pos_list)
+            await self.player.click(pos)
+            name, pos = await self.player.monitor(['start_fight', 'next_game1'])
+            await self.player.click(pos)
+            if name == 'start_fight':
+                await asyncio.sleep(3)
+                res = await self._fight_challenge()
+                if res != 'win':
+                    logger.debug("Fight lose")
+                else:
+                    await self.player.click(pos_next, delay=3)
+                    await self._fight_challenge()
+                await self.player.click(pos_ok, delay=3)
+            else:
+                await self.player.click(pos_next)
+                await self.player.click(pos_ok)
+
+            await self.player.go_back()
+
+        await self.goto_main_interface()
+
+    #
+    # guild
+    #
+
+    async def _fight_guild(self):
+        _, pos = await self.player.monitor(['start_fight'])
+        await self.player.click(pos, delay=3)
+
+        for _ in range(3):
+            pos_list = await self.player.find_all_pos(['fast_forward1', 'go_last'], threshold=0.9)
+            if pos_list:
+                for pos in pos_list:
+                    await self.player.click(pos)
+                break
+            await asyncio.sleep(1)
+
+        _, pos = await self.player.monitor(['ok'], timeout=240)
+
+        await self.player.click(pos, delay=3)
+
+    async def guild(self):
+        try:
+            _, pos = await self.player.monitor(['guild'], threshold=0.97, timeout=1)
+            await self.player.click(pos)
+        except FindTimeout:
+            logger.debug("No new guild event.")
+            return
+
+        try:
+            _, pos = await self.player.monitor(['sign_in'], threshold=0.95, timeout=1)
+            await self.player.click(pos)
+        except:
+            pass
+        pos_guild_territory = (700, 460)
+        await self.player.click(pos_guild_territory)
+
+        # guild_instance
+        _, pos = await self.player.monitor(['guild_instance'])
+        await self.player.click(pos)
+        try:
+            _, pos = await self.player.monitor(['boss_card'], threshold=0.92, timeout=2)
+            # 匹配的是卡片边缘，而需要点击的是中间位置
+            pos = (pos[0], pos[1]+50)
+            await self.player.click(pos)
+            _, (x, y) = await self.player.monitor(['fight4', 'fight5'], threshold=0.84, timeout=1)
+            pos = (x-50, y-50)
+            await self.player.click(pos)
+            await self._fight_guild()
+        except FindTimeout:
+            pass
+
+        # guild_factory
+        for _ in range(2):
+            await self.player.go_back()
+            try:
+                _, pos = await self.player.monitor(['guild_factory'], timeout=1)
+                await self.player.click(pos)
+                break
+            except FindTimeout:
+                pass
+
+        try:
+            _, pos = await self.player.monitor(['order_completed'], timeout=1)
+            await self.player.click(pos)
+            _, pos = await self.player.monitor(['ok1'])
+            await self.player.click(pos)
+        except FindTimeout:
+            pass
+
+        _, pos = await self.player.monitor(['get_order'])
+        await self.player.click(pos)
+        pos_list = await self.player.find_all_pos(['start_order'])
+        for pos in pos_list:
+            await self.player.click(pos)
+        await self._move_to_right_top()
+        pos_list = await self.player.find_all_pos(['start_order'])
+        for pos in pos_list:
+            await self.player.click(pos)
+
+        # Donate
+        pos_donate_home = (770, 270)
+        await self.player.click(pos_donate_home)
+        _, pos = await self.player.monitor(['donate'])
+        await self.player.click(pos)
+        try:
+            _, pos = await self.player.monitor(['ok5'], timeout=1)
+            await self.player.click(pos)
+        except:
+            pass
+
+        # open boxes
+        pos_boxes = [
+            (200, 170),
+            (310, 170),
+            (540, 170),
+            (700, 170),
+        ]
+        pos_list = await self.player.find_all_pos(['box1'], threshold=0.9)
+        for p in sorted(pos_list):
+            await self.player.click(p)
+            _, pos = await self.player.monitor(['ok4', 'ok13'], timeout=2)
+            await self.player.click(pos)
+
+        await self.goto_main_interface()
+
+    #
+    # exciting_activities
+    #
+    async def exciting_activities(self):
+        pos_exciting_activities = (740, 70)
+        await self.player.click(pos_exciting_activities)
+        pos_sign_in = (700, 430)
+        await self.player.click(pos_sign_in)
+        await self.goto_main_interface()
+
+    #
+    # jedi_space
+    #
+
+    async def jedi_space(self):
+        await self._move_to_left_top()
+        _, pos = await self.player.monitor(['jedi_space'])
+        await self.player.click(pos)
+
+        pos_challenge = (430, 450)
+        await self.player.click(pos_challenge)
+        pos_mop_up = (650, 150)
+        await self.player.click(pos_mop_up)
+
+        # done 这里要改成图像识别，因为点击pos_mop_up的结果不是确定的
+        try:
+            _, pos_plus = await self.player.monitor(['plus'], threshold=0.98, timeout=1)
+        except FindTimeout:
+            return await self.goto_main_interface()
+        for _ in range(5):
+            await self.player.click(pos_plus, cheat=False, delay=0.2)
+        pos_ok1 = (420, 360)
+        await self.player.click(pos_ok1)
+
+        await self.goto_main_interface()
+
+    #
+    # survival_home
+    #
+
+    async def _fight_home(self, max_try=3):
+        max_try = max_try
+        count = 0
+        pos_ok_win = (430, 430)
+        pos_ok_lose = (340, 430)
+        pos_next = (530, 430)
+        _, pos_fight = await self.player.monitor(['start_fight'])
+
+        global skip_fight
+        if skip_fight is None:
+            try:
+                await self.player.monitor(['skip_fight'], threshold=0.9, timeout=1)
+                skip_fight = True
+            except FindTimeout:
+                skip_fight = False
+
+        await self.player.click(pos_fight)
+
+        while True:
+            count += 1
+            if not skip_fight:
+                await asyncio.sleep(3)
+                # 25级以下无法加速，60以下无法快进
+                for _ in range(3):
+                    pos_list = await self.player.find_all_pos(['fast_forward1', 'go_last'], threshold=0.9)
+                    if pos_list:
+                        for pos in pos_list:
+                            await self.player.click(pos)
+                        break
+                    await asyncio.sleep(1)
+            fight_res, pos = await self.player.monitor(['win', 'lose'], timeout=240)
+            if fight_res == 'win':
+                await self.player.click(pos_ok_win)
+                break
+            else:
+                if count < max_try:
+                    await self.player.click(pos_next)
+                else:
+                    await self.player.click(pos_ok_lose)
+                    break
+
+        if not skip_fight:
+            await asyncio.sleep(3)
+        return fight_res
+
+    async def survival_home(self):
+        await self._move_to_left_top()
+        _, pos = await self.player.monitor(['survival_home'])
+        await self.player.click(pos, delay=3)
+
+        # pos_list = await self.player.find_all_pos(['food', 'gold', 'oil'])
+        pos_list = await self.player.find_all_pos(['resources'], threshold=0.75)
+        for pos in pos_list:
+            await self.player.click(pos, delay=0.2)
+
+        pos_fight = (830, 490)
+        await self.player.click(pos_fight)
+
+        # collect box
+        _, pos = await self.player.monitor(['switch_map'])
+        await self.player.click(pos)
+        for num in [-5, 5]:
+            await self.player.move(50, 350)
+            await self.player.scroll(num)
+            await asyncio.sleep(1)
+            await self.player.move(150, 350)    # 防遮挡
+            map_list = await self.player.find_all_pos(['field_map'])
+            map_list = sorted(map_list, key=lambda x: x[1], reverse=True)
+            for pos in map_list:
+                await self.player.click(pos, delay=2)
+                pos_list = await self.player.find_all_pos(['box'])
+                for p1 in pos_list:
+                    await self.player.click(p1, delay=0.2)
+
+        # fight boss
+        skip_last_map = False
+        map_count = 0
+        pos_switch_map = (50, 470)
+        for num in [-5, 5]:
+            await self.player.move(50, 350)
+            await self.player.scroll(num)
+            await asyncio.sleep(1)
+            await self.player.move(150, 350)
+            map_list = await self.player.find_all_pos(['field_map'])
+            map_list = sorted(map_list, key=lambda x: x[1], reverse=True)
+
+            # 一般，最下那层是打不过的
+            if not skip_last_map:
+                if len(map_list) > 0:
+                    new_map_list = map_list[1:]
+                    skip_last_map = True
+                else:
+                    new_map_list = map_list
+            else:
+                new_map_list = map_list
+
+            for pos in new_map_list:
+                await self.player.click(pos, delay=2)
+                pos_list = await self.player.find_all_pos(['boss'], threshold=0.65)
+                if pos_list:
+                    map_count += 1
+                    # 太低层的怪也没必要打
+                    if map_count > 2:
+                        logger.debug(f"map_count: {map_count}, so return")
+                        return await self.goto_main_interface()
+                    for p1 in pos_list:
+                        await self.player.click(p1, cheat=False)
+                        _, p2 = await self.player.monitor(['fight6'])
+                        await self.player.click(p2)
+                        res = await self._fight_home()
+                        if res != 'win':
+                            # 打不过，就去打上一层
+                            break
+                    # 战斗后，地图可能会缩回去
+                    try:
+                        await self.player.monitor(['field_map'], timeout=1)
+                    except FindTimeout:
+                        await self.player.click(pos_switch_map)
+
+        await self.goto_main_interface()
+
+    #
+    # invite_heroes
+    #
+
+    async def _dismiss_heroes(self):
+        _, pos = await self.player.monitor(['dismiss_hero'])
+        await self.player.click(pos, delay=2)
+        pos_1 = (520, 425)
+        pos_2 = (580, 425)
+        pos_put_into = (150, 440)
+        pos_dismiss = (320, 440)
+
+        await self.player.click(pos_1)
+        await self.player.click(pos_put_into)
+        await self.player.click(pos_dismiss)
+        try:
+            _, pos = await self.player.monitor(['receive1'], timeout=1)
+            await self.player.click(pos)
+        except FindTimeout:
+            pass
+
+        await self.player.click(pos_2)
+        await self.player.click(pos_put_into)
+        await self.player.click(pos_dismiss)
+        try:
+            _, pos = await self.player.monitor(['receive1'], timeout=1)
+            await self.player.click(pos)
+        except FindTimeout:
+            pass
+
+        await self.goto_main_interface()
+
+    async def invite_heroes(self):
+        await self._move_to_left_down()
+        _, pos = await self.player.monitor(['invite_hero'])
+        await self.player.click(pos, delay=2)
+        pos_list = await self.player.find_all_pos(['invite_free', 'invite_soda', 'invite_beer'])
+
+        for p in pos_list:
+            await self.player.click(p)
+            name, pos = await self.player.monitor(['ok9', 'ok10', 'close'])
+            await self.player.click(pos)
+            # 如果英雄列表满了，就遣散英雄
+            if name == 'close':
+                pos_list.append(p)    # ，没邀请成功，就再试一次
+                await self.goto_main_interface()
+                await self._dismiss_heroes()
+                _, pos = await self.player.monitor(['invite_hero'])
+                await self.player.click(pos, delay=2)
+
+        await self.goto_main_interface()
+
+    #
+    # armory
+    #
+
+    async def armory(self):
+        # "armory": "./pics/armory/armory.jpg",
+        # "arms": "./pics/armory/arms.jpg",
+        await self._move_to_right_top()
+        _, pos = await self.player.monitor(['armory'])
+        await self.player.click(pos, delay=2)
+        pos_types = [
+            (820, 190),
+            (820, 270),
+            (820, 350),
+            (820, 440),
+        ]
+        pos_quantity = (220, 330)
+        pos_enter = (810, 480)
+        pos_forging = (250, 450)
+        # 不能每次都薅同一只羊
+        len_num = len(pos_types)
+        idx = random.choice(range(len_num))
+        for i in range(len_num):
+            pos_type = pos_types[(idx + i) % len_num]
+            await self.player.click(pos_type)
+            # 匹配上所有点，但排除右边pos_types的那些点
+            pos_list = await self.player.find_all_pos(['arms'], threshold=0.8)
+            pos_list = list(filter(lambda x: x[0] < 800, pos_list))
+            if pos_list:
+                pos_list = sorted(pos_list, key=itemgetter(1, 0))
+                pos = pos_list[0]
+                pos = (pos[0] - 30, pos[1] + 30)
+                await self.player.click(pos)
+                await self.player.click(pos_quantity)
+                await self.player.tap_key('3')
+                await self.player.click(pos_enter)
+                await self.player.click(pos_forging)
+                break
+        else:
+            logger.info("There are not enough equipment for synthesis.")
+
+        await self.goto_main_interface()
+        return
+
+    #
+    # market
+    #
+
+    async def market(self):
+        await asyncio.sleep(1)
+        await self._move_to_left_down()
+        _, pos = await self.player.monitor(['market'])
+        await self.player.click(pos, delay=2)
+
+        pos_get_gold = (410, 50)
+        await self.player.click(pos_get_gold, cheat=False)
+        for _ in range(2):
+            try:
+                _, pos = await self.player.monitor(['get_for_free2'], threshold=0.85, timeout=1)
+                await self.player.click(pos)
+                name, pos = await self.player.monitor(['ok9'], timeout=2)
+                await self.player.click(pos)
+            except FindTimeout:
+                break
+        await self.player.go_back()
+
+        # pics3 = ['hero_badge', 'task_ticket']
+        pics1 = ['hero_badge', 'task_ticket',
+                 'soda_water1', 'soda_water2', 'soda_water3']
+        offset1 = 40
+        pics2 = ['hero_shard_3_1', 'hero_shard_3_2', 'hero_shard_3_3',
+                 'hero_shard_3_4', 'hero_shard_4_1', 'hero_shard_4_2', 'hero_shard_4_3']
+        offset2 = 10
+        for _ in range(4):
+            for pics, offset in [(pics1, offset1), (pics2, offset2)]:
+                pos_list = await self.player.find_all_pos(pics, threshold=0.92)
+                for pos in pos_list:
+                    pos = (pos[0], pos[1] + offset)
+                    await self.player.click(pos)
+                    try:
+                        _, pos = await self.player.monitor(['ok8'], timeout=1)
+                        await self.player.click(pos)
+                        name, pos = await self.player.monitor(['ok9', 'lack_of_gold'])
+                    except FindTimeout:
+                        continue  # 有些东西被购买了，还是能匹配到
+                    if name == 'ok9':
+                        await self.player.click(pos)
+                    else:
+                        logger.debug('lack of gold')
+                        return await self.goto_main_interface()
+            try:
+                name, pos = await self.player.monitor(['refresh2'], threshold=0.9, timeout=1)
+                # name, pos = await self.player.monitor(['refresh', 'refresh1', 'refresh2', 'refresh3'], threshold=0.92, timeout=2)
+                await self.player.click(pos)
+                # if name == 'refresh3':
+                #     _, pos = await self.player.monitor(['ok8'])
+                #     await self.player.click(pos)
+            except FindTimeout:
+                return await self.goto_main_interface()
+
+        await self.goto_main_interface()
+
+    #
+    # arena
+    #
+
+    async def _fight_arena(self):
+        _, pos_fight = await self.player.monitor(['start_fight'])
+
+        global skip_fight
+        if skip_fight is None:
+            try:
+                await self.player.monitor(['skip_fight'], threshold=0.9, timeout=1)
+                skip_fight = True
+            except FindTimeout:
+                skip_fight = False
+
+        await self.player.click(pos_fight)
+
+        if not skip_fight:
+            # 25级以下无法加速，60以下无法快进
+            for _ in range(3):
+                pos_list = await self.player.find_all_pos(['fast_forward1', 'go_last'], threshold=0.9)
+                if pos_list:
+                    for pos in pos_list:
+                        await self.player.click(pos)
+                    break
+                await asyncio.sleep(1)
+
+        _, pos = await self.player.monitor(['card'], timeout=240)
+        await self.player.click(pos)
+        await self.player.click(pos)
+        fight_res, pos = await self.player.monitor(['win', 'lose'])
+        pos_ok = (430, 430)
+        await self.player.click(pos_ok)
+        if not skip_fight:
+            await asyncio.sleep(4)
+
+        return fight_res
+
+    async def arena(self):
+        await self._move_to_center()
+        _, pos = await self.player.monitor(['arena'])
+        await self.player.click(pos)
+
+        _, pos = await self.player.monitor(['enter'])
+        await self.player.click(pos, delay=2)
+
+        pos_refresh = (660, 170)
+        for i in range(7):
+            _, pos = await self.player.monitor(['fight7'])
+            await self.player.click(pos)
+            if i > 4:
+                await self.player.click(pos_refresh)
+            _, pos = await self.player.monitor(['fight8'], filter_func=filter_bottom)
+            await self.player.click(pos)
+            res = await self._fight_arena()
+            if res != 'win':
+                logger.debug('Fight lose.')
+                break
+
+        try:
+            _, pos = await self.player.monitor(['reward'], timeout=1, threshold=0.9)
+            await self.player.click(pos)
+            pos_list = await self.player.find_all_pos(['receive2'], threshold=0.9)
+            for pos in sorted(pos_list, key=lambda x: x[1]):
+                await self.player.click(pos)
+                try:
+                    _, pos = await self.player.monitor(['ok12'], timeout=1)
+                    await self.player.click(pos)
+                except FindTimeout:
+                    break
+        except FindTimeout:
+            pass
+
+        await self.goto_main_interface()
+
+    #
+    # brave_instance
+    #
+
+    async def _fight_brave(self):
+        _, pos_fight = await self.player.monitor(['start_fight'])
+
+        global skip_fight
+        if skip_fight is None:
+            try:
+                await self.player.monitor(['skip_fight'], threshold=0.9, timeout=1)
+                skip_fight = True
+            except FindTimeout:
+                skip_fight = False
+
+        await self.player.click(pos_fight)
+
+        if not skip_fight:
+            await asyncio.sleep(3)
+            # 25级以下无法加速，60以下无法快进
+            for _ in range(3):
+                pos_list = await self.player.find_all_pos(['fast_forward1', 'go_last'], threshold=0.9)
+                if pos_list:
+                    for pos in pos_list:
+                        await self.player.click(pos)
+                    break
+                await asyncio.sleep(1)
+
+        name, pos = await self.player.monitor(['card', 'lose'], timeout=240)
+        if name == 'card':
+            await self.player.click(pos)
+            await self.player.click(pos)
+            res = 'win'
+        else:
+            res = 'lose'
+
+        pos_ok = (430, 430)
+        await self.player.click(pos_ok)
+        if not skip_fight:
+            await asyncio.sleep(3)
+
+        return res
+
+    async def brave_instance(self):
+        """勇者副本"""
+        await self._move_to_right_top()
+        _, pos = await self.player.monitor(['brave_instance'])
+        await self.player.click(pos)
+        await self._move_to_left_down()
+
+        for i in range(15):
+            _, (x, y) = await self.player.monitor(['current_level'], threshold=0.96)
+            pos = (x, y + 40)
+            await self.player.click(pos, cheat=False)
+            _, pos = await self.player.monitor(['challenge4'])
+            await self.player.click(pos)
+            if i == 0:
+                await self._equip_team()
+            res = await self.fight_brave()
+            if res == 'lose':
+                break
+
+        await self.goto_main_interface()
 
 
 def save_timeout_pic(msg):
-    screen_pic = player_eye.PIC_DICT['screen']
+    screen_pic = SCREEN_DICT['screen']
     timestr = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
     monitor_items = re.search(r'\[.+\]', msg).group()
     log_pic = os.path.join('./timeout_pics', f"{timestr}_{monitor_items}.jpg")
@@ -336,768 +1049,7 @@ def save_timeout_pic(msg):
     playsound('./sounds/error.mp3')
 
 
-async def collect_mail():
-    try:
-        _, pos = await monitor(['mail'], threshold=0.97, timeout=1)
-    except FindTimeout:
-        logger.debug("There is no new mail.")
-        return
-    await hand.click(pos)
-    _, pos = await monitor(['one_click_collection'])
-    await hand.click(pos)
-    await goto_main_interface()
-
-
-async def fight_friend(max_try=3):
-    max_try = max_try
-    count = 0
-    pos_ok_win = (430, 430)
-    pos_ok_lose = (340, 430)
-    pos_next = (530, 430)
-    _, pos_fight = await monitor(['start_fight'])
-    global skip_fight
-    if skip_fight is None:
-        try:
-            await monitor(['skip_fight'], threshold=0.9, timeout=1)
-            skip_fight = True
-        except FindTimeout:
-            skip_fight = False
-
-    await hand.click(pos_fight)
-
-    while True:
-        count += 1
-        if not skip_fight:
-            await asyncio.sleep(3)
-            # 25级以下无法加速，60以下无法快进
-            for _ in range(3):
-                pos_list = await find_all_pos(['fast_forward1', 'go_last'], threshold=0.9)
-                if pos_list:
-                    for pos in pos_list:
-                        await hand.click(pos)
-                    break
-                await asyncio.sleep(1)
-        _, pos = await monitor(['card'], timeout=180)
-        await hand.click(pos)    # 卡片点两次，才会消失
-        await hand.click(pos)
-        fight_res, pos = await monitor(['win', 'lose'])
-        if fight_res == 'win':
-            await hand.click(pos_ok_win)
-            break
-        else:
-            if count < max_try:
-                await hand.click(pos_next)
-            else:
-                await hand.click(pos_ok_lose)
-                break
-
-    if not skip_fight:
-        await asyncio.sleep(3)
-    return fight_res
-
-
-async def friends_interaction():
-    try:
-        _, pos = await monitor(['friends'], threshold=0.95, timeout=1)
-    except FindTimeout:
-        logger.debug("There is no new interaction of friends.")
-        return
-
-    await hand.click(pos)
-    _, pos = await monitor(['receive_and_send'])
-    await hand.click(pos)
-
-    try:
-        _, pos = await monitor(['friends_help'], threshold=0.9, timeout=1)
-    except FindTimeout:
-        logger.debug("There is no friend need help.")
-        await goto_main_interface()
-        return
-
-    await hand.click(pos)
-
-    while True:
-        try:
-            _, (x, y) = await monitor(['search1'], threshold=0.9, timeout=1)
-            pos = (x, y + 15)
-            await hand.click(pos)
-        except FindTimeout:
-            logger.debug("There is no more boss.")
-            await goto_main_interface()
-            return
-
-        name, pos = await monitor(['fight2', 'ok', 'ok9'])
-        if name in ['ok', 'ok9']:
-            await goto_main_interface()
-            return
-
-        await hand.click(pos)
-        _, pos = await monitor(['fight3'])
-        await hand.click(pos)
-
-        res = await fight_friend()
-        if res != 'win':
-            logger.debug("Can't win the boos")
-            await goto_main_interface()
-            return
-
-
-async def community_assistant():
-    _, pos = await monitor(['community_assistant'])
-    await hand.click(pos)
-
-    try:
-        _, pos = await monitor(['guess_ring'], threshold=0.97, timeout=1)
-        await hand.click(pos, delay=2)
-    except FindTimeout:
-        logger.debug("Fress guess had been used up.")
-        await goto_main_interface()
-        return
-
-    _, pos = await monitor(['cup'])
-    await hand.click(pos, delay=4)
-    for _ in range(2):
-        _, pos = await monitor(['next_game'])
-        await hand.click(pos, delay=2)
-        try:
-            _, pos = await monitor(['cup'])
-            await hand.click(pos, delay=4)
-        except FindTimeout:
-            break
-
-    await hand.tap_key(player_hand.k.escape_key, delay=1)
-    try:
-        _, pos = await monitor(['have_a_drink'], timeout=2)
-        await hand.click(pos, delay=5)
-    except FindTimeout:
-        pass
-
-    _, pos = await monitor(['gift'])
-    await hand.click(pos)
-    pos_select_gift = (70, 450)
-    pos_send_gift = (810, 450)
-    while True:
-        try:
-            _, pos = await monitor(['gift_over'], threshold=0.92, timeout=1)
-            break
-        except FindTimeout:
-            await hand.click(pos_select_gift, delay=0.2)
-            await hand.click(pos_send_gift)
-            try:
-                _, pos = await monitor(['start_turntable'], timeout=1)
-                await hand.click(pos)
-                await asyncio.sleep(5)
-            except FindTimeout:
-                pass
-
-    await goto_main_interface()
-
-
-async def fight_challenge():
-    # 25级以下无法加速，60以下无法快进
-    for _ in range(3):
-        pos_list = await find_all_pos(['fast_forward1', 'go_last'], threshold=0.9)
-        if pos_list:
-            for pos in pos_list:
-                await hand.click(pos)
-            break
-        await asyncio.sleep(1)
-
-    fight_res, pos = await monitor(['win', 'lose'], timeout=180)
-    return fight_res
-
-
-async def instance_challenge():
-    try:
-        _, pos = await monitor(['Instance_challenge'], threshold=0.97, timeout=1)
-        await hand.click(pos)
-    except FindTimeout:
-        logger.debug("No new challenge.")
-        return
-
-    challenge_list = await find_all_pos(['challenge2'], threshold=0.93)
-    pos_ok = (430, 430)
-    pos_next = (530, 430)
-    for pos in challenge_list:
-        await hand.click(pos)
-        pos_list = await find_all_pos(['challenge3', 'mop_up'])
-        pos = filter_bottom(pos_list)
-        await hand.click(pos)
-        name, pos = await monitor(['start_fight', 'next_game1'])
-        await hand.click(pos)
-        if name == 'start_fight':
-            await asyncio.sleep(3)
-            res = await fight_challenge()
-            if res != 'win':
-                logger.debug("Fight lose")
-            else:
-                await hand.click(pos_next, delay=3)
-                await fight_challenge()
-            await hand.click(pos_ok, delay=3)
-        else:
-            await hand.click(pos_next)
-            await hand.click(pos_ok)
-
-        await hand.tap_key(player_hand.k.escape_key, delay=1)
-
-    await goto_main_interface()
-
-
-async def fight_guild():
-    _, pos = await monitor(['start_fight'])
-    await hand.click(pos, delay=3)
-
-    for _ in range(3):
-        pos_list = await find_all_pos(['fast_forward1', 'go_last'], threshold=0.9)
-        if pos_list:
-            for pos in pos_list:
-                await hand.click(pos)
-            break
-        await asyncio.sleep(1)
-
-    _, pos = await monitor(['ok'], timeout=180)
-
-    await hand.click(pos, delay=3)
-
-
-async def guild():
-    try:
-        _, pos = await monitor(['guild'], threshold=0.97, timeout=1)
-        await hand.click(pos)
-    except FindTimeout:
-        logger.debug("No new guild event.")
-        return
-
-    try:
-        _, pos = await monitor(['sign_in'], threshold=0.95, timeout=1)
-        await hand.click(pos)
-    except:
-        pass
-    pos_guild_territory = (700, 460)
-    await hand.click(pos_guild_territory)
-
-    # guild_instance
-    _, pos = await monitor(['guild_instance'])
-    await hand.click(pos)
-    try:
-        _, pos = await monitor(['boss_card'], threshold=0.92, timeout=2)
-        # 匹配的是卡片边缘，而需要点击的是中间位置
-        pos = (pos[0], pos[1]+50)
-        await hand.click(pos)
-        _, (x, y) = await monitor(['fight4', 'fight5'], threshold=0.84, timeout=1)
-        pos = (x-50, y-50)
-        await hand.click(pos)
-        await fight_guild()
-    except FindTimeout:
-        pass
-
-    # guild_factory
-    for _ in range(2):
-        await hand.tap_key(player_hand.k.escape_key, delay=1)
-        try:
-            _, pos = await monitor(['guild_factory'], timeout=1)
-            await hand.click(pos)
-            break
-        except FindTimeout:
-            pass
-
-    try:
-        _, pos = await monitor(['order_completed'], timeout=1)
-        await hand.click(pos)
-        _, pos = await monitor(['ok1'])
-        await hand.click(pos)
-    except FindTimeout:
-        pass
-
-    _, pos = await monitor(['get_order'])
-    await hand.click(pos)
-    pos_list = await find_all_pos(['start_order'])
-    for pos in pos_list:
-        await hand.click(pos)
-    await move_to_right_top()
-    pos_list = await find_all_pos(['start_order'])
-    for pos in pos_list:
-        await hand.click(pos)
-
-    # Donate
-    pos_donate_home = (770, 270)
-    await hand.click(pos_donate_home)
-    _, pos = await monitor(['donate'])
-    await hand.click(pos)
-    try:
-        _, pos = await monitor(['ok5'], timeout=1)
-        await hand.click(pos)
-    except:
-        pass
-
-    # open boxes
-    pos_boxes = [
-        (200, 170),
-        (310, 170),
-        (540, 170),
-        (700, 170),
-    ]
-    pos_list = await find_all_pos(['box1'], threshold=0.9)
-    for p in sorted(pos_list):
-        await hand.click(p)
-        _, pos = await monitor(['ok4', 'ok13'], timeout=2)
-        await hand.click(pos)
-
-    await goto_main_interface()
-
-
-async def exciting_activities():
-    pos_exciting_activities = (740, 70)
-    await hand.click(pos_exciting_activities)
-    pos_sign_in = (700, 430)
-    await hand.click(pos_sign_in)
-    await goto_main_interface()
-
-
-async def jedi_space():
-    await move_to_left_top()
-    _, pos = await monitor(['jedi_space'])
-    await hand.click(pos)
-
-    pos_challenge = (430, 450)
-    await hand.click(pos_challenge)
-    pos_mop_up = (650, 150)
-    await hand.click(pos_mop_up)
-
-    # done 这里要改成图像识别，因为点击pos_mop_up的结果不是确定的
-    try:
-        _, pos_plus = await monitor(['plus'], threshold=0.98, timeout=1)
-    except FindTimeout:
-        return await goto_main_interface()
-    for _ in range(5):
-        await hand.click(pos_plus, cheat=False, delay=0.2)
-    pos_ok1 = (420, 360)
-    await hand.click(pos_ok1)
-
-    await goto_main_interface()
-
-
-async def fight_home(max_try=3):
-    max_try = max_try
-    count = 0
-    pos_ok_win = (430, 430)
-    pos_ok_lose = (340, 430)
-    pos_next = (530, 430)
-    _, pos_fight = await monitor(['start_fight'])
-
-    global skip_fight
-    if skip_fight is None:
-        try:
-            await monitor(['skip_fight'], threshold=0.9, timeout=1)
-            skip_fight = True
-        except FindTimeout:
-            skip_fight = False
-
-    await hand.click(pos_fight)
-
-    while True:
-        count += 1
-        if not skip_fight:
-            await asyncio.sleep(3)
-            # 25级以下无法加速，60以下无法快进
-            for _ in range(3):
-                pos_list = await find_all_pos(['fast_forward1', 'go_last'], threshold=0.9)
-                if pos_list:
-                    for pos in pos_list:
-                        await hand.click(pos)
-                    break
-                await asyncio.sleep(1)
-        fight_res, pos = await monitor(['win', 'lose'], timeout=180)
-        if fight_res == 'win':
-            await hand.click(pos_ok_win)
-            break
-        else:
-            if count < max_try:
-                await hand.click(pos_next)
-            else:
-                await hand.click(pos_ok_lose)
-                break
-
-    if not skip_fight:
-        await asyncio.sleep(3)
-    return fight_res
-
-
-async def survival_home():
-    await move_to_left_top()
-    _, pos = await monitor(['survival_home'])
-    await hand.click(pos, delay=3)
-
-    # pos_list = await find_all_pos(['food', 'gold', 'oil'])
-    pos_list = await find_all_pos(['resources'], threshold=0.75)
-    for pos in pos_list:
-        await hand.click(pos, delay=0.2)
-
-    pos_fight = (830, 490)
-    await hand.click(pos_fight)
-
-    # collect box
-    _, pos = await monitor(['switch_map'])
-    await hand.click(pos)
-    for num in [-5, 5]:
-        await hand.move(50, 350)
-        await hand.scroll(num)
-        await asyncio.sleep(1)
-        await hand.move(150, 350)    # 防遮挡
-        map_list = await find_all_pos(['field_map'])
-        map_list = sorted(map_list, key=lambda x: x[1], reverse=True)
-        for pos in map_list:
-            await hand.click(pos, delay=2)
-            pos_list = await find_all_pos(['box'])
-            for p1 in pos_list:
-                await hand.click(p1, delay=0.2)
-
-    # fight boss
-    skip_last_map = False
-    map_count = 0
-    pos_switch_map = (50, 470)
-    for num in [-5, 5]:
-        await hand.move(50, 350)
-        await hand.scroll(num)
-        await asyncio.sleep(1)
-        await hand.move(150, 350)
-        map_list = await find_all_pos(['field_map'])
-        map_list = sorted(map_list, key=lambda x: x[1], reverse=True)
-
-        # 一般，最下那层是打不过的
-        if not skip_last_map:
-            if len(map_list) > 0:
-                new_map_list = map_list[1:]
-                skip_last_map = True
-            else:
-                new_map_list = map_list
-        else:
-            new_map_list = map_list
-
-        for pos in new_map_list:
-            await hand.click(pos, delay=2)
-            pos_list = await find_all_pos(['boss'], threshold=0.65)
-            if pos_list:
-                map_count += 1
-                # 太低层的怪也没必要打
-                if map_count > 2:
-                    logger.debug(f"map_count: {map_count}, so return")
-                    return await goto_main_interface()
-                for p1 in pos_list:
-                    await hand.click(p1, cheat=False)
-                    _, p2 = await monitor(['fight6'])
-                    await hand.click(p2)
-                    res = await fight_home()
-                    if res != 'win':
-                        # 打不过，就去打上一层
-                        break
-                # 战斗后，地图可能会缩回去
-                try:
-                    await monitor(['field_map'], timeout=1)
-                except FindTimeout:
-                    await hand.click(pos_switch_map)
-
-    await goto_main_interface()
-
-
-async def dismiss_heroes():
-    _, pos = await monitor(['dismiss_hero'])
-    await hand.click(pos, delay=2)
-    pos_1 = (520, 425)
-    pos_2 = (580, 425)
-    pos_put_into = (150, 440)
-    pos_dismiss = (320, 440)
-
-    await hand.click(pos_1)
-    await hand.click(pos_put_into)
-    await hand.click(pos_dismiss)
-    try:
-        _, pos = await monitor(['receive1'], timeout=1)
-        await hand.click(pos)
-    except FindTimeout:
-        pass
-
-    await hand.click(pos_2)
-    await hand.click(pos_put_into)
-    await hand.click(pos_dismiss)
-    try:
-        _, pos = await monitor(['receive1'], timeout=1)
-        await hand.click(pos)
-    except FindTimeout:
-        pass
-
-    await goto_main_interface()
-
-
-async def invite_heroes():
-    await move_to_left_down()
-    _, pos = await monitor(['invite_hero'])
-    await hand.click(pos, delay=2)
-    pos_list = await find_all_pos(['invite_free', 'invite_soda', 'invite_beer'])
-
-    for p in pos_list:
-        await hand.click(p)
-        name, pos = await monitor(['ok9', 'ok10', 'close'])
-        await hand.click(pos)
-        # 如果英雄列表满了，就遣散英雄
-        if name == 'close':
-            pos_list.append(p)    # ，没邀请成功，就再试一次
-            await goto_main_interface()
-            await dismiss_heroes()
-            _, pos = await monitor(['invite_hero'])
-            await hand.click(pos, delay=2)
-
-    await goto_main_interface()
-
-
-async def armory():
-    # "armory": "./pics/armory/armory.jpg",
-    # "arms": "./pics/armory/arms.jpg",
-    await move_to_right_top()
-    _, pos = await monitor(['armory'])
-    await hand.click(pos, delay=2)
-    pos_types = [
-        (820, 190),
-        (820, 270),
-        (820, 350),
-        (820, 440),
-    ]
-    pos_quantity = (220, 330)
-    pos_enter = (810, 480)
-    pos_forging = (250, 450)
-    # 不能每次都薅同一只羊
-    len_num = len(pos_types)
-    idx = random.choice(range(len_num))
-    for i in range(len_num):
-        pos_type = pos_types[(idx + i) % len_num]
-        await hand.click(pos_type)
-        # 匹配上所有点，但排除右边pos_types的那些点
-        pos_list = await find_all_pos(['arms'], threshold=0.8)
-        pos_list = list(filter(lambda x: x[0] < 800, pos_list))
-        if pos_list:
-            pos_list = sorted(pos_list, key=itemgetter(1, 0))
-            pos = pos_list[0]
-            pos = (pos[0] - 30, pos[1] + 30)
-            await hand.click(pos)
-            await hand.click(pos_quantity)
-            await hand.tap_key('3')
-            await hand.click(pos_enter)
-            await hand.click(pos_forging)
-            break
-    else:
-        logger.info("There are not enough equipment for synthesis.")
-
-    await goto_main_interface()
-    return
-
-
-async def market():
-    await asyncio.sleep(1)
-    await move_to_left_down()
-    _, pos = await monitor(['market'])
-    await hand.click(pos, delay=2)
-
-    pos_get_gold = (410, 50)
-    await hand.click(pos_get_gold, cheat=False)
-    for _ in range(2):
-        try:
-            _, pos = await monitor(['get_for_free2'], threshold=0.85, timeout=1)
-            await hand.click(pos)
-            name, pos = await monitor(['ok9'], timeout=2)
-            await hand.click(pos)
-        except FindTimeout:
-            break
-    await hand.tap_key(player_hand.k.escape_key, delay=1)
-
-    # pics3 = ['hero_badge', 'task_ticket']
-    pics1 = ['hero_badge', 'task_ticket',
-             'soda_water1', 'soda_water2', 'soda_water3']
-    offset1 = 40
-    pics2 = ['hero_shard_3_1', 'hero_shard_3_2', 'hero_shard_3_3',
-             'hero_shard_3_4', 'hero_shard_4_1', 'hero_shard_4_2', 'hero_shard_4_3']
-    offset2 = 10
-    for _ in range(4):
-        for pics, offset in [(pics1, offset1), (pics2, offset2)]:
-            pos_list = await find_all_pos(pics, threshold=0.92)
-            for pos in pos_list:
-                pos = (pos[0], pos[1] + offset)
-                await hand.click(pos)
-                try:
-                    _, pos = await monitor(['ok8'], timeout=1)
-                    await hand.click(pos)
-                    name, pos = await monitor(['ok9', 'lack_of_gold'])
-                except FindTimeout:
-                    continue  # 有些东西被购买了，还是能匹配到
-                if name == 'ok9':
-                    await hand.click(pos)
-                else:
-                    logger.debug('lack of gold')
-                    return await goto_main_interface()
-        try:
-            name, pos = await monitor(['refresh2'], threshold=0.9, timeout=1)
-            # name, pos = await monitor(['refresh', 'refresh1', 'refresh2', 'refresh3'], threshold=0.92, timeout=2)
-            await hand.click(pos)
-            # if name == 'refresh3':
-            #     _, pos = await monitor(['ok8'])
-            #     await hand.click(pos)
-        except FindTimeout:
-            return await goto_main_interface()
-
-    await goto_main_interface()
-
-
-async def fight_arena():
-    _, pos_fight = await monitor(['start_fight'])
-
-    global skip_fight
-    if skip_fight is None:
-        try:
-            await monitor(['skip_fight'], threshold=0.9, timeout=1)
-            skip_fight = True
-        except FindTimeout:
-            skip_fight = False
-
-    await hand.click(pos_fight)
-
-    if not skip_fight:
-        # 25级以下无法加速，60以下无法快进
-        for _ in range(3):
-            pos_list = await find_all_pos(['fast_forward1', 'go_last'], threshold=0.9)
-            if pos_list:
-                for pos in pos_list:
-                    await hand.click(pos)
-                break
-            await asyncio.sleep(1)
-
-    _, pos = await monitor(['card'], timeout=180)
-    await hand.click(pos)
-    await hand.click(pos)
-    fight_res, pos = await monitor(['win', 'lose'])
-    pos_ok = (430, 430)
-    await hand.click(pos_ok)
-    if not skip_fight:
-        await asyncio.sleep(4)
-
-    return fight_res
-
-
-async def arena():
-    await move_to_center()
-    _, pos = await monitor(['arena'])
-    await hand.click(pos)
-
-    _, pos = await monitor(['enter'])
-    await hand.click(pos, delay=2)
-
-    pos_refresh = (660, 170)
-    for i in range(7):
-        _, pos = await monitor(['fight7'])
-        await hand.click(pos)
-        if i > 4:
-            await hand.click(pos_refresh)
-        _, pos = await monitor(['fight8'], filter_func=filter_bottom)
-        await hand.click(pos)
-        res = await fight_arena()
-        if res != 'win':
-            logger.debug('Fight lose.')
-            break
-
-    try:
-        _, pos = await monitor(['reward'], timeout=1, threshold=0.9)
-        await hand.click(pos)
-        pos_list = await find_all_pos(['receive2'], threshold=0.9)
-        for pos in sorted(pos_list, key=lambda x:x[1]):
-            await hand.click(pos)
-            try:
-                _, pos = await monitor(['ok12'], timeout=1)
-                await hand.click(pos)
-            except FindTimeout:
-                break
-    except FindTimeout:
-        pass 
-
-    await goto_main_interface()
-
-async def fight_brave():
-    _, pos_fight = await monitor(['start_fight'])
-
-    global skip_fight
-    if skip_fight is None:
-        try:
-            await monitor(['skip_fight'], threshold=0.9, timeout=1)
-            skip_fight = True
-        except FindTimeout:
-            skip_fight = False
-
-    await hand.click(pos_fight)
-
-    if not skip_fight:
-        await asyncio.sleep(3)
-        # 25级以下无法加速，60以下无法快进
-        for _ in range(3):
-            pos_list = await find_all_pos(['fast_forward1', 'go_last'], threshold=0.9)
-            if pos_list:
-                for pos in pos_list:
-                    await hand.click(pos)
-                break
-            await asyncio.sleep(1)
-
-    name, pos = await monitor(['card', 'lose'], timeout=180)
-    if name == 'card':
-        await hand.click(pos)
-        await hand.click(pos)
-        res = 'win'
-    else:
-        res = 'lose'
-
-    pos_ok = (430, 430)
-    await hand.click(pos_ok)
-    if not skip_fight:
-        await asyncio.sleep(3)
-
-    return res
-
-
-async def equip_team():
-    try:
-        _, _ = await monitor(['team_empty'], timeout=2)
-    except FindTimeout:
-        return True
-
-    x = 120
-    y = 450
-    dx = 65
-    for _ in range(6):
-        await hand.click((x, y), delay=0.2)
-        x += dx
-
-    return True
-
-
-async def brave_instance():
-    """勇者副本"""
-    await move_to_right_top()
-    _, pos = await monitor(['brave_instance'])
-    await hand.click(pos)
-    await move_to_left_down()
-
-    team_equipped = False
-    for i in range(15):
-        _, (x, y) = await monitor(['current_level'], threshold=0.96)
-        pos = (x, y + 40)
-        await hand.click(pos, cheat=False)
-        _, pos = await monitor(['challenge4'])
-        await hand.click(pos)
-        if not team_equipped:
-            team_equipped = await equip_team()
-        res = await fight_brave()
-        if res == 'lose':
-            break
-
-    await goto_main_interface()
-
-
-def need_run(func):
+def need_run(name):
     def is_pm():
         t = time.localtime()
         hour = t.tm_hour
@@ -1108,8 +1060,6 @@ def need_run(func):
         day = t.tm_mday
         return day % 2 == 1
 
-    name = func.__name__
-
     if name in ['arena', 'armory', 'invite_heroes', 'jedi_space']:
         # 只在下午运行
         if is_pm():
@@ -1118,7 +1068,6 @@ def need_run(func):
             logger.info(f"Skip to run {name}, for it isn't PM now.")
     elif name in ['brave_instance']:
         # 只在单数日期运行
-        return True
         if is_odd_day() and is_pm():
             return True
         else:
@@ -1128,107 +1077,42 @@ def need_run(func):
         return True
 
 
-async def do_play():
-    funcs = [
-        collect_mail,
-        friends_interaction,
-        community_assistant,
-        instance_challenge,
-        guild,
-        exciting_activities,
-        jedi_space,
-        survival_home,
-        market,
-        invite_heroes,
-        level_battle,
-        arena,
-        armory,
-        tower_battle,
-        brave_instance,
+async def play(windows_name, g_queue, g_event, g_found, g_hand_lock, g_player_lock):
+    player = Player(windows_name, g_queue, g_event,
+                    g_found, g_hand_lock, g_player_lock)
+    auto_play = AutoPlay(player)
+    tasks = [
+        'collect_mail',
+        'friends_interaction',
+        'community_assistant',
+        'instance_challenge',
+        'guild',
+        'exciting_activities',
+        'jedi_space',
+        'survival_home',
+        'market',
+        'invite_heroes',
+        'level_battle',
+        'arena',
+        'armory',
+        'tower_battle',
+        'brave_instance',
     ]
-
     count = 0
-    for func in funcs:
-        if not need_run(func):
+    for task in tasks:
+        if not need_run(task):
             continue
 
-        logger.info("Start to run: " + func.__name__)
+        logger.info("Start to run: " + task)
         try:
-            await func()
+            await getattr(auto_play, task)()
         except FindTimeout as e:
             count += 1
             save_timeout_pic(str(e))
-            await goto_main_interface()
+            await auto_play.goto_main_interface()
             if count > 5:
                 logger.error('Timeout too many times, so exit')
                 break
-
-
-async def auto_play():
-    await asyncio.sleep(2)
-    await do_play()
-
-
-async def play(windows_name):
-    print(windows_name)
-    await asyncio.sleep(2)
-    print(windows_name, '2')
-
-
-
-
-
-    # with concurrent.futures.ProcessPoolExecutor() as pool:
-    #     while True:
-    #         items = []
-    #         while not queue.empty():
-    #             items.append(await queue.get())
-    #         result = await loop.run_in_executor(pool, eye_woker())
-    #         print("custom process pool", result)
-
-if __name__ == '__main__':
-    start_time = time.time()
-    manager = Manager()
-    find_queue = manager.Queue()
-    found_queue = manager.Queue()
-    screen_dict = manager.dict()
-
-    # Register the signal handlers
-    signal.signal(signal.SIGTERM, service_shutdown)
-    signal.signal(signal.SIGINT, service_shutdown)
-
-    pool = Pool(4, init_worker)
-    for _ in range(4):
-        pool.apply_async(eye_woker, args=(
-            find_queue, screen_dict, found_queue))
-
-    # 创建协程
-    loop = asyncio.get_event_loop()
-    try:
-        loop.run_until_complete(auto_play())
-    except KeyboardInterrupt:
-        logger.info("user canceled.")
-    except ServiceExit:
-        logger.info('user stop, exiting main program')
-    except FindTimeout:
-        logger.info('FindTimeout')
-    except Exception as e:
-        logger.error(e, exc_info=True)
-    finally:
-        pool.terminate()
-        pool.join()
-        while not find_queue.empty():
-            _ = find_queue.get()
-        while not found_queue.empty():
-            _ = find_queue.get()
-        end_time = time.time()
-        print('Cost time:', end_time - start_time)
-        playsound('./sounds/end.mp3')
-        # for p in workers:
-        #     find_queue.put('STOP')
-        #     p.join()
-        # find_queue.close()
-        # found_queue.close()
 
 
 # TODO  要监控上一个标志，防止只点击一次没反应

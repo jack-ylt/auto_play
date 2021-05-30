@@ -17,8 +17,10 @@ from aip import AipOcr
 from datetime import date
 import os
 import asyncio
+from helper import get_window_region
 
-from ui_data import PIC_DICT, WIDTH, HIGH
+from ui_data import PIC_DICT, SCREEN_DICT
+
 
 
 # TODAY = str(date.today())
@@ -60,6 +62,7 @@ def de_duplication(pos_list, offset=5):
 class Eye(object):
     def __init__(self):
         self.img_dict = {}    # {name: img_obj, ...}
+        self.bg_dict = {}
         self._load_target_imgs()
 
     def _load_target_imgs(self):
@@ -67,13 +70,18 @@ class Eye(object):
             img = self.read_pic(path)
             self.img_dict[name] = img
 
-    def screenshot(self, name):
+    def screenshot(self):
         """screenshot, and save as file."""
         im = ImageGrab.grab()
-        im.save(name)
-        img_rgb = cv2.imread(name)
-        img_gray = cv2.cvtColor(img_rgb, cv2.COLOR_BGR2GRAY)
-        return img_gray
+        im.save(SCREEN_DICT['screen'])
+
+        for name in ['left_top', 'left_down', 'right_top']:
+            new_im = im.crop(get_window_region(name))
+            new_path = SCREEN_DICT['screen_' + name]
+            new_im.save(new_path)
+            img_rgb = cv2.imread(new_path)
+            img_gray = cv2.cvtColor(img_rgb, cv2.COLOR_BGR2GRAY)
+            self.bg_dict[name] = img_gray
 
     def read_pic(self, pic_path):
         """read pic file, return img_gray object"""
@@ -84,8 +92,6 @@ class Eye(object):
             raise Exception(msg)
         img = cv2.imread(pic_path, 0)
         return img
-
-
 
     def to_center_pos(self, pos_list, img_target):
         """转化为图像中心的坐标"""
@@ -235,7 +241,9 @@ def test(pic_path_list, similarity=0.96, quantity=1):
     all_pos = []
     for i in range(total):
         print(i)
-        img_bg = eye.screenshot('./pics/screen.jpg')
+        # img_bg = 
+        eye.screenshot()
+        img_bg = eye.bg_dict['left_top']
 
         for img_target in img_targets:
             pos_list = eye.find_img_pos(
@@ -247,7 +255,7 @@ def test(pic_path_list, similarity=0.96, quantity=1):
         num_found = len(all_pos)
         print('num_found:', num_found)
 
-        if num_found== quantity:
+        if num_found == quantity:
             sucess += 1
         elif num_found > quantity:
             # 可以偶尔匹配不上，但不能错匹配
@@ -265,40 +273,39 @@ def test(pic_path_list, similarity=0.96, quantity=1):
 
 eye = Eye()
 
-async def dispatch(queue, event, exe, found):
-    def find(*args):
-        return eye.find_img_pos(*args)
-    
-    bg_dict = {}
 
+def find(args_list):
+    img_bg, img, threshold = args_list
+    return eye.find_img_pos(img_bg, img, threshold)
+
+async def dispatch(exe, g_queue, g_event, g_found):
+    logger.debug('dispatch start')
     while True:
-        asyncio.sleep(1)
+        await asyncio.sleep(0.3)
         item_list = []
-        
-        while not queue.empty():
-            item = await queue.get()
+
+        while not g_queue.empty():
+            item = await g_queue.get()
             item_list.append(item)
 
         if not item_list:
             continue
-        
-        for k in ['left_top', 'left_down']:
-            found[k] = []
 
-        screen = eye.screenshot(PIC_DICT['screen'])
-        bg_dict['left_top'] = eye.cut_image(screen, 0, 0, WIDTH, HIGH)
-        bg_dict['left_down'] = eye.cut_image(screen, 0, HIGH, WIDTH, HIGH)
+        for k in ['left_top', 'left_down', 'right_top']:
+            g_found[k] = []
+
+        eye.screenshot()
 
         to_be_find = []
         name_list = []
         for item in item_list:
             window_name, pic_name_list, threshold = item
-            img_bg = bg_dict[window_name]
+            img_bg = eye.bg_dict[window_name]
             for pic_name in pic_name_list:
                 name_list.append((window_name, pic_name))
                 img = eye.img_dict[pic_name]
-                to_be_find.append(img_bg, img, threshold)
-        
+                to_be_find.append([img_bg, img, threshold])
+
         idx = 0
         pre_name = None
         for pos_list in exe.map(find, to_be_find):
@@ -308,22 +315,19 @@ async def dispatch(queue, event, exe, found):
             if pre_name is None:
                 pre_name = window_name
             if window_name != pre_name:
-                event.set()    # 某个客户端的所有查找任务都完成了，发通知
+                g_event.set()    # 某个客户端的所有查找任务都完成了，发通知
                 print('pre_name', pre_name, 'set event')
                 pre_name = window_name
-                event.clear()
+                g_event.clear()
 
-            found[window_name].append((pic_name, pos_list))
+            g_found[window_name].append((pic_name, pos_list))
 
             idx += 1
 
-        event.set()    # 最后一个客户端的所有查找任务都完成了，发通知
+        g_event.set()    # 最后一个客户端的所有查找任务都完成了，发通知
         print('the last window_name', window_name, 'set event')
-        event.clear()
+        g_event.clear()
 
-
-
- 
 
 if __name__ == '__main__':
     pic_paths = [PIC_DICT['box1'], PIC_DICT['point3']]

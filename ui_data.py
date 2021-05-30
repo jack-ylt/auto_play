@@ -3,7 +3,8 @@ HIGH = 518
 
 WINDOW_DICT = {
     'left_top': (0, 0),
-    'left_down': (0, 518)
+    'left_down': (0, HIGH),
+    'right_top': (WIDTH, 0)
 }
 
 
@@ -35,10 +36,14 @@ POS_DICT = {
     'send_gift': (810, 450),
 }
 
+SCREEN_DICT = {
+    'screen': './pics/screen.jpg',
+    'screen_left_top': './pics/screen_left_top.jpg',
+    'screen_left_down': './pics/screen_left_down.jpg',
+    'screen_right_top': './pics/screen_right_top.jpg',
+}
 
 PIC_DICT = {
-    'screen': './pics/screen.jpg',
-
     # fight
     'fight': './pics/fight/fight.jpg',
     'fight1': './pics/fight/fight1.jpg',
@@ -201,7 +206,7 @@ PIC_DICT = {
     "reward": "./pics/arena/reward.jpg",
     "receive2": "./pics/arena/receive2.jpg",
     "ok12": "./pics/arena/ok12.jpg",
-    
+
 
     # brave_instance
     "brave_instance": "./pics/brave_instance/brave_instance.jpg",

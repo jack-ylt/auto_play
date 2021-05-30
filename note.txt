@@ -32,7 +32,7 @@ if __name__ == '__main__':
         # 创建4个进程
         monitor函数 （协程），就开始截屏，然后把任务分发给find_queue
             while not_yet_found:
-                截屏放入共享dict1 {left_up:xx, right_up:xx, ...}
+                截屏放入共享dict1 {left_top:xx, right_up:xx, ...}
                 并查看共享dict2，如果找到了，就return (name, pos)
                 sleep(0.2)
             sleep(0.2)

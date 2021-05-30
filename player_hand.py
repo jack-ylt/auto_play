@@ -12,12 +12,11 @@ from pykeyboard import PyKeyboard
 import asyncio
 import math
 from time import sleep
-from global_val import g_hand_lock
-
+# from global_val import self.g_hand_lock
+# from main import self.g_hand_lock
 
 import logging
 logger = logging.getLogger(__name__)
-
 
 
 def distance(p1, p2):
@@ -36,13 +35,15 @@ class Hand(object):
         'esc': k.escape_key
     }
 
+    def __init__(self, g_hand_lock):
+        self.g_hand_lock = g_hand_lock
 
     async def delay(self, n):
         """delay n seconds, with a random +- err error."""
         random_err = (-n + 2*n*random.random()) * self.err
         await asyncio.sleep(n + random_err)
 
-    async def click(self, pos, delay=1, cheat=True):
+    async def click(self, pos, cheat=True):
         """simulate a player to do a left-click"""
         if cheat:
             x = pos[0] + random.randint(-8, 8)
@@ -50,14 +51,11 @@ class Hand(object):
         else:
             x, y = pos
 
-        async with g_hand_lock:
-            await self.m.click((x, y))
-            await asyncio.sleep(0.1)
-
+        # async with self.g_hand_lock:
+        self.m.click(x, y)
+        await asyncio.sleep(0.2)
         logger.debug(f"click {pos}")
-        if delay:
-            # the game need some time to response for the click
-            await self.delay(delay)
+
 
     async def drag(self, p1, p2, delay=0.2):
         """drag from position 1 to position 2"""
@@ -65,34 +63,34 @@ class Hand(object):
         y = p1[1]
         step = 10
 
-        async with g_hand_lock:
-            self.m.press(x, y)
-            while distance((x, y), p2) >= 1:
-                x += (p2[0] - x)/step
-                y += (p2[1] - y)/step
-                step -= 1
-                self.m.move(int(x), int(y))
-                await asyncio.sleep(0.02)
-            self.m.release(p2[0], p2[1])
+        # async with self.g_hand_lock:
+        self.m.press(x, y)
+        while distance((x, y), p2) >= 1:
+            x += (p2[0] - x)/step
+            y += (p2[1] - y)/step
+            step -= 1
+            self.m.move(int(x), int(y))
+            await asyncio.sleep(0.02)
+        self.m.release(p2[0], p2[1])
 
         await asyncio.sleep(delay)
         logger.debug(f"drag from {p1} to {p2}")
 
-    async def scroll(self, vertical_num, delay=0.5):
+    async def scroll(self, vertical_num, delay=0.2):
         """垂直滚动"""
         num = vertical_num
         if num > 0:
-            async with g_hand_lock:
-                while num > 0:
-                    num -= 1
-                    self.m.scroll(1)
-                    await asyncio.sleep(0.1)
+            # async with self.g_hand_lock:
+            while num > 0:
+                num -= 1
+                self.m.scroll(1)
+                await asyncio.sleep(0.1)
         elif num < 0:
-            async with g_hand_lock:
-                while num < 0:
-                    num += 1
-                    self.m.scroll(-1)
-                    await asyncio.sleep(0.1)
+            # async with self.g_hand_lock:
+            while num < 0:
+                num += 1
+                self.m.scroll(-1)
+                await asyncio.sleep(0.1)
         else:
             if delay:
                 await self.delay(delay)
@@ -101,10 +99,9 @@ class Hand(object):
             else:
                 logger.debug(f"scroll up {vertical_num}")
 
-    async def move(self, x, y, delay=0.5):
-        async with g_hand_lock:
-            self.m.move(x, y)
-
+    async def move(self, x, y, delay=0.2):
+        # async with self.g_hand_lock:
+        self.m.move(x, y)
         if delay:
             await self.delay(delay)
 
@@ -113,20 +110,19 @@ class Hand(object):
         if len(key) != 1:
             key = self.KEY_DICT[key]
 
-        async with g_hand_lock:
-            self.k.press_key(key)
-            await self.delay(self.interval)
-            self.k.release_key(key)
-            await self.delay(self.interval * 0.5)
-
+        # async with self.g_hand_lock:
+        self.k.press_key(key)
+        await self.delay(self.interval)
+        self.k.release_key(key)
+        await self.delay(self.interval * 0.5)
         logger.debug(f"tap_key: {key}")
         if delay:
             await self.delay(delay)
 
     async def type_string(self, a_string, delay=0.2):
         """type a string to the computer"""
-        async with g_hand_lock:
-            self.k.type_string(a_string)
+        # async with self.g_hand_lock:
+        self.k.type_string(a_string)
 
         logger.debug(f"type_string {a_string}")
         if delay:
