@@ -71,7 +71,7 @@ class AutoPlay(object):
     async def goto_main_interface(self):
         for _ in range(5):
             try:
-                _, pos = await self.player.monitor(['setting'], timeout=1)
+                await self.player.monitor(['setting'], timeout=1)
                 # await self.player.click((855, 45), cheat=False)    # 去掉一些遗留界面
                 break
             except FindTimeout:
@@ -90,9 +90,11 @@ class AutoPlay(object):
         x = 120
         y = 450
         dx = 65
-        for _ in range(6):
-            await self.player.click((x, y), delay=0.2)
-            x += dx
+        pos_list = [(x, y)]
+        for _ in range(5):
+            pos_list.append((x + dx, y))
+
+        await self.player.multi_click(pos_list)
 
         return True
 
@@ -248,8 +250,9 @@ class AutoPlay(object):
         ]
 
         while True:
-            for pos in pos_list:
-                await self.player.click(pos, delay=0.2)
+            # for pos in pos_list:
+            #     await self.player.click(pos, delay=0.2)
+            await self.player.multi_click(pos_list)
             await asyncio.sleep(1)
 
             _, pos = await self.player.monitor(['challenge'])
@@ -413,7 +416,7 @@ class AutoPlay(object):
         pos_send_gift = (810, 450)
         while True:
             try:
-                _, pos = await self.player.monitor(['gift_over'], threshold=0.92, timeout=1)
+                _, pos = await self.player.monitor(['gift_over'], threshold=0.88, timeout=1)
                 break
             except FindTimeout:
                 await self.player.click(pos_select_gift, delay=0.2)
@@ -570,12 +573,6 @@ class AutoPlay(object):
             pass
 
         # open boxes
-        pos_boxes = [
-            (200, 170),
-            (310, 170),
-            (540, 170),
-            (700, 170),
-        ]
         pos_list = await self.player.find_all_pos(['box1'], threshold=0.9)
         for p in sorted(pos_list):
             await self.player.click(p)
@@ -613,8 +610,9 @@ class AutoPlay(object):
             _, pos_plus = await self.player.monitor(['plus'], threshold=0.98, timeout=1)
         except FindTimeout:
             return await self.goto_main_interface()
-        for _ in range(5):
-            await self.player.click(pos_plus, cheat=False, delay=0.2)
+        # for _ in range(5):
+        #     await self.player.click(pos_plus, cheat=False, delay=0.2)
+        await self.player.multi_click([pos_plus] * 5, cheat=False)
         pos_ok1 = (420, 360)
         await self.player.click(pos_ok1)
 
@@ -802,8 +800,6 @@ class AutoPlay(object):
     #
 
     async def armory(self):
-        # "armory": "./pics/armory/armory.jpg",
-        # "arms": "./pics/armory/arms.jpg",
         await self._move_to_right_top()
         _, pos = await self.player.monitor(['armory'])
         await self.player.click(pos, delay=2)
@@ -830,8 +826,9 @@ class AutoPlay(object):
                 pos = pos_list[0]
                 pos = (pos[0] - 30, pos[1] + 30)
                 await self.player.click(pos)
-                await self.player.click(pos_quantity)
-                await self.player.tap_key('3')
+                # await self.player.click(pos_quantity)
+                # await self.player.tap_key('3')
+                await self.player.information_input(pos_quantity, '3')
                 await self.player.click(pos_enter)
                 await self.player.click(pos_forging)
                 break
@@ -863,7 +860,6 @@ class AutoPlay(object):
                 break
         await self.player.go_back()
 
-        # pics3 = ['hero_badge', 'task_ticket']
         pics1 = ['hero_badge', 'task_ticket',
                  'soda_water1', 'soda_water2', 'soda_water3']
         offset1 = 40
@@ -889,11 +885,7 @@ class AutoPlay(object):
                         return await self.goto_main_interface()
             try:
                 name, pos = await self.player.monitor(['refresh2'], threshold=0.9, timeout=1)
-                # name, pos = await self.player.monitor(['refresh', 'refresh1', 'refresh2', 'refresh3'], threshold=0.92, timeout=2)
                 await self.player.click(pos)
-                # if name == 'refresh3':
-                #     _, pos = await self.player.monitor(['ok8'])
-                #     await self.player.click(pos)
             except FindTimeout:
                 return await self.goto_main_interface()
 
@@ -1032,7 +1024,7 @@ class AutoPlay(object):
             await self.player.click(pos)
             if i == 0:
                 await self._equip_team()
-            res = await self.fight_brave()
+            res = await self._fight_brave()
             if res == 'lose':
                 break
 

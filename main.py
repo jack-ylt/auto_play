@@ -60,10 +60,10 @@ async def main(g_exe):
 
     await asyncio.gather(
         play("left_top", g_queue, g_event, g_found, g_hand_lock, g_player_lock),
-        # play("left_down", g_queue, g_event,
-        #      g_found, g_hand_lock, g_player_lock),
-        # play("right_top", g_queue, g_event,
-        #      g_found, g_hand_lock, g_player_lock),
+        play("left_down", g_queue, g_event,
+             g_found, g_hand_lock, g_player_lock),
+        play("right_top", g_queue, g_event,
+             g_found, g_hand_lock, g_player_lock),
         dispatch(g_exe, g_queue, g_event, g_found),
     )
 

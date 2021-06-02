@@ -5,8 +5,6 @@ import asyncio
 import logging
 logger = logging.getLogger(__name__)
 
-# from global_val import g_queue, g_event, g_found, g_player_lock
-# from main import g_queue, g_event, g_found, g_player_lock
 from ui_data import WINDOW_DICT, WIDTH, HIGH
 
 
@@ -103,6 +101,7 @@ class Player(object):
         async with self.g_player_lock:
             await self.hand.click(pos, cheat=cheat)
         logger.debug(f"{self.window_name}: click {pos} end")
+        delay += 1    # 多开后，游戏反应更慢了
         await asyncio.sleep(delay)
         
 
@@ -135,14 +134,34 @@ class Player(object):
         pos_window_border = (400, 8)
         mouse_pos = await self.hand.mouse_pos()
         async with self.g_player_lock:
-        # async with self.g_hand_lock:
             if not self.in_window(mouse_pos):
-                # await self.click(pos_window_border, delay=0, cheat=False)
                 pos = self.real_pos(pos_window_border)
                 await self.hand.click(pos, cheat=False)
-            # await self.tap_key('esc')
             await self.hand.tap_key('esc')
-            # await asyncio.sleep(0.2)
+
+    async def information_input(self, pos, info):
+        """click the input box, then input info"""
+        async with self.g_player_lock:
+            if pos[0] < WIDTH and pos[1] < HIGH:
+                pos = self.real_pos(pos)
+            self.hand.click(pos)
+            self.hand.type_string(info)
+
+    async def multi_click(self, pos_list, delay=1, cheat=True):
+        logger.debug(f"{self.window_name}: click {pos_list} start")
+
+        async with self.g_player_lock:
+            for pos in pos_list:
+                if isinstance(pos, str):
+                    pos = POS_DICT[pos]
+                if pos[0] < WIDTH and pos[1] < HIGH:
+                    pos = self.real_pos(pos)
+                await self.hand.click(pos, cheat=cheat)
+
+        logger.debug(f"{self.window_name}: click {pos_list} end")
+
+        delay += 1
+        await asyncio.sleep(delay)
  
 
     async def type_string(self, a_string, delay=0.2):

@@ -1,10 +1,4 @@
-# WIDTH = 910
-# HIGH = 518
 
-# WINDOW_DICT = {
-#     'left_top': (0, 0),
-#     'left_down': (0, 518)
-# }
 from numpy import histogram
 from ui_data import HIGH, WIDTH, WINDOW_DICT
 

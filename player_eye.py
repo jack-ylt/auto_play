@@ -20,8 +20,7 @@ import asyncio
 from helper import get_window_region
 
 from ui_data import PIC_DICT, SCREEN_DICT
-
-
+from configs.config import config
 
 # TODAY = str(date.today())
 # LOG_FILE = 'log_' + TODAY + '.log'
@@ -29,10 +28,7 @@ from ui_data import PIC_DICT, SCREEN_DICT
 
 logger = logging.getLogger(__name__)
 
-config = {
-    'appId': '14224264',
-    'apiKey': 'acb29MRO413yLSuTkC2TIfXd',
-    'secretKey': '2abIQ9DTiBaZTK1FrKx1OqGzIbT2pVGW'}
+
 client = AipOcr(**config)
 options = {
     'probability': 'true',
@@ -85,8 +81,6 @@ class Eye(object):
 
     def read_pic(self, pic_path):
         """read pic file, return img_gray object"""
-        # img_rgb = cv2.imread(pic_path)
-        # img_gray = cv2.cvtColor(img_rgb, cv2.COLOR_BGR2GRAY)
         if not os.path.exists(pic_path):
             msg = f"The {pic_path} isn't exists."
             raise Exception(msg)
@@ -281,7 +275,7 @@ def find(args_list):
 async def dispatch(exe, g_queue, g_event, g_found):
     logger.debug('dispatch start')
     while True:
-        await asyncio.sleep(0.3)
+        await asyncio.sleep(0.6)
         item_list = []
 
         while not g_queue.empty():
@@ -330,7 +324,7 @@ async def dispatch(exe, g_queue, g_event, g_found):
 
 
 if __name__ == '__main__':
-    pic_paths = [PIC_DICT['box1'], PIC_DICT['point3']]
+    pic_paths = [PIC_DICT['gift_over']]
     similarity = 0.9
     quantity = 1
     test(pic_paths, similarity=similarity, quantity=quantity)
