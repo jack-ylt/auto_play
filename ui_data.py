@@ -66,6 +66,7 @@ PIC_DICT = {
     'next_level1': './pics/level_battle/next_level1.jpg',
     'search': './pics/level_battle/search.jpg',
     'level_map': './pics/level_battle/level_map.jpg',
+    'level_low': './pics/level_battle/level_low.jpg',
     'point': './pics/level_battle/point.jpg',
     'point3': './pics/level_battle/point3.jpg',
     'ok1': './pics/level_battle/ok1.jpg',
@@ -168,6 +169,7 @@ PIC_DICT = {
     # armory
     "armory": "./pics/armory/armory.jpg",
     "arms": "./pics/armory/arms.jpg",
+    "arms1": "./pics/armory/arms1.png",
 
     # market
     "market": "./pics/market/market.jpg",

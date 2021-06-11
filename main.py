@@ -33,8 +33,10 @@ if debug:
 else:
     ch.setLevel(logging.INFO)
 
+# formatter = logging.Formatter(
+#     '%(asctime)s   %(levelname)s  %(funcName)s:%(lineno)d  %(message)s')
 formatter = logging.Formatter(
-    '%(asctime)s   %(levelname)s  %(funcName)s:%(lineno)d  %(message)s')
+    '%(asctime)s   %(levelname)s   %(message)s')
 fh.setFormatter(formatter)
 ch.setFormatter(formatter)
 errh.setFormatter(formatter)
@@ -44,7 +46,7 @@ logger.addHandler(ch)
 
 
 def handler(signum, frame):
-    print('SIGINT for PID=', os.getpid())
+    logger.info('SIGINT for PID=' + str(os.getpid()))
 
 
 def init():
@@ -74,6 +76,6 @@ if __name__ == "__main__":
     try:
         asyncio.run(main(g_exe))
     except KeyboardInterrupt:
-        print('ctrl + c')
+        logger.info('ctrl + c')
     finally:
         g_exe.shutdown()

@@ -20,7 +20,6 @@ class Player(object):
         self.window_name = window_name
         self.g_queue = g_queue
         self.g_event = g_event
-        print("player g_event", repr(self.g_event))
         self.g_found = g_found
         self.g_player_lock = g_player_lock
         self.g_hand_lock = g_hand_lock
@@ -48,7 +47,7 @@ class Player(object):
                         else:
                             pos = pos_list[0]
                         pos = self.real_pos(pos)
-                        logger.debug(f'{window_name}: found {pic_name} at {pos}')
+                        logger.debug(f"{window_name} found {pic_name} at {pos}")
                         return (pic_name, pos)
 
         logger.debug(f'{self.window_name}: start monitor: {names}')
@@ -97,10 +96,9 @@ class Player(object):
         if pos[0] < WIDTH and pos[1] < HIGH:
             pos = self.real_pos(pos)
 
-        logger.debug(f"{self.window_name}: click {pos} start")
+        logger.debug(f"{self.window_name}: click {pos}")
         async with self.g_player_lock:
             await self.hand.click(pos, cheat=cheat)
-        logger.debug(f"{self.window_name}: click {pos} end")
         delay += 1    # 多开后，游戏反应更慢了
         await asyncio.sleep(delay)
         
@@ -108,20 +106,27 @@ class Player(object):
     async def drag(self, p1, p2, delay=0.2):
         """drag from position 1 to position 2"""
         p1, p2 = map(self.real_pos, [p1, p2])
+        logger.debug(f"{self.window_name}: drag from {p1} to {p2}")
         async with self.g_player_lock:
             await self.hand.drag(p1, p2, delay)
 
     async def scroll(self, vertical_num, delay=0.2):
+        if vertical_num < 0:
+            logger.debug(f"{self.window_name}: scroll down {vertical_num}")
+        else:
+            logger.debug(f"{self.window_name}: scroll up {vertical_num}")
         async with self.g_player_lock:
             await self.hand.scroll(vertical_num, delay)
 
     async def move(self, x, y, delay=0.2):
         x, y = self.real_pos((x, y))
+        logger.debug(f"{self.window_name}: move to ({x}, {y})")
         async with self.g_player_lock:
             await self.hand.move(x, y, delay)
 
     async def tap_key(self, key, delay=0.2):
         """tap a key with a random interval"""
+        logger.debug(f"{self.window_name}: tap_key {key}")
         async with self.g_player_lock:
             await self.hand.tap_key(key, delay)
 
@@ -133,38 +138,46 @@ class Player(object):
     async def go_back(self):
         pos_window_border = (400, 8)
         mouse_pos = await self.hand.mouse_pos()
+        logger.debug(f"{self.window_name}: go_back")
         async with self.g_player_lock:
             if not self.in_window(mouse_pos):
                 pos = self.real_pos(pos_window_border)
                 await self.hand.click(pos, cheat=False)
+                await asyncio.sleep(0.2)
             await self.hand.tap_key('esc')
 
     async def information_input(self, pos, info):
         """click the input box, then input info"""
+        logger.debug(f"{self.window_name}: input '{info}' at {pos}")
         async with self.g_player_lock:
             if pos[0] < WIDTH and pos[1] < HIGH:
                 pos = self.real_pos(pos)
-            self.hand.click(pos)
-            self.hand.type_string(info)
+            await self.hand.click(pos)
+            await asyncio.sleep(0.2)
+            await self.hand.type_string(info)
 
     async def multi_click(self, pos_list, delay=1, cheat=True):
-        logger.debug(f"{self.window_name}: click {pos_list} start")
+        new_pos_list = []
+        
+        for pos in pos_list:
+            if isinstance(pos, str):
+                pos = POS_DICT[pos]
+            if pos[0] < WIDTH and pos[1] < HIGH:
+                pos = self.real_pos(pos)
+            new_pos_list.append(pos)
 
+        logger.debug(f"{self.window_name}: multi click {new_pos_list}")
         async with self.g_player_lock:
-            for pos in pos_list:
-                if isinstance(pos, str):
-                    pos = POS_DICT[pos]
-                if pos[0] < WIDTH and pos[1] < HIGH:
-                    pos = self.real_pos(pos)
+            for pos in new_pos_list:
                 await self.hand.click(pos, cheat=cheat)
+                await asyncio.sleep(0.2)
+            await asyncio.sleep(0.2)
 
-        logger.debug(f"{self.window_name}: click {pos_list} end")
-
-        delay += 1
         await asyncio.sleep(delay)
  
 
     async def type_string(self, a_string, delay=0.2):
         """type a string to the computer"""
+        logger.debug(f"{self.window_name}: type_string {a_string}")
         async with self.g_player_lock:
             await self.hand.type_string(a_string, delay)

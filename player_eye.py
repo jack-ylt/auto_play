@@ -37,7 +37,7 @@ options = {
 # {name: pic_path, ...}
 
 
-def de_duplication(pos_list, offset=5):
+def de_duplication(pos_list, offset=10):
     """去掉匹配到的重复的图像坐标"""
     new_list = []
 
@@ -70,6 +70,9 @@ class Eye(object):
         """screenshot, and save as file."""
         im = ImageGrab.grab()
         im.save(SCREEN_DICT['screen'])
+        img_rgb = cv2.imread(SCREEN_DICT['screen'])
+        img_gray = cv2.cvtColor(img_rgb, cv2.COLOR_BGR2GRAY)
+        self.bg_dict['full'] = img_gray
 
         for name in ['left_top', 'left_down', 'right_top']:
             new_im = im.crop(get_window_region(name))
@@ -237,7 +240,7 @@ def test(pic_path_list, similarity=0.96, quantity=1):
         print(i)
         # img_bg = 
         eye.screenshot()
-        img_bg = eye.bg_dict['left_top']
+        img_bg = eye.bg_dict['full']
 
         for img_target in img_targets:
             pos_list = eye.find_img_pos(
@@ -245,6 +248,7 @@ def test(pic_path_list, similarity=0.96, quantity=1):
             all_pos.extend(pos_list)
 
         all_pos = de_duplication(all_pos)
+        print('all_pos:', all_pos)
 
         num_found = len(all_pos)
         print('num_found:', num_found)
@@ -273,7 +277,7 @@ def find(args_list):
     return eye.find_img_pos(img_bg, img, threshold)
 
 async def dispatch(exe, g_queue, g_event, g_found):
-    logger.debug('dispatch start')
+    logger.debug('dispatch start ...')
     while True:
         await asyncio.sleep(0.6)
         item_list = []
@@ -304,13 +308,13 @@ async def dispatch(exe, g_queue, g_event, g_found):
         pre_name = None
         for pos_list in exe.map(find, to_be_find):
             window_name, pic_name = name_list[idx]
-            print("found", window_name, pic_name, 'at', pos_list)
+            # if pos_list:
+            #     logger.debug(f"{window_name} found {pic_name} at {pos_list}")
 
             if pre_name is None:
                 pre_name = window_name
             if window_name != pre_name:
                 g_event.set()    # 某个客户端的所有查找任务都完成了，发通知
-                print('pre_name', pre_name, 'set event')
                 pre_name = window_name
                 g_event.clear()
 
@@ -319,12 +323,14 @@ async def dispatch(exe, g_queue, g_event, g_found):
             idx += 1
 
         g_event.set()    # 最后一个客户端的所有查找任务都完成了，发通知
-        print('the last window_name', window_name, 'set event')
         g_event.clear()
 
 
 if __name__ == '__main__':
-    pic_paths = [PIC_DICT['gift_over']]
-    similarity = 0.9
+    pic_paths = [
+        # PIC_DICT['next_level2'],
+        PIC_DICT['next_level3']      
+    ]
+    similarity = 0.85
     quantity = 1
     test(pic_paths, similarity=similarity, quantity=quantity)

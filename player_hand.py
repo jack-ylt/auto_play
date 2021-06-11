@@ -44,37 +44,37 @@ class Hand(object):
     async def click(self, pos, cheat=True):
         """simulate a player to do a left-click"""
         if cheat:
-            x = pos[0] + random.randint(-8, 8)
-            y = pos[1] + random.randint(-5, 5)
+            x = pos[0] + random.randint(-12, 12)
+            y = pos[1] + random.randint(-8, 8)
         else:
-            x, y = pos
+            x = pos[0] + random.randint(-3, 3)
+            y = pos[1] + random.randint(-2, 2)
 
         self.m.click(x, y)
-        await asyncio.sleep(0.2)
-        logger.debug(f"click {pos}")
-
+        await asyncio.sleep(0.1)
 
     async def drag(self, p1, p2, delay=0.2):
         """drag from position 1 to position 2"""
-        x = p1[0]
-        y = p1[1]
+        x1 = p1[0] + random.randint(-12, 12)
+        y1 = p1[1] + random.randint(-8, 8)
+        x2 = p2[0] + random.randint(-12, 12)
+        y2 = p2[1] + random.randint(-8, 8)
         step = 10
 
-        self.m.press(x, y)
-        while distance((x, y), p2) >= 1:
-            x += (p2[0] - x)/step
-            y += (p2[1] - y)/step
+        self.m.press(x1, y1)
+        while distance((x1, y1), (x2, y2)) >= 1:
+            x1 += (x2 - x1)/step
+            y1 += (y2 - y1)/step
             step -= 1
-            self.m.move(int(x), int(y))
-            await asyncio.sleep(0.02)
-        self.m.release(p2[0], p2[1])
+            self.m.move(int(x1), int(y1))
+            await asyncio.sleep(0.05)
+        self.m.release(x2, y2)
 
         await asyncio.sleep(delay)
-        logger.debug(f"drag from {p1} to {p2}")
 
     async def scroll(self, vertical_num, delay=0.2):
         """垂直滚动"""
-        num = vertical_num
+        num = vertical_num + random.randint(-1, 1)
         if num > 0:
             while num > 0:
                 num -= 1
@@ -88,10 +88,6 @@ class Hand(object):
         else:
             if delay:
                 await self.delay(delay)
-            if vertical_num < 0:
-                logger.debug(f"scroll down {vertical_num}")
-            else:
-                logger.debug(f"scroll up {vertical_num}")
 
     async def move(self, x, y, delay=0.2):
         self.m.move(x, y)
@@ -107,7 +103,6 @@ class Hand(object):
         await self.delay(self.interval)
         self.k.release_key(key)
         await self.delay(self.interval * 0.5)
-        logger.debug(f"tap_key: {key}")
         if delay:
             await self.delay(delay)
 
@@ -115,7 +110,6 @@ class Hand(object):
         """type a string to the computer"""
         self.k.type_string(a_string)
 
-        logger.debug(f"type_string {a_string}")
         if delay:
             await self.delay(delay)
 
