@@ -6,6 +6,8 @@ import datetime
 import re
 import random
 from operator import itemgetter
+from collections import namedtuple
+
 from playsound import playsound
 from ui_data import SCREEN_DICT
 from player import Player, FindTimeout
@@ -475,7 +477,7 @@ class AutoPlay(object):
             pos = filter_bottom(pos_list)
             await self.player.click(pos)
             name, pos = await self.player.monitor(['start_fight', 'next_game1'])
-            
+
             if name == 'start_fight':
                 await self.player.click(pos)
                 await asyncio.sleep(3)
@@ -1045,6 +1047,167 @@ class AutoPlay(object):
 
         await self.goto_main_interface()
 
+    async def login(self, account_pre, account_curr):
+        # account_curr = Account(game_name, account, passwd, server)
+        async def _login_server():
+            """login via another server, if sucess, return True"""
+            if not account_curr.server:
+                return True
+            _, pos = await self.player.monitor(['setting'])
+            await self.player.click(pos)
+            _, pos = await self.player.monitor(['server_icon'])
+            await self.player.click(pos)
+            await self.player.monitor(['server_ui'])
+            pos = await self.player.find_text_pos(account_curr.server)
+            if pos == (-1, -1):
+                logger.warning(
+                    f"login server faild: can't find the {account_curr.server}")
+                return False
+            await self.player.click(pos)
+            try:
+                await self.player.monitor(['changge_server_remind'], timeout=1)
+                pos_ok = (500, 350)
+                await self.player.click(pos_ok)
+            except FindTimeout:
+                # 想登陆的区，正好是当前的区，直接返回
+                await self.player.go_back()
+
+            return True
+
+        async def _login_account():
+            """login via another account, if sucess, return True"""
+            _, pos = await self.player.monitor(['setting'])
+            await self.player.click(pos)
+            await self.player.monitor(['server_icon'])
+            pos_exit = (650, 350)
+            await self.player.click(pos_exit)
+            pos_ok = (500, 350)
+            await self.player.click(pos_ok)
+            pos_start_game = (430, 490)
+            await self.player.click(pos_start_game)
+            name, pos = await self.player.monitor(['setting', 'game_91'])
+            if name == 'game_91':
+                pos_account = (370, 235)
+                await self.player.information_input(
+                    pos_account, account_curr.account)
+                await asyncio.sleep(1)
+                pos_passwd = (370, 290)
+                await self.player.information_input(
+                    pos_passwd, account_curr.passwd)
+                pos_login = (430, 340)
+                await self.player.click(pos_login)
+                await asyncio.sleep(3)
+                name, pos = await self.player.monitor(['setting', 'game_91'])
+                if name == 'game_91':
+                    return False
+                else:
+                    return True
+            else:
+                # 只有一个用户，直接进入游戏
+                return True
+
+        async def _login_game():
+            """start game and login, if sucess, return True"""
+            _, pos = await self.player.monitor([account_curr.game_name])
+            await self.player.double_click(pos)
+            await asyncio.sleep(50)
+
+            try:
+                _, pos = await self.player.monitor(['close_btn'], timeout=60)
+                await self.player.click(pos)
+            except FindTimeout:
+                logger.warning(f"{self.player.window_name}: start game failed")
+                return False
+
+            # TODO: 账号异地登陆
+
+            pos_start_game = (430, 490)
+            await self.player.click(pos_start_game)
+            await asyncio.sleep(3)
+            name, pos = await self.player.monitor(['setting', 'game_91'])
+            if name == 'game_91':
+                pos_login = (430, 350)
+                await self.player.click(pos_login, delay=3)
+                name, pos = await self.player.monitor(['setting', 'game_91'])
+                if name == 'game_91':
+                    logger.debug(f"{self.player.window_name} _login_game failed.")
+                    return False
+                else:
+                    return True
+            else:
+                return True
+
+        async def _close_game():
+            pos_recent_tasks = (885, 500)
+            pos_clear_all = (630, 85)
+            await self.player.click(pos_recent_tasks, delay=2)
+            await self.player.click(pos_clear_all)
+
+        if not account_pre:
+            sucess = await _login_game()
+            if not sucess:
+                await _close_game()
+                sucess = await _login_game()
+                if not sucess:
+                    return False
+
+            await _login_account()
+            await _login_server()
+        else:
+            if account_curr.game_name != account_pre.ganem_name:
+                await _close_game()
+                sucess = await _login_game()
+                if not sucess:
+                    await _close_game()
+                    sucess = await _login_game()
+                    if not sucess:
+                        return False
+                await _login_account()
+                await _login_server()
+            elif account_curr.account != account_pre.account:
+                await _login_account()
+                await _login_server()
+            else:
+                await _login_server()
+            
+        return True
+
+    async def play_game(self):
+        tasks = [
+            'collect_mail',
+            'friends_interaction',
+            'community_assistant',
+            'instance_challenge',
+            'guild',
+            'exciting_activities',
+            'jedi_space',
+            'survival_home',
+            'market',
+            'invite_heroes',
+            'level_battle',
+            'arena',
+            'armory',
+            'tower_battle',
+            'brave_instance',
+        ]
+
+        count = 0
+        for task in tasks:
+            if not need_run(task):
+                logger.debug(f"{self.player.window_name}: skip to run {task}")
+                continue
+
+            logger.info(f"{self.player.window_name}: Start to run: " + task)
+            try:
+                await getattr(self, task)()
+            except FindTimeout as e:
+                count += 1
+                save_timeout_pic(str(e))
+                await self.goto_main_interface()
+                if count > 5:
+                    logger.error('Timeout too many times, so exit')
+                    break
+
 
 def save_timeout_pic(msg):
     screen_pic = SCREEN_DICT['screen']
@@ -1077,48 +1240,64 @@ def need_run(name):
         return True
 
 
-async def play(windows_name, g_queue, g_event, g_found, g_hand_lock, g_player_lock):
-    player = Player(windows_name, g_queue, g_event,
-                    g_found, g_hand_lock, g_player_lock)
+async def play(window_name, account_list, g_queue, g_event, g_found, g_player_lock):
+    player = Player(window_name, g_queue, g_event,
+                    g_found, g_player_lock)
     auto_play = AutoPlay(player)
-    tasks = [
-        'collect_mail',
-        'friends_interaction',
-        'community_assistant',
-        'instance_challenge',
-        'guild',
-        'exciting_activities',
-        'jedi_space',
-        'survival_home',
-        'market',
-        'invite_heroes',
-        'level_battle',
-        'arena',
-        'armory',
-        'tower_battle',
-        'brave_instance',
-    ]
 
-    if not await getattr(auto_play, 'in_main_interface')():
-        logger.info(f"The {windows_name} game is not exist, so exit.")
-        return
+    # await auto_play.play_game()
 
-    count = 0
-    for task in tasks:
-        if not need_run(task):
-            logger.debug(f"{windows_name}: skip to run {task}")
-            continue
+    try:
+        await player.monitor(['emulator_started'], timeout=60)
+    except FindTimeout:
+        logger.warning(f"{window_name}: Start the emulator failed.")
+        return 
 
-        logger.info(f"{windows_name}: Start to run: " + task)
+    await asyncio.sleep(5)
+
+    pos_close_remind = (680, 200)
+    try:
+        await player.monitor(['remind'], timeout=1)
+        await player.click(pos_close_remind)
+    except FindTimeout:
+        pass
+
+    pos_close_app = (300, 300)
+    while True:
         try:
-            await getattr(auto_play, task)()
-        except FindTimeout as e:
-            count += 1
-            save_timeout_pic(str(e))
-            await auto_play.goto_main_interface()
-            if count > 5:
-                logger.error('Timeout too many times, so exit')
-                break
+            await player.monitor(['app_error'], timeout=1)
+            await player.click(pos_close_app)
+        except FindTimeout:
+            break
+
+    account_pre = None
+    Account = namedtuple(
+        'Account', ['game_name', 'account', 'passwd', 'server'])
+
+    while account_list:
+        account_dict = account_list.pop()
+        game_name = account_dict['game_name']
+        account = account_dict['account']
+        passwd = account_dict['passwd']
+        server_ids = account_dict['server_ids']
+
+        if server_ids:
+            for server in server_ids:
+                account_curr = Account(game_name, account, passwd, server)
+                success = await auto_play.login(account_pre, account_curr)
+                if not success:
+                    logger.warning(f"{window_name} login failed.")
+                    return
+                account_pre = account_curr
+                await auto_play.play_game()
+        else:
+            account_curr = Account(game_name, account, passwd, '')
+            success = await auto_play.login(account_pre, account_curr)
+            if not success:
+                logger.warning(f"{window_name} login failed.")
+                return 
+            account_pre = account_curr
+            await auto_play.play_game()
 
 
 # TODO  要监控上一个标志，防止只点击一次没反应

@@ -98,4 +98,8 @@ if __name__ == '__main__':
         dian, map, points, dian, dian ok, 10s, fight zhandou
         点了没反应： 到最新关了
                 
-            
+
+★ 现在已经实现一键挂机了
+下一步是把所有情况都考虑上，提高挂机稳定性
+涉及到切界面的要考虑monitor，因为有时候快有时候慢
+find_then_click()

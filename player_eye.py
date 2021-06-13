@@ -7,32 +7,40 @@
 #
 ##############################################################################
 
-import logging
+
 import cv2
 import re
 import numpy as np
 from PIL import ImageGrab, Image
-from time import sleep, time
-from aip import AipOcr
+import time
+# from aip import AipOcr
 from datetime import date
 import os
 import asyncio
 from helper import get_window_region
+from text_recognition import find_text_pos
 
 from ui_data import PIC_DICT, SCREEN_DICT
-from configs.config import config
+# from configs.config import config
 
 # TODAY = str(date.today())
 # LOG_FILE = 'log_' + TODAY + '.log'
 
-
+import logging
 logger = logging.getLogger(__name__)
 
 
-client = AipOcr(**config)
-options = {
-    'probability': 'true',
-    'detect_language': 'true'}
+class FindTimeout(Exception):
+    """
+    when no found and timeout, raise 
+    """
+    pass
+
+
+# client = AipOcr(**config)
+# options = {
+#     'probability': 'true',
+#     'detect_language': 'true'}
 
 # {name: pic_path, ...}
 
@@ -56,6 +64,8 @@ def de_duplication(pos_list, offset=10):
 
 
 class Eye(object):
+    idx = 0
+
     def __init__(self):
         self.img_dict = {}    # {name: img_obj, ...}
         self.bg_dict = {}
@@ -66,10 +76,20 @@ class Eye(object):
             img = self.read_pic(path)
             self.img_dict[name] = img
 
-    def screenshot(self):
-        """screenshot, and save as file."""
+    def screenshot(self, back_name=None):
+        """screenshot, and save as file.
+
+        save full, left_top, left_down, right_top
+        return the screen pic file path
+        """
         im = ImageGrab.grab()
         im.save(SCREEN_DICT['screen'])
+
+        # 另存一份，以免覆盖
+        back_name = './pics/screen_' + str((self.idx + 1) % 2) + '.jpg'
+        self.idx += 1
+        im.save(back_name)
+        
         img_rgb = cv2.imread(SCREEN_DICT['screen'])
         img_gray = cv2.cvtColor(img_rgb, cv2.COLOR_BGR2GRAY)
         self.bg_dict['full'] = img_gray
@@ -81,6 +101,10 @@ class Eye(object):
             img_rgb = cv2.imread(new_path)
             img_gray = cv2.cvtColor(img_rgb, cv2.COLOR_BGR2GRAY)
             self.bg_dict[name] = img_gray
+
+        return back_name
+
+        # return self.bg_dict['full'], self.bg_dict['left_top'], self.bg_dict['left_down'], self.bg_dict['right_top']
 
     def read_pic(self, pic_path):
         """read pic file, return img_gray object"""
@@ -132,6 +156,16 @@ class Eye(object):
         """cut image file according to (left top width hight)"""
         region = image.crop((x, y, x+w, y+h))
         return region
+
+    def find_text_pos(self, text, window_name=None):
+        pic_path = self.screenshot()
+        if window_name:
+            pic_path = SCREEN_DICT['screen_' + window_name]
+
+        # image_cuted = self.cut_image(image, *area)
+        pos = find_text_pos(pic_path, text)
+        return pos
+
 
     # def _pic_to_word(self, name):
     #     """get a word from a pic file
@@ -238,7 +272,7 @@ def test(pic_path_list, similarity=0.96, quantity=1):
     all_pos = []
     for i in range(total):
         print(i)
-        # img_bg = 
+        # img_bg =
         eye.screenshot()
         img_bg = eye.bg_dict['full']
 
@@ -272,9 +306,44 @@ def test(pic_path_list, similarity=0.96, quantity=1):
 eye = Eye()
 
 
+def monitor(names, timeout=5, speed=1, threshold=0.8, filter_func=None):
+    """return (name, pos), or rease timeout_error"""
+    def _monitor():
+        eye.screenshot()
+        img_bg = eye.bg_dict['full']
+
+        for name in names:
+            img_target = eye.img_dict[name]
+            pos_list = eye.find_img_pos(
+                img_bg, img_target, threshold=threshold)
+            if pos_list:
+                if filter_func:
+                    pos = filter_func[pos_list]
+                else:
+                    pos = pos_list[0]
+                print(name, pos)
+                return name, pos
+
+        return None
+
+    logger.debug(f'start monitor: {names}')
+    start = time.time()
+    
+    while time.time() - start < timeout:
+        res = _monitor()
+        if res:
+            return res
+        else:
+            time.sleep(speed)
+
+    msg = (f"monitor {names} timeout. ({timeout} s)")
+    raise FindTimeout(msg)
+
+
 def find(args_list):
     img_bg, img, threshold = args_list
     return eye.find_img_pos(img_bg, img, threshold)
+
 
 async def dispatch(exe, g_queue, g_event, g_found):
     logger.debug('dispatch start ...')
@@ -327,10 +396,15 @@ async def dispatch(exe, g_queue, g_event, g_found):
 
 
 if __name__ == '__main__':
-    pic_paths = [
-        # PIC_DICT['next_level2'],
-        PIC_DICT['next_level3']      
-    ]
-    similarity = 0.85
-    quantity = 1
-    test(pic_paths, similarity=similarity, quantity=quantity)
+    # pic_paths = [
+    #     # PIC_DICT['next_level2'],
+    #     PIC_DICT['next_level3']
+    # ]
+    # similarity = 0.85
+    # quantity = 1
+    # test(pic_paths, similarity=similarity, quantity=quantity)
+
+    # monitor(['emulator_icon'])
+    eye = Eye()
+    time.sleep(3)
+    print(eye.find_text_pos('S16'))

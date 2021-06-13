@@ -8,24 +8,19 @@ logger = logging.getLogger(__name__)
 from ui_data import WINDOW_DICT, WIDTH, HIGH
 
 
-class FindTimeout(Exception):
-    """
-    when no found and timeout, raise 
-    """
-    pass
+FindTimeout = player_eye.FindTimeout
 
 
 class Player(object):
-    def __init__(self, window_name, g_queue, g_event, g_found, g_hand_lock, g_player_lock):
+    def __init__(self, window_name, g_queue, g_event, g_found, g_player_lock):
         self.window_name = window_name
         self.g_queue = g_queue
         self.g_event = g_event
         self.g_found = g_found
         self.g_player_lock = g_player_lock
-        self.g_hand_lock = g_hand_lock
 
         self.eye = player_eye.Eye()
-        self.hand = player_hand.Hand(g_hand_lock)
+        self.hand = player_hand.Hand()
 
     def real_pos(self, pos):
         x, y = pos
@@ -88,6 +83,21 @@ class Player(object):
 
         return all_pos
 
+    async def find_text_pos(self, text, threshold=0.8):
+        """return a pos"""
+        logger.debug(f'{self.window_name}: start find pos of: {text}')
+
+        pos = self.eye.find_text_pos(text, self.window_name)
+
+        if pos == (-1, -1):
+            logger.debug(f'{self.window_name}: no find the pos of {text}')
+        else:
+            pos = self.real_pos(pos)
+            logger.debug(f'{self.window_name}: find text pos of {text} at {pos}')
+
+        return pos
+
+
     async def click(self, pos, delay=1, cheat=True):
         if isinstance(pos, str):
             pos = POS_DICT[pos]
@@ -99,9 +109,20 @@ class Player(object):
         logger.debug(f"{self.window_name}: click {pos}")
         async with self.g_player_lock:
             await self.hand.click(pos, cheat=cheat)
-        delay += 1    # 多开后，游戏反应更慢了
         await asyncio.sleep(delay)
         
+    async def double_click(self, pos, delay=1, cheat=True):
+        if isinstance(pos, str):
+            pos = POS_DICT[pos]
+
+        # click 的 pos 可能来自monitor的实际坐标，也可能是代码中的伪坐标
+        if pos[0] < WIDTH and pos[1] < HIGH:
+            pos = self.real_pos(pos)
+
+        logger.debug(f"{self.window_name}: double-click {pos}")
+        async with self.g_player_lock:
+            await self.hand.double_click(pos, cheat=cheat)
+        await asyncio.sleep(delay)
 
     async def drag(self, p1, p2, delay=0.2):
         """drag from position 1 to position 2"""
@@ -137,9 +158,9 @@ class Player(object):
 
     async def go_back(self):
         pos_window_border = (400, 8)
-        mouse_pos = await self.hand.mouse_pos()
         logger.debug(f"{self.window_name}: go_back")
         async with self.g_player_lock:
+            mouse_pos = await self.hand.mouse_pos()
             if not self.in_window(mouse_pos):
                 pos = self.real_pos(pos_window_border)
                 await self.hand.click(pos, cheat=False)
@@ -152,7 +173,10 @@ class Player(object):
         async with self.g_player_lock:
             if pos[0] < WIDTH and pos[1] < HIGH:
                 pos = self.real_pos(pos)
-            await self.hand.click(pos)
+            # await self.hand.click(pos)
+            await self.hand.double_click(pos)
+            await asyncio.sleep(0.2)
+            await self.hand.tap_key('backspace')
             await asyncio.sleep(0.2)
             await self.hand.type_string(info)
 

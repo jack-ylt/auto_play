@@ -216,4 +216,23 @@ PIC_DICT = {
     "challenge4": "./pics/brave_instance/challenge4.jpg",
     "team_empty": "./pics/brave_instance/team_empty.jpg",
 
+
+    # start_game
+    "emulator_icon": "./pics/start_game/emulator_icon.jpg",
+    "emulator_ui": "./pics/start_game/emulator_ui.jpg",
+
+    # login
+    "emulator_started": "./pics/login/emulator_started.jpg",
+    "app_error": "./pics/login/app_error.jpg",
+    "remind": "./pics/login/remind.jpg",
+    "game_91": "./pics/login/game_91.jpg",
+    "changge_server_remind": "./pics/login/changge_server_remind.jpg",
+    "close_btn": "./pics/login/close_btn.jpg",
+    "server_icon": "./pics/login/server_icon.jpg",
+    "server_ui": "./pics/login/server_ui.jpg",
+
+    # game_icons
+    "mo_ri_xue_zhan": "./pics/game_icons/mo_ri_xue_zhan.jpg",
+    "mo_shi_jun_tun": "./pics/game_icons/mo_shi_jun_tun.jpg",
+
 }

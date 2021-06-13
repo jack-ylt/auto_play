@@ -14,6 +14,8 @@ from time import sleep
 
 from auto_play import play
 from player_eye import dispatch
+from start_game import start_emulator
+from read_cfg import read_account_cfg
 
 from logging import handlers
 import logging
@@ -54,18 +56,20 @@ def init():
 
 
 async def main(g_exe):
+    await start_emulator()
+
     g_queue = asyncio.Queue()
     g_event = asyncio.Event()
     g_found = dict()
-    g_hand_lock = asyncio.Lock()
     g_player_lock = asyncio.Lock()
+    account_list = read_account_cfg()
 
     await asyncio.gather(
-        play("left_top", g_queue, g_event, g_found, g_hand_lock, g_player_lock),
-        play("left_down", g_queue, g_event,
-             g_found, g_hand_lock, g_player_lock),
-        play("right_top", g_queue, g_event,
-             g_found, g_hand_lock, g_player_lock),
+        play("left_top", account_list, g_queue, g_event, g_found, g_player_lock),
+        play("left_down", account_list, g_queue, g_event,
+             g_found, g_player_lock),
+        play("right_top", account_list, g_queue, g_event,
+             g_found, g_player_lock),
         dispatch(g_exe, g_queue, g_event, g_found),
     )
 

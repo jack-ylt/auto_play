@@ -30,18 +30,16 @@ class Hand(object):
     err = 0.05
     interval = 0.04
     KEY_DICT = {
-        'esc': k.escape_key
+        'esc': k.escape_key,
+        'backspace': k.backspace_key,
     }
-
-    def __init__(self, g_hand_lock):
-        self.g_hand_lock = g_hand_lock
 
     async def delay(self, n):
         """delay n seconds, with a random +- err error."""
         random_err = (-n + 2*n*random.random()) * self.err
         await asyncio.sleep(n + random_err)
 
-    async def click(self, pos, cheat=True):
+    async def click(self, pos, cheat=True, delay=0.1):
         """simulate a player to do a left-click"""
         if cheat:
             x = pos[0] + random.randint(-12, 12)
@@ -50,6 +48,21 @@ class Hand(object):
             x = pos[0] + random.randint(-3, 3)
             y = pos[1] + random.randint(-2, 2)
 
+        self.m.preess(x, y)
+        await asyncio.sleep(0.2)
+        self.m.release(x, y)
+        await asyncio.sleep(delay)
+
+    async def double_click(self, pos, cheat=True):
+        """simulate a player to do a double left-click"""
+        if cheat:
+            x = pos[0] + random.randint(-12, 12)
+            y = pos[1] + random.randint(-8, 8)
+        else:
+            x = pos[0] + random.randint(-3, 3)
+            y = pos[1] + random.randint(-2, 2)
+
+        self.m.click(x, y)
         self.m.click(x, y)
         await asyncio.sleep(0.1)
 
