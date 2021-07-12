@@ -27,7 +27,7 @@ class Player(object):
         dx, dy = WINDOW_DICT[self.window_name]
         return (x + dx, y + dy)
 
-    async def monitor(self, names, timeout=5, threshold=0.8, filter_func=None):
+    async def monitor(self, names, timeout=10, threshold=0.8, filter_func=None):
         """return (name, pos), all rease timeout_error"""
         async def _monitor(window_name):
             while True:
@@ -53,24 +53,30 @@ class Player(object):
             msg = (f"{self.window_name}: monitor {names} timeout. ({timeout} s)")
             raise FindTimeout(msg)
 
-    async def find_all_pos(self, names, threshold=0.8):
+    async def find_all_pos(self, names, threshold=0.8, max_try=1):
         """return list of pos"""
         logger.debug(f'{self.window_name}: start find all positions of: {names}')
 
         all_pos = []
 
-        await self.g_queue.put([self.window_name, names, threshold])
+        for _ in range(max_try):
+            await self.g_queue.put([self.window_name, names, threshold])
 
-        while True:
-            await self.g_event.wait()
-            # 确保得到了查找结果
-            if self.g_found[self.window_name]:
-                break
+            while True:
+                await self.g_event.wait()
+                # 确保得到了查找结果
+                if self.g_found[self.window_name]:
+                    break
 
-        for res in self.g_found[self.window_name]:
-            _, pos_list = res
-            if pos_list:
-                all_pos.extend(pos_list)
+            for res in self.g_found[self.window_name]:
+                _, pos_list = res
+                if pos_list:
+                    all_pos.extend(pos_list)
+
+            if all_pos:
+                break    # 找到了就退出， 否则，就多尝试几次
+            else:
+                await asyncio.sleep(1)
 
         # 多个pic的情况下，可能会有重合
         all_pos = player_eye.de_duplication(all_pos)
@@ -124,12 +130,12 @@ class Player(object):
             await self.hand.double_click(pos, cheat=cheat)
         await asyncio.sleep(delay)
 
-    async def drag(self, p1, p2, delay=0.2):
+    async def drag(self, p1, p2, speed=0.05, delay=0.2):
         """drag from position 1 to position 2"""
         p1, p2 = map(self.real_pos, [p1, p2])
         logger.debug(f"{self.window_name}: drag from {p1} to {p2}")
         async with self.g_player_lock:
-            await self.hand.drag(p1, p2, delay)
+            await self.hand.drag(p1, p2, speed, delay)
 
     async def scroll(self, vertical_num, delay=0.2):
         if vertical_num < 0:
@@ -145,11 +151,12 @@ class Player(object):
         async with self.g_player_lock:
             await self.hand.move(x, y, delay)
 
-    async def tap_key(self, key, delay=0.2):
+    async def tap_key(self, key, delay=1):
         """tap a key with a random interval"""
         logger.debug(f"{self.window_name}: tap_key {key}")
         async with self.g_player_lock:
-            await self.hand.tap_key(key, delay)
+            await self.hand.tap_key(key)
+        await asyncio.sleep(delay)
 
     def in_window(self, pos):
         min_x, min_y = WINDOW_DICT[self.window_name]
@@ -166,6 +173,7 @@ class Player(object):
                 await self.hand.click(pos, cheat=False)
                 await asyncio.sleep(0.2)
             await self.hand.tap_key('esc')
+        await asyncio.sleep(1)    # 切换界面需要点时间
 
     async def information_input(self, pos, info):
         """click the input box, then input info"""
@@ -198,10 +206,31 @@ class Player(object):
             await asyncio.sleep(0.2)
 
         await asyncio.sleep(delay)
+
+    async def find_then_click(self, name_list, pos=None, timeout=10, raise_exception=True, cheat=True):
+        """find a image, then click it ant return its name
+
+        if pos given, click the pos instead.
+        """
+        try:
+            name, pos_img = await self.monitor(name_list, timeout=timeout)
+        except FindTimeout:
+            if raise_exception:
+                raise
+            else:
+                return None
+        if pos:
+            await self.click(pos, cheat=cheat)
+        else:
+            await self.click(pos_img, cheat=cheat)
+        return name
+
+
  
 
-    async def type_string(self, a_string, delay=0.2):
+    async def type_string(self, a_string, delay=1):
         """type a string to the computer"""
         logger.debug(f"{self.window_name}: type_string {a_string}")
         async with self.g_player_lock:
             await self.hand.type_string(a_string, delay)
+        await asyncio.sleep(delay)

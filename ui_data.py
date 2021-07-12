@@ -44,6 +44,14 @@ SCREEN_DICT = {
 }
 
 PIC_DICT = {
+    # common
+    "ranking_icon": './pics/common/ranking_icon.jpg',
+    "go_back": './pics/common/go_back.jpg',
+    "receive_small": './pics/common/receive_small.jpg',
+    # "vip_can_receive": './pics/common/vip_can_receive.jpg',
+    "vip_shop": './pics/common/vip_shop.jpg',
+
+
     # fight
     'fight': './pics/fight/fight.jpg',
     'fight1': './pics/fight/fight1.jpg',
@@ -141,6 +149,7 @@ PIC_DICT = {
     # jedi_space
     "jedi_space": "./pics/jedi_space/jedi_space.jpg",
     "plus": "./pics/jedi_space/plus.jpg",
+    "max": "./pics/jedi_space/max.jpg",
 
     # survival_home
     "survival_home": "./pics/survival_home/survival_home.jpg",
@@ -209,17 +218,38 @@ PIC_DICT = {
     "receive2": "./pics/arena/receive2.jpg",
     "ok12": "./pics/arena/ok12.jpg",
 
-
     # brave_instance
     "brave_instance": "./pics/brave_instance/brave_instance.jpg",
     "current_level": "./pics/brave_instance/current_level.jpg",
     "challenge4": "./pics/brave_instance/challenge4.jpg",
     "team_empty": "./pics/brave_instance/team_empty.jpg",
+    'next_level4': './pics/brave_instance/next_level4.jpg',
 
+    # lucky_draw
+    'lucky_draw': './pics/lucky_draw/lucky_draw.jpg',
+    'draw_once': './pics/lucky_draw/draw_once.jpg',
+    'draw_again': './pics/lucky_draw/draw_again.jpg',
+
+    # task_board
+    'task_board': './pics/task_board/task_board.jpg',
+    'receivable_task': './pics/task_board/receivable_task.jpg',
+    'unlock_more': './pics/task_board/unlock_more.jpg',
+    'finish_btn': './pics/task_board/finish_btn.jpg',
+    'want_finish': './pics/task_board/want_finish.jpg',
+    "no_diamond": './pics/task_board/no_diamond.jpg',
+    'finished_3star': './pics/task_board/finished_3star.jpg',
+    'finished_4star': './pics/task_board/finished_4star.jpg',
+    'finished_5star': './pics/task_board/finished_5star.jpg',
+    'task_3star': './pics/task_board/task_3star.jpg',
+    'task_4star': './pics/task_board/task_4star.jpg',
+    'task_5star': './pics/task_board/task_5star.jpg',
+    'task_6star': './pics/task_board/task_6star.jpg',
+    'task_7star': './pics/task_board/task_7star.jpg',
 
     # start_game
     "emulator_icon": "./pics/start_game/emulator_icon.jpg",
     "emulator_ui": "./pics/start_game/emulator_ui.jpg",
+    "emulator_title": "./pics/start_game/emulator_title.jpg",
 
     # login
     "emulator_started": "./pics/login/emulator_started.jpg",
@@ -228,6 +258,9 @@ PIC_DICT = {
     "game_91": "./pics/login/game_91.jpg",
     "changge_server_remind": "./pics/login/changge_server_remind.jpg",
     "close_btn": "./pics/login/close_btn.jpg",
+    "close_btn1": "./pics/login/close_btn1.jpg",
+    "close_btn2": "./pics/login/close_btn2.jpg",
+    "close_btn3": "./pics/login/close_btn3.jpg",
     "server_icon": "./pics/login/server_icon.jpg",
     "server_ui": "./pics/login/server_ui.jpg",
 

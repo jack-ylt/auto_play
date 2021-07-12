@@ -40,6 +40,5 @@ def find_text_pos(file_path, text, options=options):
             x = int(loc['left'] + (loc['width'] / 2))
             y = int(loc['top'] + (loc['height'] / 2))
             return (x, y)
+
     return (-1, -1)
-
-

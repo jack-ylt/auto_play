@@ -89,7 +89,7 @@ class Eye(object):
         back_name = './pics/screen_' + str((self.idx + 1) % 2) + '.jpg'
         self.idx += 1
         im.save(back_name)
-        
+
         img_rgb = cv2.imread(SCREEN_DICT['screen'])
         img_gray = cv2.cvtColor(img_rgb, cv2.COLOR_BGR2GRAY)
         self.bg_dict['full'] = img_gray
@@ -167,92 +167,6 @@ class Eye(object):
         return pos
 
 
-    # def _pic_to_word(self, name):
-    #     """get a word from a pic file
-
-    #     note only get one words (if have manyy words, join them with ' '.
-    #     (pic) -> str
-    #     """
-    #     words = []
-    #     with open(name, 'rb') as fp:
-    #         image = fp.read()
-    #     result = client.basicGeneral(image, options)    # 50000/day
-    #     #result = client.basicAccurate(image, options)   # 500/day
-
-    #     if 'words_result' in result:
-    #         for i in result['words_result']:
-    #             word = i['words']
-    #             probability = i['probability']['average']
-    #             print("word: {}, probalility: {}".format(word, probability))
-    #             if probability >= 0.8:
-    #                 words.append(word.strip())
-
-    #     return ' '.join(words).strip()
-
-    # def get_text(self, name, region):
-    #     """recognise all texts in a region of current game image"""
-    #     self._cut_image(name, *region)
-    #     for i in range(3):  # the recognise may fail, so try 3 times
-    #         try:
-    #             text = self._img_to_word(name)
-    #             if not text:
-    #                 sleep(1)
-    #                 continue
-    #             return text
-    #         except:
-    #             sleep(1)
-    #     return ''
-
-    # def find(self, pics, threshold=0.95, timeout=1):
-    #     """find the pictures.
-
-    #     if any picture found, return its name and position
-    #     if timeout, return None
-    #     """
-    #     for i in range(timeout):
-    #         self._screenshot()
-    #         img_rgb = cv2.imread(self.screenshots)
-    #         img_gray = cv2.cvtColor(img_rgb, cv2.COLOR_BGR2GRAY)
-    #         self.pic_bg = img_gray
-    #         for pic in pics:
-    #             pos = self._find_pic(pic, threshold)
-    #             if pos:
-    #                 print("find ", pic, "at ", pos)
-    #                 logging.info('find {0} at {1}'.format(pic, pos))
-    #                 return (pic, pos)
-    #         sleep(0.7)
-    #     print("timeout, find nothing.")
-    #     logging.info("timeout, find nothing.")
-    #     return None
-
-    # def monitor(self, input, output):
-    #     """
-    #     used to monitor the game status
-    #     """
-    #     logging.info("monitor start.")
-
-    #     try:
-    #         for item in iter(input.get, 'STOP'):
-    #             logging.info('Monitor: {}'.format(item))
-    #             pics = item[0]
-    #             threshold = item[1]
-    #             timeout = item[2]
-    #             #print('start to monitor', pics)
-    #             res = self.find(pics, threshold, timeout)
-    #             if res:
-    #                 output.put(res)
-    #             else:
-    #                 output.put(('TIMEOUT', (-1,-1)))
-    #         print('Monitor stoped by game event')
-    #         logging.info('Monitor stoped by game event')
-    #         output.put('STOP')
-    #     except KeyboardInterrupt:
-    #         print('Monitor stoped by user')
-    #         logging.info('Monitor stoped by user')
-
-    #     return None
-
-
 def test(pic_path_list, similarity=0.96, quantity=1):
     """寻找合适的目标截图与匹配度
 
@@ -328,7 +242,7 @@ def monitor(names, timeout=5, speed=1, threshold=0.8, filter_func=None):
 
     logger.debug(f'start monitor: {names}')
     start = time.time()
-    
+
     while time.time() - start < timeout:
         res = _monitor()
         if res:
@@ -396,15 +310,16 @@ async def dispatch(exe, g_queue, g_event, g_found):
 
 
 if __name__ == '__main__':
-    # pic_paths = [
-    #     # PIC_DICT['next_level2'],
-    #     PIC_DICT['next_level3']
-    # ]
-    # similarity = 0.85
-    # quantity = 1
-    # test(pic_paths, similarity=similarity, quantity=quantity)
+    pic_paths = [
+        # PIC_DICT['next_level2'],
+        PIC_DICT['receive_small']
+    ]
+    similarity = 0.8
+    quantity = 1
+    test(pic_paths, similarity=similarity, quantity=quantity)
 
     # monitor(['emulator_icon'])
-    eye = Eye()
-    time.sleep(3)
-    print(eye.find_text_pos('S16'))
+    
+    # eye = Eye()
+    # time.sleep(3)
+    # print(eye.find_text_pos('S16'))

@@ -14,7 +14,7 @@ from time import sleep
 
 from auto_play import play
 from player_eye import dispatch
-from start_game import start_emulator
+from start_game import start_emulator, game_started
 from read_cfg import read_account_cfg
 
 from logging import handlers
@@ -56,7 +56,8 @@ def init():
 
 
 async def main(g_exe):
-    await start_emulator()
+    if not game_started():
+        await start_emulator()
 
     g_queue = asyncio.Queue()
     g_event = asyncio.Event()

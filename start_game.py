@@ -9,6 +9,14 @@ logger = logging.getLogger(__name__)
 eye = player_eye.Eye()
 hand = player_hand.Hand()
 
+def game_started():
+    try:
+        player_eye.monitor(['setting'])
+        return True
+    except player_eye.FindTimeout:
+        return False
+    
+
 
 async def start_emulator():
     try:
@@ -25,9 +33,9 @@ async def start_emulator():
     pos_select_all = (590, 312)
     pos_start = (600, 270)
     pos_minimize = (1300, 225)
-    await hand.click(pos_select_all)
+    await hand.click(pos_select_all, cheat=False)
     await asyncio.sleep(1)
-    await hand.click(pos_start)
+    await hand.click(pos_start, cheat=False)
     # await asyncio.sleep(3)
     # await hand.click(pos_minimize)
 

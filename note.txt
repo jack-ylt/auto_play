@@ -1,105 +1,39 @@
-auto_play
-    模拟玩家，操作鼠标键盘，并根据监控到的游戏状态，做出响应
+git status
+git add .
+git commit -m
 
+git push origin master
+git push origin multi_client
+git push --delete origin branch_name_here
 
-协程 多进程 都在主脚本中实现
+git branch
+git checkout
 
-其它模块，只提供功能
-
-def monitor(pic_dict, pics, ):
-    """监控屏幕，直到找到一张图片的坐标"""
-
-if __name__ == '__main__':
-
-	eye = Monitor()
-	hand = Handler()
-
-    创建多进程
-        find_queue = Queue()
-        found_queue = Queue()
-        workers = []
-        
-        # Register the signal handlers
-        signal.signal(signal.SIGTERM, service_shutdown)
-        signal.signal(signal.SIGINT, service_shutdown)
-
-        # Start handler and monitor processes
-        p1 = Process(target=eye.monitor, args=(monitor_queue, status_queue))
-        processes.append(p1)
-        p2 = Process(target=hand.handle, args=(status_queue, monitor_queue))
-        processes.append(p2)
-
-        # 创建4个进程
-        monitor函数 （协程），就开始截屏，然后把任务分发给find_queue
-            while not_yet_found:
-                截屏放入共享dict1 {left_top:xx, right_up:xx, ...}
-                并查看共享dict2，如果找到了，就return (name, pos)
-                sleep(0.2)
-            sleep(0.2)
-        4个监控find_queue, 如果有内容，就开始执行图像对比，找出target的坐标
-            结果，放入共享dict2 {name:xx, pos:xx, ...}
-            sleep(0.2)
-
-        for p in processes:
-            p.start()
-
-        
- 
-    创建协程
-        loop = asyncio.get_event_loop()
-        try:
-            loop.run_until_complete(auto_play(mode))
-        except KeyboardInterrupt:
-            logger.info("user canceled.")
-        except Exception:
-            logger.exception()
-        finally:
-            find_queue.put('STOP')
-            found_queue.put('STOP')
-            for p in processes:
-                p.join()
-                
-                
-关卡战斗流程
-    click box
-    recive
-    fight, next_level, passed, upgrade, new_map_unlocked
-    if upgrade: 
-        5s
-        fight, next_level, passed
-    if new_map_unlocked: 
-        esc
-        fight, next_level, passed
-        
-    if passed
-        newest point, search, 10s/fight
-    if next_level
-        dian, dian search, 10s, fight, zhandou
-        dian, map, points, dian, dian ok, 10s, fight zhandou
-        点了没反应： 到最新关了
-        dian
-        search, map
-        if search, 10s, fight
-        elif map, points, dian , ok, 10s, fight
-        else timeout: 最新关， goto_main
-        
-    if fight: 
-        dianji, zhandou 
-        
-    while True:
-        upgrade, new_map_unlocked, next_level
-        if upgrade: 
-            5s
-            next_level
-        if new_map_unlocked: 
-            esc
-            next_level
-        dian, dian search, 10s, fight, zhandou
-        dian, map, points, dian, dian ok, 10s, fight zhandou
-        点了没反应： 到最新关了
+git log
                 
 
 ★ 现在已经实现一键挂机了
+
 下一步是把所有情况都考虑上，提高挂机稳定性
 涉及到切界面的要考虑monitor，因为有时候快有时候慢
-find_then_click()
+
+优化图片，很多图片重复
+ok1 ok2，也没法区分
+
+monitor_than_click()
+find_then_click(name_list, pos=None, timeout=5, raise_exception=True)
+
+
+    async def _fight(self):
+        """do fight, return win or lose"""
+        await self.player.find_then_click(['start_fight', 'fight1'])
+        await asyncio.sleep(3)
+        await self.player.find_then_click(['fast_forward1'], raise_exception=False)
+        await asyncio.sleep(10)
+        await self.player.find_then_click(['go_last'])
+        pos_ok = (430, 430)
+        result = await self.player.find_then_click(['win', 'lose'], pos=pos_ok, timeout=240)
+        await asyncio.sleep(3)
+        return result
+        
+        吉安县畜牧兽医局 07968442451

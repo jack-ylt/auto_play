@@ -42,14 +42,14 @@ class Hand(object):
     async def click(self, pos, cheat=True, delay=0.1):
         """simulate a player to do a left-click"""
         if cheat:
-            x = pos[0] + random.randint(-12, 12)
+            x = pos[0] + random.randint(-10, 10)
             y = pos[1] + random.randint(-8, 8)
         else:
-            x = pos[0] + random.randint(-3, 3)
+            x = pos[0] + random.randint(-2, 2)
             y = pos[1] + random.randint(-2, 2)
 
-        self.m.preess(x, y)
-        await asyncio.sleep(0.2)
+        self.m.press(x, y)
+        await self.delay(0.2)
         self.m.release(x, y)
         await asyncio.sleep(delay)
 
@@ -66,7 +66,7 @@ class Hand(object):
         self.m.click(x, y)
         await asyncio.sleep(0.1)
 
-    async def drag(self, p1, p2, delay=0.2):
+    async def drag(self, p1, p2, speed=0.05, delay=0.2):
         """drag from position 1 to position 2"""
         x1 = p1[0] + random.randint(-12, 12)
         y1 = p1[1] + random.randint(-8, 8)
@@ -80,7 +80,7 @@ class Hand(object):
             y1 += (y2 - y1)/step
             step -= 1
             self.m.move(int(x1), int(y1))
-            await asyncio.sleep(0.05)
+            await asyncio.sleep(speed)
         self.m.release(x2, y2)
 
         await asyncio.sleep(delay)
