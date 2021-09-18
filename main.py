@@ -84,7 +84,9 @@ async def main(g_exe):
     )
 
 def stop_play():
-    raise UserStop()
+    logger.info("User canceled, so exit.")
+    if loop.is_running():
+        loop.stop()
 
 if __name__ == "__main__":
     freeze_support()
@@ -92,12 +94,36 @@ if __name__ == "__main__":
     g_exe = concurrent.futures.ProcessPoolExecutor(
         max_workers=4, initializer=init)
 
+    # try:
+    #     keyboard.add_hotkey('esc', stop_play)
+    #     asyncio.run(main(g_exe))
+    # except KeyboardInterrupt:
+    #     logger.info('ctrl + c')
+    # except UserStop:
+    #     logger.info('user press esc')
+    # finally:
+    #     g_exe.shutdown()
+
+    loop = asyncio.get_event_loop()
+    loop.create_task(main(g_exe))
+
+    keyboard.add_hotkey('esc', stop_play)
+
     try:
-        keyboard.add_hotkey('esc', stop_play)
-        asyncio.run(main(g_exe))
+        loop.run_forever()
     except KeyboardInterrupt:
-        logger.info('ctrl + c')
-    except UserStop:
-        logger.info('user press esc')
-    finally:
-        g_exe.shutdown()
+        logger.info("User stoped, so exit.")
+        if loop.is_running():
+            loop.stop()
+
+    tasks = asyncio.all_tasks(loop=loop)
+    group = asyncio.gather(*tasks, return_exceptions=True)
+    group.cancel()
+    try:
+        loop.run_until_complete(group)
+    except asyncio.CancelledError:
+        if loop.is_running():
+            print("CancelledError, stop")
+            loop.stop()
+    loop.close()
+
