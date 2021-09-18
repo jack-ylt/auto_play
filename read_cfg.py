@@ -11,7 +11,7 @@ def read_account_cfg():
     config = configparser.RawConfigParser()
     config.read(r'./configs/account.cfg')
 
-    for s in config.sections():
+    for s in sorted(config.sections(), reverse=True):
         account_dict = {}
 
         for opt in ['game_name', 'account', 'passwd']:

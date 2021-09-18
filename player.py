@@ -46,6 +46,9 @@ class Player(object):
                         return (pic_name, pos)
 
         logger.debug(f'{self.window_name}: start monitor: {names}')
+        if not isinstance(names, list):
+            names = [names]
+
         try:
             res = await asyncio.wait_for(_monitor(self.window_name), timeout=timeout)
             return res
@@ -57,6 +60,8 @@ class Player(object):
         """return list of pos"""
         logger.debug(f'{self.window_name}: start find all positions of: {names}')
 
+        if not isinstance(names, list):
+            names = [names]
         all_pos = []
 
         for _ in range(max_try):
@@ -207,13 +212,16 @@ class Player(object):
 
         await asyncio.sleep(delay)
 
-    async def find_then_click(self, name_list, pos=None, timeout=10, raise_exception=True, cheat=True):
+    async def find_then_click(self, name_list, pos=None, threshold=0.8, timeout=10, raise_exception=True, cheat=True):
         """find a image, then click it ant return its name
 
         if pos given, click the pos instead.
         """
+        if not isinstance(name_list, list):
+            name_list = [name_list]
+
         try:
-            name, pos_img = await self.monitor(name_list, timeout=timeout)
+            name, pos_img = await self.monitor(name_list, threshold=threshold, timeout=timeout)
         except FindTimeout:
             if raise_exception:
                 raise

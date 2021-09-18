@@ -11,6 +11,8 @@ import os
 import signal
 import sys
 from time import sleep
+from multiprocessing import freeze_support
+import keyboard
 
 from auto_play import play
 from player_eye import dispatch
@@ -47,6 +49,13 @@ logger.addHandler(errh)
 logger.addHandler(ch)
 
 
+class UserStop(Exception):
+    """
+    when user press blank button, raise 
+    """
+    pass
+
+
 def handler(signum, frame):
     logger.info('SIGINT for PID=' + str(os.getpid()))
 
@@ -74,13 +83,21 @@ async def main(g_exe):
         dispatch(g_exe, g_queue, g_event, g_found),
     )
 
+def stop_play():
+    raise UserStop()
+
 if __name__ == "__main__":
+    freeze_support()
+    
     g_exe = concurrent.futures.ProcessPoolExecutor(
         max_workers=4, initializer=init)
 
     try:
+        keyboard.add_hotkey('esc', stop_play)
         asyncio.run(main(g_exe))
     except KeyboardInterrupt:
         logger.info('ctrl + c')
+    except UserStop:
+        logger.info('user press esc')
     finally:
         g_exe.shutdown()

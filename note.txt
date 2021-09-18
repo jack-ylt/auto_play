@@ -1,3 +1,11 @@
+btm 密码 qQ198...
+
+
+运动的描述，思维导图
+一个日期里面包含，今日收获和明日计划（要有任务和时间）
+
+
+
 git status
 git add .
 git commit -m
@@ -37,3 +45,158 @@ find_then_click(name_list, pos=None, timeout=5, raise_exception=True)
         return result
         
         吉安县畜牧兽医局 07968442451
+        
+
+
+
+换区 change server
+    make sure in main ui
+    find and click setting
+    find and click server icon
+    wait until no find empty board
+    
+    if right top server is new server icon
+        return false
+
+    click the right top server icon
+    click ok
+    find setting
+    return true
+    
+    
+关卡战斗
+    find and click gkzd
+    if no find
+        move to center
+        find and click gkzd
+    wait untile find goback icon
+    
+    # for ther first 10 days of new player
+    if find close btn (1s)
+        find and click 'can recive'
+        find and click ok
+        find and then click close
+    
+    click box
+    click recive btn
+    
+    monitor [upgraded fight next pass]
+    
+    if find upgrade(upgrade and unlock new map)
+        find and click ok
+        sleep 5s
+        move to center
+        find and click gkzd
+        wait untile find goback icon 
+        
+        monitor [fight next pass]
+
+    if find fight btn
+        click
+        find and click fight btn
+    elif find next level btn
+        click
+        click search
+        wait 3 s (10s, vip at least 3s)
+        find and click fight btn
+        find and click fight btn
+    elif pass
+        if find nex_level_point
+            click
+            if find  search
+                click
+            else
+                return
+        else 
+            find and click the rightest next_level_flag
+            if find search
+                click
+                if find pass
+                    click map
+            else
+                return
+            
+            
+        
+        
+        
+    
+    while true
+
+        try:
+            do fight
+                ...
+                click ok
+                
+            monitor [upgrade next]
+            if upgrade
+                hand_upgrade
+            
+            nextlevel_to_fight
+        except fight_lose:
+            return
+        except reach_max_level:
+            return
+            
+    
+
+
+挑战副本
+    find and click tzfb
+    
+
+
+公会挑战
+
+
+勇者副本
+
+
+VIP shop
+
+
+主程序逻辑
+
+场景一：一键游戏
+    初始化账号列表
+    启动多个模拟器
+    old_account = None
+
+    对于每个客户端
+        try
+            account_dict = 登录一个新账号
+            old_account = account_dict
+        except
+            没账号了：exit
+
+        if server_list:
+            for 对于每一个服务器
+                切换到该的服务器
+
+                玩游戏
+        else
+            玩游戏
+
+登录一个新账号
+    if old_account：
+        获取一个账号（指定游戏名）
+        if 成功：
+            登录
+        else
+            关闭游戏
+            获取一个账号
+            根据游戏名，启动游戏
+            登录
+    else
+        获取一个账号
+        根据游戏名，启动游戏
+        登录
+        
+
+场景二：继续游戏 （需要记录哪些角色玩过了，哪些任务已完成）
+
+
+
+
+
+

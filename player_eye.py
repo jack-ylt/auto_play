@@ -167,13 +167,12 @@ class Eye(object):
         return pos
 
 
-def test(pic_path_list, similarity=0.96, quantity=1):
+def test(pic_path_list, similarity=0.96, quantity=1, total=3):
     """寻找合适的目标截图与匹配度
 
     使得成功匹配率在90%以上，且不会误匹配
     有些标志物会动，可能需要多个图片来综合匹配
     """
-    total = 5
     sucess = 0
     miss = 0
     error = 0
@@ -312,9 +311,9 @@ async def dispatch(exe, g_queue, g_event, g_found):
 if __name__ == '__main__':
     pic_paths = [
         # PIC_DICT['next_level2'],
-        PIC_DICT['receive_small']
+        PIC_DICT['level_60']
     ]
-    similarity = 0.8
+    similarity = 0.9
     quantity = 1
     test(pic_paths, similarity=similarity, quantity=quantity)
 

@@ -51,6 +51,13 @@ PIC_DICT = {
     # "vip_can_receive": './pics/common/vip_can_receive.jpg',
     "vip_shop": './pics/common/vip_shop.jpg',
 
+    # maze
+    "maze": "./pics/weekly_activity/maze.jpg",
+    "maze1": "./pics/weekly_activity/maze1.jpg",
+    "maze4": "./pics/weekly_activity/maze4.jpg",
+    "maze_text": "./pics/weekly_activity/maze_text.jpg",
+    "maze_daily_gift": "./pics/weekly_activity/maze_daily_gift.jpg",
+
 
     # fight
     'fight': './pics/fight/fight.jpg',
@@ -119,6 +126,8 @@ PIC_DICT = {
     "gift": "./pics/community_assistant/gift.jpg",
     "start_turntable": "./pics/community_assistant/start_turntable.jpg",
     "gift_over": "./pics/community_assistant/gift_over.jpg",
+    "level_60": "./pics/community_assistant/level_60.jpg",
+    "buy_more": "./pics/community_assistant/buy_more.jpg",
 
     # Instance_challenge
     "Instance_challenge": "./pics/instance_challenge/Instance_challenge.jpg",
@@ -179,6 +188,7 @@ PIC_DICT = {
     "armory": "./pics/armory/armory.jpg",
     "arms": "./pics/armory/arms.jpg",
     "arms1": "./pics/armory/arms1.png",
+    "number_3": "./pics/armory/number_3.jpg",
 
     # market
     "market": "./pics/market/market.jpg",
