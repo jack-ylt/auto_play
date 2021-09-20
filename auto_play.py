@@ -997,6 +997,55 @@ class AutoPlay(object):
         except FindTimeout:
             pass
 
+    async def arena_champion(self):
+
+        await self.player.find_then_click(['arena'])
+        await self.player.find_then_click(['champion'])
+        await self.player.find_then_click(['enter'])
+
+        page = 4
+        idx = 1
+        score = 0
+        win = 0
+        lose = 0
+        pos_refresh = (660, 170)
+        pos_fight = (700, 340)
+        pos_ok = (440, 430)
+        pos_fights = [
+            (650, 250),
+            (650, 330),
+            (650, 415),
+        ]
+
+        while score < 50:
+            await self.player.monitor('fight7')
+            await self.player.click(pos_fight)    # 如果没有跳过战斗，按钮有个从下往上的动画
+            await self.player.monitor('refresh_green')
+            for _ in range(page):
+                await self.player.click(pos_refresh, delay=0.3)
+            await self.player.click(pos_fights[idx])
+            await self.player.find_then_click(['fight_green'])
+            for _ in range(10):
+                name = await self.player.find_then_click(['card', 'next', 'ok12', 'go_last'])
+                if name == 'card':
+                    await self.player.click(pos_ok)
+                    name = await self.player.find_then_click(['win', 'lose'])
+                    if name == 'win':
+                        score += 2
+                        win += 1
+                    else:
+                        score += 1
+                        lose += 1
+                        idx += 1
+                        if idx > 3:
+                            idx = 1
+                            page += 1
+                    break
+            await self.player.click(pos_ok)
+
+        logger.info(f"win: {win}, lose: {lose}, score: {score}")
+
+
     #
     # brave_instance
     #
@@ -1416,6 +1465,7 @@ class AutoPlay(object):
 
     async def play_game(self):
         tasks = [
+            'arena_champion',
             'maze',
             'collect_mail',
             'vip_shop',
@@ -1468,6 +1518,18 @@ def need_run(name):
         t = time.localtime()
         day = t.tm_mday
         return day % 2 == 1
+
+    def is_sunday():
+        t = time.localtime()
+        # day of week, range [0, 6], Monday is 0
+        wday = t.tm_wday
+        return wday == 6
+
+    if name == 'arena_champion':
+        if is_sunday and is_pm():
+            return True
+        else:
+            logger.debug(f"Skip to run {name}, for it isn't sunday PM now.")
 
     if name in ['arena', 'armory', 'invite_heroes', 'jedi_space', 'brave_instance', 'lucky_draw', 'task_board', 'vip_shop', 'tower_battle', 'maze']:
         # 只在下午运行

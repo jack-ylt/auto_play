@@ -311,9 +311,9 @@ async def dispatch(exe, g_queue, g_event, g_found):
 if __name__ == '__main__':
     pic_paths = [
         # PIC_DICT['next_level2'],
-        PIC_DICT['level_60']
+        PIC_DICT['fight7']
     ]
-    similarity = 0.9
+    similarity = 0.7
     quantity = 1
     test(pic_paths, similarity=similarity, quantity=quantity)
 

@@ -107,7 +107,7 @@ if __name__ == "__main__":
     loop = asyncio.get_event_loop()
     loop.create_task(main(g_exe))
 
-    keyboard.add_hotkey('esc', stop_play)
+    keyboard.add_hotkey('space', stop_play)
 
     try:
         loop.run_forever()

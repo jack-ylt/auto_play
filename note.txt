@@ -196,7 +196,46 @@ VIP shop
 场景二：继续游戏 （需要记录哪些角色玩过了，哪些任务已完成）
 
 
+冠军试炼
+    如果不是周日下午
+        退出
+        如果已经获得了200积分
+            退出
+    点竞技场
+    点冠军试炼
+    点进入
+    如果 战斗说明
+        点 close
+        如果英雄出战
+            点保存
+    i=4
+    j=1
+    score = 0
+    点战斗
+    while score < 50:
+        点 刷新 i 次
+        点 j 战斗
+        
+        点战斗
+        monitor
+        if 下一场 或 确定 或 快进
+            点
+        if card
+            点卡片 2 次
+            if win
+                score += 2
+                win += 1
+            else
+                score += 1
+                lose += 1
+                j += 1
+                if j > 3:
+                    j = 1
+                    i += 1
 
+            点确定
+
+    log win xx lose yy
 
 
 

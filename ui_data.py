@@ -227,6 +227,11 @@ PIC_DICT = {
     "reward": "./pics/arena/reward.jpg",
     "receive2": "./pics/arena/receive2.jpg",
     "ok12": "./pics/arena/ok12.jpg",
+    "fight_green": "./pics/arena/fight_green.jpg",
+    "champion": "./pics/arena/champion.jpg",
+    "next": "./pics/arena/next.jpg",
+    "refresh_green": "./pics/arena/refresh_green.jpg",
+    
 
     # brave_instance
     "brave_instance": "./pics/brave_instance/brave_instance.jpg",
