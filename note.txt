@@ -211,8 +211,9 @@ VIP shop
     i=4
     j=1
     score = 0
-    点战斗
+    
     while score < 50:
+        点战斗
         点 刷新 i 次
         点 j 战斗
         
@@ -223,7 +224,7 @@ VIP shop
         if card
             点卡片 2 次
             if win
-                score += 2
+                score += 2  
                 win += 1
             else
                 score += 1
@@ -238,4 +239,15 @@ VIP shop
     log win xx lose yy
 
 
+英雄远征
+hero_expedition
+production_workshop
+one_click_collection
+    到右上角
+    点英雄远征
+    点生产车间
+    点一键领取
 
+
+模板匹配，会因为大小不同，分辨率不同，匹配失败
+    试试特征点匹配

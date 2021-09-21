@@ -1326,6 +1326,20 @@ class AutoPlay(object):
             pos_recive = (700, 270)
             await self.player.click(pos_recive)
 
+    async def hero_expedition(self):
+        await self.player.find_then_click(['hero_expedition'])
+        try:
+            await self.player.find_then_click(['production_workshop'])
+            await self.player.find_then_click(['one_click_collection1'])
+        except FindTimeout:
+            logger.debug("hero_expedition need at least one 14 star hero.")
+            while True:
+                name, pos = await self.player.monitor(['go_back', 'setting'])
+                if name == 'go_back':
+                    await self.player.click(pos)
+                else:
+                    break
+
     async def _close_game(self):
         pos_recent_tasks = (885, 500)
         pos_clear_all = (630, 85)
@@ -1465,7 +1479,6 @@ class AutoPlay(object):
 
     async def play_game(self):
         tasks = [
-            'arena_champion',
             'maze',
             'collect_mail',
             'vip_shop',
@@ -1480,10 +1493,12 @@ class AutoPlay(object):
             'invite_heroes',
             'level_battle',
             'arena',
+            'arena_champion',
             'task_board',
             'armory',
             'lucky_draw',
             'tower_battle',
+            'hero_expedition',
             'brave_instance',
         ]
 

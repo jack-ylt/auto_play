@@ -283,4 +283,9 @@ PIC_DICT = {
     "mo_ri_xue_zhan": "./pics/game_icons/mo_ri_xue_zhan.jpg",
     "mo_shi_jun_tun": "./pics/game_icons/mo_shi_jun_tun.jpg",
 
+    # hero_expedition
+    "hero_expedition": "./pics/hero_expedition/hero_expedition.jpg",
+    "production_workshop": "./pics/hero_expedition/production_workshop.jpg",
+    "one_click_collection1": "./pics/hero_expedition/one_click_collection.jpg",
+
 }
