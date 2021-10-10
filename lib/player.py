@@ -1,11 +1,10 @@
-from ui_data import POS_DICT
-import player_hand
-import player_eye
+from lib.ui_data import POS_DICT, WINDOW_DICT, WIDTH, HIGH
+from lib import player_hand
+from lib import player_eye
 import asyncio
 import logging
 logger = logging.getLogger(__name__)
 
-from ui_data import WINDOW_DICT, WIDTH, HIGH
 
 
 FindTimeout = player_eye.FindTimeout
@@ -27,7 +26,7 @@ class Player(object):
         dx, dy = WINDOW_DICT[self.window_name]
         return (x + dx, y + dy)
 
-    async def monitor(self, names, timeout=10, threshold=0.8, filter_func=None):
+    async def monitor(self, names, timeout=10, threshold=0.7, filter_func=None):
         """return (name, pos), all rease timeout_error"""
         async def _monitor(window_name):
             while True:
@@ -212,7 +211,7 @@ class Player(object):
 
         await asyncio.sleep(delay)
 
-    async def find_then_click(self, name_list, pos=None, threshold=0.8, timeout=10, raise_exception=True, cheat=True):
+    async def find_then_click(self, name_list, pos=None, threshold=0.7, timeout=10, raise_exception=True, cheat=True):
         """find a image, then click it ant return its name
 
         if pos given, click the pos instead.

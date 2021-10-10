@@ -8,11 +8,10 @@ import random
 import math
 from operator import itemgetter
 from collections import namedtuple
-
-
 from playsound import playsound
-from ui_data import SCREEN_DICT
-from player import Player, FindTimeout
+
+from lib.ui_data import SCREEN_DICT
+from lib.player import Player, FindTimeout
 
 import logging
 logger = logging.getLogger(__name__)
@@ -1026,7 +1025,7 @@ class AutoPlay(object):
             await self.player.click(pos_fights[idx])
             await self.player.find_then_click(['fight_green'])
             for _ in range(10):
-                name = await self.player.find_then_click(['card', 'next', 'ok12', 'go_last'])
+                name = await self.player.find_then_click(['card', 'ok12', 'next', 'go_last'])
                 if name == 'card':
                     await self.player.click(pos_ok)
                     name = await self.player.find_then_click(['win', 'lose'])
@@ -1327,6 +1326,7 @@ class AutoPlay(object):
             await self.player.click(pos_recive)
 
     async def hero_expedition(self):
+        await self._move_to_right_top()
         await self.player.find_then_click(['hero_expedition'])
         try:
             await self.player.find_then_click(['production_workshop'])
@@ -1498,8 +1498,8 @@ class AutoPlay(object):
             'armory',
             'lucky_draw',
             'tower_battle',
-            'hero_expedition',
             'brave_instance',
+            'hero_expedition',
         ]
 
         count = 0
@@ -1541,10 +1541,11 @@ def need_run(name):
         return wday == 6
 
     if name == 'arena_champion':
-        if is_sunday and is_pm():
+        if is_sunday() and is_pm():
             return True
         else:
             logger.debug(f"Skip to run {name}, for it isn't sunday PM now.")
+            return False
 
     if name in ['arena', 'armory', 'invite_heroes', 'jedi_space', 'brave_instance', 'lucky_draw', 'task_board', 'vip_shop', 'tower_battle', 'maze']:
         # 只在下午运行
@@ -1552,6 +1553,7 @@ def need_run(name):
             return True
         else:
             logger.debug(f"Skip to run {name}, for it isn't PM now.")
+            return False
     else:
         return True
 

@@ -1,6 +1,6 @@
-from ui_data import POS_DICT
-import player_hand
-import player_eye
+from lib.ui_data import POS_DICT
+from lib import player_hand
+from lib import player_eye
 import asyncio
 import logging
 logger = logging.getLogger(__name__)

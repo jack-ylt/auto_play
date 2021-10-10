@@ -17,10 +17,10 @@ import time
 from datetime import date
 import os
 import asyncio
-from helper import get_window_region
-from text_recognition import find_text_pos
+from lib.helper import get_window_region
+from lib.text_recognition import find_text_pos
 
-from ui_data import PIC_DICT, SCREEN_DICT
+from lib.ui_data import PIC_DICT, SCREEN_DICT
 # from configs.config import config
 
 # TODAY = str(date.today())
@@ -311,10 +311,10 @@ async def dispatch(exe, g_queue, g_event, g_found):
 if __name__ == '__main__':
     pic_paths = [
         # PIC_DICT['next_level2'],
-        PIC_DICT['fight7']
+        PIC_DICT['dismiss']
     ]
-    similarity = 0.7
-    quantity = 1
+    similarity = 0.9
+    quantity = 3
     test(pic_paths, similarity=similarity, quantity=quantity)
 
     # monitor(['emulator_icon'])

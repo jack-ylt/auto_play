@@ -14,10 +14,10 @@ from time import sleep
 from multiprocessing import freeze_support
 import keyboard
 
-from auto_play import play
-from player_eye import dispatch
-from start_game import start_emulator, game_started
-from read_cfg import read_account_cfg
+from lib.auto_play import play
+from lib.player_eye import dispatch
+from lib.start_game import start_emulator, game_started
+from lib.read_cfg import read_account_cfg
 
 from logging import handlers
 import logging
