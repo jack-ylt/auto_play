@@ -14,11 +14,10 @@ import time
 from datetime import date
 import os
 import asyncio
-from copy import deepcopy
-from lib.helper import get_window_region
-from lib.ui_data import PIC_DICT, SCREEN_DICT
-# from helper import get_window_region
-# from ui_data import PIC_DICT, SCREEN_DICT
+# from lib.helper import get_window_region
+# from lib.ui_data import PIC_DICT, SCREEN_DICT
+from helper import get_window_region
+from ui_data import PIC_DICT, SCREEN_DICT
 import logging
 
 
@@ -43,31 +42,15 @@ class Eye(object):
         self.img_dict = {}    # {name: img_obj, ...}
         self.screen_img = None
 
-    # def get_lates_screen(self):
-    #     return self.screen_img
-
-    def get_lates_screen(self, area=None):
-        img = ImageGrab.grab(bbox=area)
-        img_np = np.array(img)
-        return img_np
+    def get_lates_screen(self):
+        return self.screen_img
 
     def save_picture_log(self, msg="", ext=".jpg"):
         img = self.get_lates_screen()
         now = time.strftime("%Y-%m-%d-%H-%M-%S", time.localtime())
         name = msg.replace(' ', '_') + '_' + now + ext
         log_path = os.path.join(main_dir, 'logs', 'debug_pics', name)
-        cv2.imwrite(log_path, img)
-
-    def draw_point(self, img, pos):
-        img_copy = deepcopy(img)
-        cv2.circle(img_copy, pos, 5, (0, 0, 250), 1, 4)
-        cv2.circle(img_copy, pos, 10, (0, 0, 250), 2, 8)
-        return img_copy
-
-    def save_picture(self, img_np, path):
-        rgb_img = cv2.cvtColor(img_np, cv2.COLOR_BGR2RGB)
-        # rgb_img.save(path)
-        cv2.imwrite(path, rgb_img)
+        img.save(log_path)
 
     async def find_all_pos(self, names, area=None, threshold=0.8):
         """return list of pos"""
@@ -86,7 +69,7 @@ class Eye(object):
                     f"Found {name} at {pos_list}, max_val: {max_val}")
                 all_pos.extend(pos_list)
 
-        all_pos = sorted(self._de_duplication(all_pos))
+        all_pos = sorted(self.de_duplication(all_pos))
 
         if not all_pos:
             logger.debug(f'No find any pos of {names}')
@@ -124,14 +107,13 @@ class Eye(object):
         # Convert PIL.Image to bgr_img
         img_np = np.array(img)
 
-        rgb_img = cv2.cvtColor(img_np, cv2.COLOR_BGR2RGB)
-        # self.screen_img = img
-        self.screen_img = img_np
+        # rgb_img = cv2.cvtColor(img_np, cv2.COLOR_BGR2RGB)
+        self.screen_img = img
 
         if name:
             # 用cv2读取了一幅图片，读进去的是BGR格式的，
             # 但是在保存图片时，要保存为RGB格式的
-            rgb_img.save(name)
+            img.save(name)
 
         img_gray = cv2.cvtColor(img_np, cv2.COLOR_BGR2GRAY)
         return img_gray
@@ -212,18 +194,39 @@ class Eye(object):
         return new_pos_list
 
 
-async def test(names, bbox=None):
+async def test(name, bbox=None, timeout=1):
     eye = Eye()
     t1 = time.time()
 
-    res = await eye.find_all_pos(names, area=bbox)
-    print(res)
-
+    try:
+        res = await eye.monitor(name, area=bbox, timeout=timeout)
+        print(res)
+    except asyncio.TimeoutError:
+        print(f"Timeout, not found the {names}")
     t2 = time.time()
 
-    # eye.save_picture_log("hwllo world")
+    eye.save_picture_log("hwllo world")
 
     print("cost time: {:.2f}".format(t2 - t1))
 
 
+if __name__ == '__main__':
+    # bbox = (0, 0, 1000, 540)
+    bbox = None
+    name = ['level_battle']
+    names = [
+        'ok1',
+        'ok2',
+        'ok3',
+        'ok4',
+        # 'setting',
+        'ok6',
+        'ok7',
+        'ok8',
+        'ok9',
+        'level_battle',
+    ]
 
+    # 查找一个，大概0.1s，5个0.23s， 10个0.4s
+
+    asyncio.run(test(names, bbox))

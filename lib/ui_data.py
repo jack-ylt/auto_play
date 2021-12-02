@@ -168,9 +168,13 @@ PIC_DICT = {
     "resources": "./pics/survival_home/resources.jpg",
     "box": "./pics/survival_home/box.jpg",
     "boss": "./pics/survival_home/boss.jpg",
+    "boss1": "./pics/survival_home/boss1.jpg",
+    "boss2": "./pics/survival_home/boss2.jpg",
     "switch_map": "./pics/survival_home/switch_map.jpg",
     "field_map": "./pics/survival_home/field_map.jpg",
+    'locked_field': "./pics/survival_home/locked_field.jpg",
     "fight6": "./pics/survival_home/fight.jpg",
+    "value_100": "./pics/survival_home/value_100.jpg",
 
     # invite_hero
     "invite_hero": "./pics/invite_hero/invite_hero.jpg",
@@ -278,6 +282,7 @@ PIC_DICT = {
     "close_btn3": "./pics/login/close_btn3.jpg",
     "server_icon": "./pics/login/server_icon.jpg",
     "server_ui": "./pics/login/server_ui.jpg",
+    "start_game": "./pics/login/start_game.jpg",
 
     # game_icons
     "mo_ri_xue_zhan": "./pics/game_icons/mo_ri_xue_zhan.jpg",

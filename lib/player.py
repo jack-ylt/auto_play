@@ -3,16 +3,30 @@ from lib import player_hand
 from lib import player_eye
 import asyncio
 import logging
+import queue
+import functools
+import time
+import os
 logger = logging.getLogger(__name__)
-
 
 
 FindTimeout = player_eye.FindTimeout
 
 
+def _get_first(lst):
+    return lst[0]
+
+
 class Player(object):
-    def __init__(self, window_name, g_queue, g_event, g_found, g_player_lock):
+    def __init__(self, window_name=None, g_queue=None, g_event=None, g_found=None, g_player_lock=None):
         self.window_name = window_name
+        if window_name:
+            # ImageGrab.grab(bbox=(left, top, right, bottom))
+            left, top = WINDOW_DICT[window_name]
+            right, bottom = left + WIDTH, top + HIGH
+            self.bbox = (left, top, right, bottom)
+        else:
+            self.bbox = (0, 0, 1920, 1080)
         self.g_queue = g_queue
         self.g_event = g_event
         self.g_found = g_found
@@ -21,94 +35,64 @@ class Player(object):
         self.eye = player_eye.Eye()
         self.hand = player_hand.Hand()
 
+        self.log_queue = queue.Queue(10)
+
+    def _cache_operation_pic(self, msg, pos=None, ext=".jpg"):
+        msg = msg.replace(', ', ',').replace(':', '-').replace(' ', '-')
+        now = time.strftime("%H-%M-%S", time.localtime())
+        name = now + '_' + msg + ext
+        img = self.eye.get_lates_screen(area=self.bbox)
+        if pos:
+            if isinstance(pos, tuple):
+                img = self.eye.draw_point(img, pos)
+            elif isinstance(pos, list):
+                # pos is pos_list
+                for p in pos:
+                    img = self.eye.draw_point(img, p)
+        if self.log_queue.full():
+            _ = self.log_queue.get()
+            # self.save_operation_pics()
+        self.log_queue.put((name, img))
+
+    def save_operation_pics(self, dir):
+        while not self.log_queue.empty():
+            name, img = self.log_queue.get()
+            pic_path = os.path.join(dir, name)
+            self.eye.save_picture(img, pic_path)
+
+
     def real_pos(self, pos):
         x, y = pos
         dx, dy = WINDOW_DICT[self.window_name]
         return (x + dx, y + dy)
 
-    async def monitor(self, names, timeout=10, threshold=0.7, filter_func=None):
+    async def monitor(self, names, timeout=10, threshold=0.8, filter_func=_get_first):
         """return (name, pos), all rease timeout_error"""
-        async def _monitor(window_name):
-            while True:
-                await self.g_queue.put([window_name, names, threshold])
-                await self.g_event.wait()
-
-                for res in self.g_found[window_name]:
-                    pic_name, pos_list = res
-                    if pos_list:
-                        if filter_func:
-                            pos = filter_func(pos_list)
-                        else:
-                            pos = pos_list[0]
-                        pos = self.real_pos(pos)
-                        logger.debug(f"{window_name} found {pic_name} at {pos}")
-                        return (pic_name, pos)
-
-        logger.debug(f'{self.window_name}: start monitor: {names}')
         if not isinstance(names, list):
             names = [names]
 
-        try:
-            res = await asyncio.wait_for(_monitor(self.window_name), timeout=timeout)
-            return res
-        except asyncio.TimeoutError:
-            msg = (f"{self.window_name}: monitor {names} timeout. ({timeout} s)")
-            raise FindTimeout(msg)
+        name, pos_list = await self.eye.monitor(names, area=self.bbox, timeout=timeout, threshold=threshold)
+        pos = filter_func(pos_list)
+        msg = f"found {name} at {pos}"
+        logger.debug(msg)
+        self._cache_operation_pic(msg, pos)
 
-    async def find_all_pos(self, names, threshold=0.8, max_try=1):
-        """return list of pos"""
-        logger.debug(f'{self.window_name}: start find all positions of: {names}')
+        return name, pos
 
+    async def find_all_pos(self, names, threshold=0.8):
+        """return (name, pos), all rease timeout_error"""
         if not isinstance(names, list):
             names = [names]
-        all_pos = []
 
-        for _ in range(max_try):
-            await self.g_queue.put([self.window_name, names, threshold])
-
-            while True:
-                await self.g_event.wait()
-                # 确保得到了查找结果
-                if self.g_found[self.window_name]:
-                    break
-
-            for res in self.g_found[self.window_name]:
-                _, pos_list = res
-                if pos_list:
-                    all_pos.extend(pos_list)
-
-            if all_pos:
-                break    # 找到了就退出， 否则，就多尝试几次
-            else:
-                await asyncio.sleep(1)
-
-        # 多个pic的情况下，可能会有重合
-        all_pos = player_eye.de_duplication(all_pos)
-        all_pos.sort()
-        all_pos = list(map(self.real_pos, all_pos))
-        if all_pos:
-            logger.debug(f'{self.window_name}: find_all_pos of {names} at {all_pos}')
-        else:
-            logger.debug(f'{self.window_name}: no find any pos of {names}')
-
-        return all_pos
-
-    async def find_text_pos(self, text, threshold=0.8):
-        """return a pos"""
-        logger.debug(f'{self.window_name}: start find pos of: {text}')
-
-        pos = self.eye.find_text_pos(text, self.window_name)
-
-        if pos == (-1, -1):
-            logger.debug(f'{self.window_name}: no find the pos of {text}')
-        else:
-            pos = self.real_pos(pos)
-            logger.debug(f'{self.window_name}: find text pos of {text} at {pos}')
-
-        return pos
+        pos_list = await self.eye.find_all_pos(names, area=self.bbox, threshold=threshold)
+        msg = f"found {names} at {pos_list}"
+        logger.debug(msg)
+        self._cache_operation_pic(msg, pos_list)
+        return pos_list
 
 
     async def click(self, pos, delay=1, cheat=True):
+        pos_copy = pos[:]
         if isinstance(pos, str):
             pos = POS_DICT[pos]
 
@@ -116,12 +100,15 @@ class Player(object):
         if pos[0] < WIDTH and pos[1] < HIGH:
             pos = self.real_pos(pos)
 
-        logger.debug(f"{self.window_name}: click {pos}")
+        msg = f"{self.window_name}: click {pos_copy}"
+        logger.debug(msg)
         async with self.g_player_lock:
             await self.hand.click(pos, cheat=cheat)
+        self._cache_operation_pic(msg, pos_copy)
         await asyncio.sleep(delay)
-        
+
     async def double_click(self, pos, delay=1, cheat=True):
+        pos_copy = pos[:]
         if isinstance(pos, str):
             pos = POS_DICT[pos]
 
@@ -129,37 +116,56 @@ class Player(object):
         if pos[0] < WIDTH and pos[1] < HIGH:
             pos = self.real_pos(pos)
 
-        logger.debug(f"{self.window_name}: double-click {pos}")
+        msg = f"{self.window_name}: double-click {pos_copy}"
+        logger.debug(msg)
         async with self.g_player_lock:
             await self.hand.double_click(pos, cheat=cheat)
+        self._cache_operation_pic(msg, pos_copy)
         await asyncio.sleep(delay)
 
     async def drag(self, p1, p2, speed=0.05, delay=0.2):
         """drag from position 1 to position 2"""
+        msg = f"{self.window_name}: drag from {p1} to {p2}"
+        self._cache_operation_pic(msg, [p1, p2])
+        logger.debug(msg)
+
         p1, p2 = map(self.real_pos, [p1, p2])
-        logger.debug(f"{self.window_name}: drag from {p1} to {p2}")
         async with self.g_player_lock:
             await self.hand.drag(p1, p2, speed, delay)
 
-    async def scroll(self, vertical_num, delay=0.2):
+    async def scroll(self, vertical_num, pos=None, delay=0.2):
         if vertical_num < 0:
-            logger.debug(f"{self.window_name}: scroll down {vertical_num}")
+            msg = f"{self.window_name}: scroll down {vertical_num}"
         else:
-            logger.debug(f"{self.window_name}: scroll up {vertical_num}")
+            msg = f"{self.window_name}: scroll up {vertical_num}"
+
         async with self.g_player_lock:
+            if pos:
+                await self.hand.move(*pos)
             await self.hand.scroll(vertical_num, delay)
 
+        logger.debug(msg)
+        self._cache_operation_pic(msg)
+
     async def move(self, x, y, delay=0.2):
+        pos_copy = (x, y)
         x, y = self.real_pos((x, y))
-        logger.debug(f"{self.window_name}: move to ({x}, {y})")
+        
         async with self.g_player_lock:
             await self.hand.move(x, y, delay)
 
+        msg = f"{self.window_name}: move to {pos_copy}"
+        logger.debug(msg)
+        self._cache_operation_pic(msg, pos_copy)
+
     async def tap_key(self, key, delay=1):
         """tap a key with a random interval"""
-        logger.debug(f"{self.window_name}: tap_key {key}")
         async with self.g_player_lock:
             await self.hand.tap_key(key)
+
+        msg = f"{self.window_name}: tap_key {key}"
+        logger.debug(msg)
+        self._cache_operation_pic(msg)
         await asyncio.sleep(delay)
 
     def in_window(self, pos):
@@ -169,7 +175,8 @@ class Player(object):
 
     async def go_back(self):
         pos_window_border = (400, 8)
-        logger.debug(f"{self.window_name}: go_back")
+        msg = f"{self.window_name}: go_back"
+        logger.debug(msg)
         async with self.g_player_lock:
             mouse_pos = await self.hand.mouse_pos()
             if not self.in_window(mouse_pos):
@@ -177,11 +184,14 @@ class Player(object):
                 await self.hand.click(pos, cheat=False)
                 await asyncio.sleep(0.2)
             await self.hand.tap_key('esc')
+            self._cache_operation_pic(msg)
         await asyncio.sleep(1)    # 切换界面需要点时间
 
     async def information_input(self, pos, info):
         """click the input box, then input info"""
-        logger.debug(f"{self.window_name}: input '{info}' at {pos}")
+        msg = f"{self.window_name}: input '{info}' at {pos}"
+        logger.debug(msg)
+        self._cache_operation_pic(msg)
         async with self.g_player_lock:
             if pos[0] < WIDTH and pos[1] < HIGH:
                 pos = self.real_pos(pos)
@@ -194,7 +204,7 @@ class Player(object):
 
     async def multi_click(self, pos_list, delay=1, cheat=True):
         new_pos_list = []
-        
+
         for pos in pos_list:
             if isinstance(pos, str):
                 pos = POS_DICT[pos]
@@ -202,16 +212,18 @@ class Player(object):
                 pos = self.real_pos(pos)
             new_pos_list.append(pos)
 
-        logger.debug(f"{self.window_name}: multi click {new_pos_list}")
+        msg = f"{self.window_name}: multi click {new_pos_list}"
+        logger.debug(msg)
         async with self.g_player_lock:
             for pos in new_pos_list:
                 await self.hand.click(pos, cheat=cheat)
-                await asyncio.sleep(0.2)
-            await asyncio.sleep(0.2)
+                await asyncio.sleep(0.1)
+            await asyncio.sleep(0.1)
 
+        self._cache_operation_pic(msg, pos_list)
         await asyncio.sleep(delay)
 
-    async def find_then_click(self, name_list, pos=None, threshold=0.7, timeout=10, raise_exception=True, cheat=True):
+    async def find_then_click(self, name_list, pos=None, threshold=0.7, timeout=10, delay=1, raise_exception=True, cheat=True):
         """find a image, then click it ant return its name
 
         if pos given, click the pos instead.
@@ -226,18 +238,18 @@ class Player(object):
                 raise
             else:
                 return None
-        if pos:
-            await self.click(pos, cheat=cheat)
-        else:
-            await self.click(pos_img, cheat=cheat)
+        if not pos:
+            pos = pos_img
+
+        await self.click(pos, delay=delay, cheat=cheat)
+
         return name
-
-
- 
 
     async def type_string(self, a_string, delay=1):
         """type a string to the computer"""
-        logger.debug(f"{self.window_name}: type_string {a_string}")
+        msg = f"{self.window_name}: type_string {a_string}"
+        logger.debug(msg)
         async with self.g_player_lock:
             await self.hand.type_string(a_string, delay)
+        self._cache_operation_pic(msg)
         await asyncio.sleep(delay)

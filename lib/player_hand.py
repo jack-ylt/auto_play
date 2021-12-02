@@ -48,9 +48,10 @@ class Hand(object):
             x = pos[0] + random.randint(-2, 2)
             y = pos[1] + random.randint(-2, 2)
 
-        self.m.press(x, y)
-        await self.delay(0.2)
-        self.m.release(x, y)
+        # self.m.press(x, y)
+        # await self.delay(0.2)
+        # self.m.release(x, y)
+        self.m.click(x, y)
         await asyncio.sleep(delay)
 
     async def double_click(self, pos, cheat=True):
@@ -62,8 +63,8 @@ class Hand(object):
             x = pos[0] + random.randint(-3, 3)
             y = pos[1] + random.randint(-2, 2)
 
-        self.m.click(x, y)
-        self.m.click(x, y)
+        self.m.click(x, y, n=2)
+        # self.m.click(x, y)
         await asyncio.sleep(0.1)
 
     async def drag(self, p1, p2, speed=0.05, delay=0.2):
