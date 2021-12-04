@@ -67,7 +67,7 @@ class Hand(object):
         # self.m.click(x, y)
         await asyncio.sleep(0.1)
 
-    async def drag(self, p1, p2, speed=0.05, delay=0.2):
+    async def drag(self, p1, p2, speed=0.05, stop=False):
         """drag from position 1 to position 2"""
         x1 = p1[0] + random.randint(-12, 12)
         y1 = p1[1] + random.randint(-8, 8)
@@ -76,15 +76,21 @@ class Hand(object):
         step = 10
 
         self.m.press(x1, y1)
-        while distance((x1, y1), (x2, y2)) >= 1:
-            x1 += (x2 - x1)/step
-            y1 += (y2 - y1)/step
-            step -= 1
-            self.m.move(int(x1), int(y1))
-            await asyncio.sleep(speed)
-        self.m.release(x2, y2)
 
-        await asyncio.sleep(delay)
+        while distance((x1, y1), (x2, y2)) >= 1:
+            x1 += int((x2 - x1)/step)
+            y1 += int((y2 - y1)/step)
+            step -= 1
+            self.m.move(x1, y1)
+            await asyncio.sleep(speed)
+        self.m.move(x2, y2)
+
+        if stop:
+            await asyncio.sleep(0.5)
+        self.m.release(x1, y1)
+        await asyncio.sleep(0.1)
+
+        
 
     async def scroll(self, vertical_num, delay=0.2):
         """垂直滚动"""

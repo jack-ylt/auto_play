@@ -19,6 +19,7 @@ from lib.start_game import start_emulator, game_started
 from lib.read_cfg import read_account_cfg
 from lib import player_eye
 from lib.player import Player
+from lib import ui_data
 
 from logging import handlers
 import logging
@@ -33,22 +34,13 @@ formatter = logging.Formatter(
 ch.setFormatter(formatter)
 logger.addHandler(ch)
 
-async def test_eye():
+async def test_eye(name=None):
     bbox = (0, 0, 1000, 540)
     # bbox = None
-    name = ['boss', 'boss1', 'boss2']
-    names = [
-        'ok1',
-        'ok2',
-        'ok3',
-        'ok4',
-        # 'setting',
-        'ok6',
-        'ok7',
-        'ok8',
-        'ok9',
-        'level_battle',
-    ]
+
+    if name is None:
+        name = ['boss', 'boss1', 'boss2']
+        name = ui_data.OK_BUTTONS
 
     # 查找一个，大概0.1s，5个0.23s， 10个0.4s
     await player_eye.test(name, bbox)
@@ -76,8 +68,25 @@ async def test_survival_home():
 
     await auto.survival_home()
 
+async def test_task_board():
+    g_player_lock = asyncio.Lock()
+    player = Player('left_top', g_player_lock=g_player_lock)
+    auto = auto_play.AutoPlay(player)
+    
+    # for i in range(5):
+    #     for i in range(2):
+    #         await auto._swip_to('right', stop=True)
+    #     for i in range(2):
+    #         await auto._swip_to('left', stop=True)
+
+    # await auto._accept_task()
+
+    # await auto._finish_all_tasks()
+    
+    await auto.task_board()
 
 if __name__ == '__main__':
     # sleep(1)
-    # asyncio.run(test_eye())
-    asyncio.run(test_survival_home())
+    # asyncio.run(test_eye('all_received'))
+    # asyncio.run(test_survival_home())
+    asyncio.run(test_task_board())

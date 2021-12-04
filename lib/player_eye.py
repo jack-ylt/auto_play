@@ -14,11 +14,12 @@ import time
 from datetime import date
 import os
 import asyncio
-from copy import deepcopy
+# from lib.helper import get_window_region
 from lib.helper import get_window_region
-from lib.ui_data import PIC_DICT, SCREEN_DICT
-# from helper import get_window_region
-# from ui_data import PIC_DICT, SCREEN_DICT
+from lib.ui_data import SCREEN_DICT
+from copy import deepcopy
+
+
 import logging
 
 
@@ -29,6 +30,7 @@ logger = logging.getLogger(__name__)
 file_dir = os.path.split(os.path.realpath(__file__))[0]
 main_dir = os.path.split(file_dir)[0]
 sys.path.insert(0, main_dir)
+pic_dir = os.path.join(main_dir, 'pics')
 
 
 class FindTimeout(Exception):
@@ -73,6 +75,9 @@ class Eye(object):
         """return list of pos"""
         logger.debug(
             f'Start to find all positions of: {names}')
+
+        if not isinstance(names, list):
+            names = [names]
 
         all_pos = []
 
@@ -140,15 +145,15 @@ class Eye(object):
         """return img obj according to its name"""
         if name in self.img_dict:
             return self.img_dict[name]
-
-        if name in PIC_DICT:
-            # 不用绝对路径，Sphinx 会报错
-            file_dir = os.path.split(os.path.realpath(__file__))[0]
-            main_dir = os.path.split(file_dir)[0]
-            path = os.path.join(main_dir, PIC_DICT[name])
-            img = self._read_pic(path)
-            self.img_dict[name] = img
-            return img
+        
+        for root, dirs, files in os.walk(pic_dir):
+            for f in files:
+                f_name = os.path.splitext(f)[0]
+                if f_name == name:
+                    path = os.path.join(root, f)
+                    img = self._read_pic(path)
+                    self.img_dict[name] = img
+                    return img
         else:
             msg = f"can't found {name}"
             raise Exception(msg)

@@ -74,7 +74,7 @@ class Player(object):
         name, pos_list = await self.eye.monitor(names, area=self.bbox, timeout=timeout, threshold=threshold)
         pos = filter_func(pos_list)
         msg = f"found {name} at {pos}"
-        logger.debug(msg)
+        # logger.debug(msg)
         self._cache_operation_pic(msg, pos)
 
         return name, pos
@@ -86,7 +86,7 @@ class Player(object):
 
         pos_list = await self.eye.find_all_pos(names, area=self.bbox, threshold=threshold)
         msg = f"found {names} at {pos_list}"
-        logger.debug(msg)
+        # logger.debug(msg)
         self._cache_operation_pic(msg, pos_list)
         return pos_list
 
@@ -123,7 +123,7 @@ class Player(object):
         self._cache_operation_pic(msg, pos_copy)
         await asyncio.sleep(delay)
 
-    async def drag(self, p1, p2, speed=0.05, delay=0.2):
+    async def drag(self, p1, p2, speed=0.05, stop=False):
         """drag from position 1 to position 2"""
         msg = f"{self.window_name}: drag from {p1} to {p2}"
         self._cache_operation_pic(msg, [p1, p2])
@@ -131,7 +131,7 @@ class Player(object):
 
         p1, p2 = map(self.real_pos, [p1, p2])
         async with self.g_player_lock:
-            await self.hand.drag(p1, p2, speed, delay)
+            await self.hand.drag(p1, p2, speed, stop)
 
     async def scroll(self, vertical_num, pos=None, delay=0.2):
         if vertical_num < 0:

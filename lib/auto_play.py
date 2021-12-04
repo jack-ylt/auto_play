@@ -10,8 +10,9 @@ from operator import itemgetter
 from collections import namedtuple
 from cv2 import threshold
 from playsound import playsound
+import math
 
-from lib.ui_data import SCREEN_DICT
+from lib.ui_data import SCREEN_DICT, OK_BUTTONS, GOOD_TASKS
 from lib.player import Player, FindTimeout
 
 # from ui_data import SCREEN_DICT
@@ -691,20 +692,18 @@ class AutoPlay(object):
             7: (50, 409)
         }
 
-        
         await self.player.find_then_click('switch_map', delay=0.3)
 
         if pre >= 4 and i <= 3:
             await self.player.scroll(5, pos=(50, 350))
-            
+
         await asyncio.sleep(0.2)
         await self.player.click(pos_map[i], delay=0.3)
         await self.player.find_then_click('switch_map')
 
         return i
-        
 
-    async def _swip_to(self, direction):
+    async def _swip_to(self, direction, stop=False):
         left_top = (150, 150)
         top = (400, 150)
         right_top = (700, 150)
@@ -719,12 +718,15 @@ class AutoPlay(object):
             'left_down': (left_down, right_top),
             'right_down': (right_down, left_top),
             'right_top': (right_top, left_down),
+            'top': (top, down),
+            'down': (down, top),
+            'left': (left, right),
+            'right': (right, left),
         }
 
         logger.debug(f'{self.player.window_name}: swipe_to {direction}')
         p1, p2 = swip_map[direction]
-        await self.player.drag(p1, p2, speed=0.02)
-        await asyncio.sleep(0.5)
+        await self.player.drag(p1, p2, speed=0.02, stop=stop)
 
     async def _collect_box(self):
         boxes = await self.player.find_all_pos('box')
@@ -785,7 +787,7 @@ class AutoPlay(object):
         _, pos = await self.player.monitor('resources')
         await asyncio.sleep(3)    # 点太快，可能卡住
         await self.player.click(pos)
-        
+
         pos_fight = (830, 490)
         await self.player.click(pos_fight)
         total_floors = await self._get_total_floors()
@@ -808,9 +810,6 @@ class AutoPlay(object):
                     win_count += win_num
                     if win_num == 0:
                         can_win = False
-
-                        
-                
 
     #
     # invite_heroes
@@ -1040,7 +1039,7 @@ class AutoPlay(object):
         except FindTimeout:
             pass
 
-    async def arena_champion(self, min_score=50):
+    async def arena_champion(self, min_score=43):
 
         await self.player.find_then_click(['arena'])
         await self.player.find_then_click(['champion'])
@@ -1158,185 +1157,114 @@ class AutoPlay(object):
         await asyncio.sleep(8)
         await self.player.find_then_click(['draw_again'])
 
-    async def _swipe_left(self):
-        logger.debug(f'{self.player.window_name}: _swipe_left')
-        p1 = (550, 300)
-        p2 = (250, 300)
-        await self.player.drag(p1, p2)
-        await asyncio.sleep(1)
-
-    async def _swipe_right_big(self):
-        logger.debug(f'{self.player.window_name}: _swipe_right')
-        p1 = (100, 300)
-        p2 = (700, 300)
-        await self.player.drag(p1, p2, speed=0.02)
-        await asyncio.sleep(1)
-
-    async def _goto_far_left(self):
-        logger.debug(f'{self.player.window_name}: _goto_far_left')
-        for _ in range(5):
-            await self._swipe_right_big()
-            try:
-                await self.player.monitor(['receivable_task'], timeout=1)
-                break
-            except FindTimeout:
-                pass
-        await self._swipe_right_big()    # 确保真的到最左边
-
-    async def _accept_tasks(self, name_list):
-        """return success_num, failed_num"""
-        # ['task_3star', 'task_4star', 'task_5star', 'task_6star', 'task_7star']
-        success_num = 0
-        # failed_num = 0
-        pos_battle = (350, 455)
-        pos_start = (520, 455)
-        pos_close = (725, 90)
-
-        logger.info(f"accept_tasks: {name_list}")
-
-        while True:
-            pos_list = await self.player.find_all_pos(name_list, threshold=0.9)
-            if pos_list:
-                for pos in sorted(pos_list):
-                    pos = (pos[0], pos[1] + 160)
-                    await self.player.click(pos)
-                    await self.player.monitor(['close'])
-                    await self.player.click(pos_battle, delay=0.2)
-                    await self.player.click(pos_start)
-                    try:
-                        await self.player.find_then_click(['close'], pos=pos_close, timeout=1)
-                    except FindTimeout:
-                        success_num += 1
-                    else:
-                        # failed_num += 1
-                        logger.warning(
-                            "There is a unacceptable tasks, so return")
-                        # await self._swipe_left()
-                        raise PlayException()
-            else:
-                try:
-                    await self.player.monitor(['receivable_task'], timeout=1)
-                except FindTimeout:
-                    break    # 没有可以领取任务了
-                else:
-                    try:
-                        await self.player.monitor(['unlock_more'], timeout=1)
-                        break    # 划到最右边了
-                    except FindTimeout:
-                        pass
-
-            await self._swipe_left()
-
-        return success_num
-
-    async def _finish_tasks(self, name_list, max_num=20):
-        # ['finished_3star', 'finished_4star']
-        pos_ok = (430, 380)
-        pos_yes = (500, 350)
-        num = 0
-
-        logger.info(f"finish_tasks: {name_list}")
-
-        while num < max_num:
-            try:
-                _, pos = await self.player.monitor(name_list, threshold=0.9, timeout=1)
-            except FindTimeout:
-                try:
-                    await self.player.monitor(['unlock_more'], timeout=1)
-                    break    # 划到最右边了
-                except FindTimeout:
-                    await self._swipe_left()
-            else:
-                pos = (pos[0], pos[1] + 160)
-                await self.player.click(pos)
-                if 'finished_5star' in name_list:
-                    await self.player.click(pos_yes)
-                await self.player.click(pos_ok)
-                num += 1
-        return num
-
-    async def _add_tasks(self, num):
-        """add new tasks, if success, return True"""
-        logger.info(f"add_tasks: {num}")
-        pos_use = (300, 480)
-        for _ in range(num):
-            await self.player.click(pos_use, delay=0.2)
-        try:
-            await self.player.monitor(['receivable_task'], timeout=1)
-            return True
-        except FindTimeout:
-            logger.debug("there is no white task, so return")
-            # 没有白信封了
-            raise PlayException()
-
-    async def _refresh_tasks(self):
-        """refresh tasks"""
-        logger.info("refresh_tasks")
-        pos_refresh = (580, 480)
-        await self.player.click(pos_refresh, delay=2)
-
-        try:
-            pos_cancel = (370, 350)
-            await self.player.find_then_click(['no_diamond'], pos=pos_cancel, timeout=1)
-            logger.warning('no enough diamond, so return')
-            raise PlayException()
-        except FindTimeout:
-            pass
-
-        try:
-            await self.player.monitor(['receivable_task'], timeout=1)
-            return
-        except FindTimeout:
-            await self._add_tasks(3)
-
-    async def _count_5star_task(self):
-        # 可能会多数
-        num = 0
-        while True:
-            pos_list = await self.player.find_all_pos(['finished_5star'], threshold=0.9)
-            num += len(pos_list)
-            try:
-                await self.player.monitor(['unlock_more'], timeout=1)
-                break    # 划到最右边了
-            except FindTimeout:
-                await self._swipe_left()
-        logger.debug(f"found {num} 5star tasks")
-        return num
-
     async def task_board(self):
         # 如果有任务完成不了，就不要继续刷新任务了
+        logger.info("Run task board")
 
-        await self.player.find_then_click(['task_board'])
+        await self.player.find_then_click('task_board')
         try:
-            await self.player.monitor(['receivable_task'])
+            # 确保界面刷新出来了
+            await self.player.monitor(['receivable_task', 'delete_task', 'finish_btn'])
+            # 看下是否有可领取的任务
+            await self.player.monitor('receivable_task', timeout=1)
         except:
-            logger.debug("There is no receivable task")
+            logger.info("Skip, there is no receivable task")
             return
 
-        # finish 3, 4 star tasks
-        await self._finish_tasks(['finished_3star', 'finished_4star'])
-        await self._goto_far_left()
+        await self._accept_task()
+        await self._finish_all_tasks()
 
+        # 最多刷新5次，如果钻石不够也能退出
+        max_num = 5
+        for i in range(max_num):
+            await self.player.find_then_click('refresh4')
+            await asyncio.sleep(2)
+            try:
+                await self.player.monitor('receivable_task', timeout=1)
+            except FindTimeout:
+                logger.info("All task had been accepted.")
+                return
+            await self._accept_task()
+
+        logger.info(f"Reach max refresh times ({max_num})")
+
+    async def _accept_task(self):
+        one_key_to_battle = (350, 455)
+        start_task = (520, 455)
+
+        while True:
+            list1 = await self.player.find_all_pos('receivable_task')
+            list2 = await self.player.find_all_pos(GOOD_TASKS)
+            post_list = self._merge_pos_list(list1, list2)
+            for pos in post_list:
+                await self.player.click(pos)
+                await self.player.monitor('close')
+                await self.player.click(one_key_to_battle)
+                await self.player.click(start_task)
+                pos_list2 = await self.player.find_all_pos(['close', 'no_hero'])
+                if pos_list2:
+                    await self.player.click(start_task)
+                    pos_list2 = await self.player.find_all_pos(['close', 'no_hero'])
+                    if pos_list2:
+                        raise PlayException("Lack of heroes to accept task")
+
+            await self._swip_to('right', stop=True)
+
+            try:
+                await self.player.monitor('receivable_task', timeout=1)
+            except FindTimeout:
+                return
+
+            try:
+                await self.player.monitor(['finish_btn', 'unlock_more'], timeout=1)
+                return 
+            except FindTimeout:
+                pass
+            
+
+    def _merge_pos_list(self, list1, list2, dx=10, dy=10000):
+        def _is_close(p1, p2):
+            x1, y1 = p1
+            x2, y2 = p2
+            if math.fabs(x1 - x2) <= dx and math.fabs(y1 - y2) <= dy:
+                return True
+            return False
+
+        merge_list = []
+        for p1 in list1:
+            for p2 in list2:
+                if _is_close(p1, p2):
+                    merge_list.append(p1)
+        return merge_list
+
+    async def _finish_all_tasks(self):
+        await self.player.find_then_click('one_click_collection2')
         try:
-            # and then accept 3+ star tasks
-            await self._accept_tasks(
-                ['task_3star', 'task_4star', 'task_5star', 'task_6star', 'task_7star'])
-
-            # refresh tasks and accept 3+ tasks
-            await self._refresh_tasks()
-            await self._accept_tasks(
-                ['task_3star', 'task_4star', 'task_5star', 'task_6star', 'task_7star'])
-
-            # finish 5 star task and then accept 3+ star tasks
-            num = await self._count_5star_task()
-            for _ in range(math.ceil(num / 2)):
-                await self._finish_tasks(['finished_5star'], max_num=1)
-                await self._refresh_tasks()
-                await self._accept_tasks(
-                    ['task_3star', 'task_4star', 'task_5star', 'task_6star', 'task_7star'])
-
-        except PlayException():
+            await self.player.find_then_click(OK_BUTTONS, timeout=1)
+            await self.player.find_then_click(OK_BUTTONS, timeout=1)
+            logger.info("All tasks had been finished.")
             return
+        except FindTimeout:
+            while True:
+                await self._swip_to('right')
+                try:
+                    await self.player.monitor('unlock_more', timeout=2)
+                    break
+                except FindTimeout:
+                    pass
+
+            while True:
+                try:
+                    await self.player.find_then_click('finish_btn', timeout=1)
+                    await self.player.find_then_click(OK_BUTTONS, timeout=1)
+                    try:
+                        # 高星任务会一次词确认
+                        await self.player.find_then_click(OK_BUTTONS, timeout=1)
+                    except FindTimeout:
+                        pass
+                except FindTimeout:
+                    logger.info("All tasks had been finished.")
+                    return
 
     async def vip_shop(self):
         pos_vip = (28, 135)
@@ -1457,6 +1385,7 @@ class AutoPlay(object):
         async def _login_game():
             """start game and login, if sucess, return True"""
             _, pos = await self.player.monitor([account_curr.game_name])
+            await asyncio.sleep(3)
             await self.player.double_click(pos)
             await asyncio.sleep(50)
 
@@ -1520,27 +1449,27 @@ class AutoPlay(object):
 
     async def play_game(self):
         tasks = [
-            'maze',
-            'collect_mail',
-            'vip_shop',
-            'friends_interaction',
-            'community_assistant',
-            'instance_challenge',
-            'guild',
-            'exciting_activities',
-            'jedi_space',
-            'survival_home',
-            'market',
-            'invite_heroes',
-            'level_battle',
-            'arena',
-            # 'arena_champion',
-            'task_board',
-            'armory',
-            'lucky_draw',
-            'tower_battle',
-            'brave_instance',
-            'hero_expedition',
+            # 'maze',
+            # 'collect_mail',
+            # 'vip_shop',
+            # 'friends_interaction',
+            # 'community_assistant',
+            # 'instance_challenge',
+            # 'guild',
+            # 'exciting_activities',
+            # 'jedi_space',
+            # 'survival_home',
+            # 'market',
+            # 'invite_heroes',
+            # 'level_battle',
+            # 'arena',
+            'arena_champion',
+            # 'task_board',
+            # 'armory',
+            # 'lucky_draw',
+            # 'tower_battle',
+            # 'brave_instance',
+            # 'hero_expedition',
         ]
 
         count = 0
