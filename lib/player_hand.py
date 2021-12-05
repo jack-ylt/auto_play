@@ -63,7 +63,7 @@ class Hand(object):
             x = pos[0] + random.randint(-3, 3)
             y = pos[1] + random.randint(-2, 2)
 
-        self.m.click(x, y, n=2)
+        self.m.click(x, y, 1, 2)
         # self.m.click(x, y)
         await asyncio.sleep(0.1)
 

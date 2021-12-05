@@ -693,6 +693,8 @@ class AutoPlay(object):
         }
 
         await self.player.find_then_click('switch_map', delay=0.3)
+        # 确保打开了地图
+        await self.player.monitor(['field_map', 'locked_field'])
 
         if pre >= 4 and i <= 3:
             await self.player.scroll(5, pos=(50, 350))
@@ -784,9 +786,13 @@ class AutoPlay(object):
     async def survival_home(self):
         await self._move_to_left_top()
         await self.player.find_then_click('survival_home')
-        _, pos = await self.player.monitor('resources')
-        await asyncio.sleep(3)    # 点太快，可能卡住
-        await self.player.click(pos)
+        try:
+            _, pos = await self.player.monitor('resources', timeout=3)
+            await asyncio.sleep(3)    # 点太快，可能卡住
+            await self.player.click(pos)
+        except FindTimeout:
+            await asyncio.sleep(3)    # 点太快，可能卡住
+            await self.player.click(pos)
 
         pos_fight = (830, 490)
         await self.player.click(pos_fight)
@@ -909,52 +915,64 @@ class AutoPlay(object):
     #
 
     async def market(self):
-        await asyncio.sleep(1)
         await self._move_to_left_down()
-        _, pos = await self.player.monitor(['market'])
-        await self.player.click(pos, delay=2)
+        await self.player.find_then_click('market')
+        await self.player.monitor(['gold', 'diamond'])
+        await self._receive_survival_reward()
 
-        pos_get_gold = (410, 50)
-        await self.player.click(pos_get_gold, cheat=False)
-        for _ in range(2):
+        fresh_btn = (690, 135)
+        for i in range(4):
+            await self._buy_goods()
+            await self.player.click(fresh_btn)
             try:
-                _, pos = await self.player.monitor(['get_for_free2'], threshold=0.85, timeout=1)
-                await self.player.click(pos)
-                name, pos = await self.player.monitor(['ok9'], timeout=2)
-                await self.player.click(pos)
+                await self.player.find_then_click('cancle', timeout=1)
+                break
+            except FindTimeout:
+                pass
+
+        await self._buy_premium_goods()
+
+    async def _receive_survival_reward(self):
+        pos_plus = (411, 54)
+        await self.player.click(pos_plus, cheat=False)
+        pos_receive = (350, 390)
+        for i in range(2):
+            await self.player.click(pos_receive)
+            try:
+                await self.player.find_then_click(OK_BUTTONS, timeout=1)
             except FindTimeout:
                 break
         await self.player.go_back()
 
-        pics1 = ['hero_badge', 'task_ticket',
-                 'soda_water1', 'soda_water2', 'soda_water3']
-        offset1 = 40
-        pics2 = ['hero_shard_3_1', 'hero_shard_3_2', 'hero_shard_3_3',
-                 'hero_shard_3_4', 'hero_shard_4_1', 'hero_shard_4_2', 'hero_shard_4_3']
-        offset2 = 10
-        for _ in range(4):
-            for pics, offset in [(pics1, offset1), (pics2, offset2)]:
-                pos_list = await self.player.find_all_pos(pics, threshold=0.92)
-                for pos in pos_list:
-                    pos = (pos[0], pos[1] + offset)
-                    await self.player.click(pos)
-                    try:
-                        _, pos = await self.player.monitor(['ok8'], timeout=1)
-                        await self.player.click(pos)
-                        name, pos = await self.player.monitor(['ok9', 'lack_of_gold'])
-                    except FindTimeout:
-                        continue  # 有些东西被购买了，还是能匹配到
-                    if name == 'ok9':
-                        await self.player.click(pos)
-                    else:
-                        logger.debug(
-                            f'{self.player.window_name}: lack of gold')
-                        return
-            try:
-                name, pos = await self.player.monitor(['refresh2'], threshold=0.9, timeout=1)
-                await self.player.click(pos)
-            except FindTimeout:
-                return
+    async def _buy_goods(self):
+        nice_goods = ['task_ticket', 'hero_badge', 'arena_tickets',
+                      'soda_water', 'hero_blue', 'hero_green', 'hero_light_blue', 'hero_red']
+        list1 = await self.player.find_all_pos('gold')
+        list2 = await self.player.find_all_pos(nice_goods)
+        pos_list = self._merge_pos_list(list1, list2, dx=50, dy=100)
+        for pos in pos_list:
+            pos = (pos[0] + 30, pos[1])
+            await self.player.click(pos)
+            await self.player.find_then_click(OK_BUTTONS)
+            await self.player.find_then_click(OK_BUTTONS)
+
+    async def _buy_premium_goods(self):
+        await self.player.find_then_click('premium')
+        try:
+            await self.player.find_then_click('go_page_2', timeout=2)
+        except FindTimeout:
+            logger.debug("can't buy premium goods, for low level")
+            return
+        list1 = await self.player.find_all_pos('gold1')
+        list2 = await self.player.find_all_pos('arena_tickets')
+        pos_list = self._merge_pos_list(list1, list2, dx=50, dy=100)
+        for pos in pos_list:
+            pos = (pos[0] + 30, pos[1])
+            await self.player.click(pos)
+            await self.player.find_then_click(OK_BUTTONS)
+            await self.player.find_then_click(OK_BUTTONS)
+
+ 
 
     #
     # arena
@@ -1195,8 +1213,8 @@ class AutoPlay(object):
         while True:
             list1 = await self.player.find_all_pos('receivable_task')
             list2 = await self.player.find_all_pos(GOOD_TASKS)
-            post_list = self._merge_pos_list(list1, list2)
-            for pos in post_list:
+            pos_list = self._merge_pos_list(list1, list2, dx=10)
+            for pos in pos_list:
                 await self.player.click(pos)
                 await self.player.monitor('close')
                 await self.player.click(one_key_to_battle)
@@ -1217,24 +1235,26 @@ class AutoPlay(object):
 
             try:
                 await self.player.monitor(['finish_btn', 'unlock_more'], timeout=1)
-                return 
+                return
             except FindTimeout:
                 pass
-            
 
-    def _merge_pos_list(self, list1, list2, dx=10, dy=10000):
+    def _merge_pos_list(self, btn_list, icon_list, dx=1000, dy=1000):
         def _is_close(p1, p2):
             x1, y1 = p1
             x2, y2 = p2
-            if math.fabs(x1 - x2) <= dx and math.fabs(y1 - y2) <= dy:
+            # dy不试用绝对值，因为按钮一般在图标的下面
+            if math.fabs(x1 - x2) <= dx and 0 <= y1 - y2 <= dy:
                 return True
             return False
 
-        merge_list = []
-        for p1 in list1:
-            for p2 in list2:
+        merge_set = set()
+        for p1 in btn_list:
+            for p2 in icon_list:
                 if _is_close(p1, p2):
-                    merge_list.append(p1)
+                    merge_set.add(p1)
+        merge_list = sorted(list(merge_set), key=lambda pos: pos[1])
+        print(f"merge_list: {merge_list}")
         return merge_list
 
     async def _finish_all_tasks(self):
@@ -1449,27 +1469,27 @@ class AutoPlay(object):
 
     async def play_game(self):
         tasks = [
-            # 'maze',
-            # 'collect_mail',
-            # 'vip_shop',
-            # 'friends_interaction',
-            # 'community_assistant',
-            # 'instance_challenge',
-            # 'guild',
-            # 'exciting_activities',
-            # 'jedi_space',
-            # 'survival_home',
-            # 'market',
-            # 'invite_heroes',
-            # 'level_battle',
-            # 'arena',
-            'arena_champion',
-            # 'task_board',
-            # 'armory',
-            # 'lucky_draw',
-            # 'tower_battle',
-            # 'brave_instance',
-            # 'hero_expedition',
+            'maze',
+            'collect_mail',
+            'vip_shop',
+            'friends_interaction',
+            'community_assistant',
+            'instance_challenge',
+            'guild',
+            'exciting_activities',
+            'jedi_space',
+            'survival_home',
+            'market',
+            'invite_heroes',
+            'level_battle',
+            'arena',
+            # 'arena_champion',
+            'task_board',
+            'armory',
+            'lucky_draw',
+            'tower_battle',
+            'brave_instance',
+            'hero_expedition',
         ]
 
         count = 0
