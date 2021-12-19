@@ -88,7 +88,7 @@ class Hand(object):
         if stop:
             await asyncio.sleep(0.5)
         self.m.release(x1, y1)
-        await asyncio.sleep(0.1)
+        await asyncio.sleep(0.3)
 
         
 

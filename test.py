@@ -20,6 +20,7 @@ from lib.read_cfg import read_account_cfg
 from lib import player_eye
 from lib.player import Player
 from lib import ui_data
+from lib import helper
 
 from logging import handlers
 import logging
@@ -34,16 +35,16 @@ formatter = logging.Formatter(
 ch.setFormatter(formatter)
 logger.addHandler(ch)
 
-async def test_eye(name=None):
-    bbox = (0, 0, 1000, 540)
-    # bbox = None
+async def test_eye(name=None, threshold=0.8):
+    # bbox = (0, 0, 1000, 540)
+    bbox = None
 
     if name is None:
         name = ['boss', 'boss1', 'boss2']
         name = ui_data.OK_BUTTONS
 
     # 查找一个，大概0.1s，5个0.23s， 10个0.4s
-    await player_eye.test(name, bbox)
+    await player_eye.test(name, bbox, threshold)
 
 
 async def test_survival_home():
@@ -85,8 +86,40 @@ async def test_task_board():
     
     await auto.task_board()
 
+
+async def test_market():
+    g_player_lock = asyncio.Lock()
+    player = Player('left_top', g_player_lock=g_player_lock)
+    auto = auto_play.AutoPlay(player)
+
+    # await auto._receive_survival_reward()
+    # await auto._buy_goods()
+    await auto.market()
+    
+
+async def test_brave_instance(auto):
+    await auto.brave_instance()
+    
+
+async def main():
+    g_player_lock = asyncio.Lock()
+    player = Player('left_top', g_player_lock=g_player_lock)
+    auto = auto_play.AutoPlay(player)
+    
+    # await auto.survival_home()
+    # await auto.tower_battle()
+    await auto.guild()
+
+    # print(await auto.player.is_disabled_button((315, 408)))
+
+    # await test_brave_instance(auto)
+
 if __name__ == '__main__':
     # sleep(1)
-    # asyncio.run(test_eye('all_received'))
-    # asyncio.run(test_survival_home())
-    asyncio.run(test_task_board())
+    names = ['boss_card1', 'ok', 'go_last', 'fast_forward1']
+    asyncio.run(test_eye(names, threshold=0.92))
+
+    # asyncio.run(main())
+
+
+

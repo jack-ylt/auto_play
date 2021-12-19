@@ -481,6 +481,11 @@ TODO
             => 多加几个图片
             滑动后，停0.5s
         _goto_floor 总共7层没问题，但总共是5层呢
+        
+        战斗，不能用find_all，因为打完一个，下一次回到主界面，位置会变的，需要重新查找
+        done
+        
+        
     
     fix 任务
         """300次必出7星是每天重置的，所有要尽量节约信封,留到人工一次性用来刷7星任务。
@@ -530,5 +535,116 @@ TODO
     
     把图片合并到一个文件夹，不要开发太麻烦了    done
     
+    ★ 鼠标双击，经常失灵。
+    =》找了半天原因，原来是360导致的。关掉后，又快又好。
     
+    ★ 不能有死循环
+    所有while True 都要改成 for max_count
+    
+    物品买了，就变灰色，图像识别到了，又点击怎么办？
+    =》
+    1 点了，不弹出确认框，就认为买过了
+    
+    2 加入颜色验证
+    pyautogui.pixelMatchesColor(100, 200, (140, 125, 134), tolerance=10)
+    True
+    
+    _goto_floor 不准确，主函数那边要做处理
+    
+    go_back 失败，
+    =》可能是鼠标不在里面，窗口没有处于激活状态
+    换成点回退键，点close的方法？
+    
+    有时候点击失败
+    =》点击太快了，游戏未响应   done
+    
+    log要分开记录，不然不好分析
+    
+    有不少误识别，需要提高阈值，到0.9？
+    
+    is_enabled_button(pos, img_rectangle)
+        获取左右两边中点的坐标，如果都是绿色，或者都是黄色
+        方圆20个像素,随机10个点
+            if pyautogui.pixelMatchesColor(x + dx, y, color, tolerance=10):
+                return True
+        else:
+            return False
+
+    go_back => go_back_to   done    
+    win 误识别  =>  0.9     done
+    
+    
+    fix 冠军竞技场   done
+
+    fix 勇士塔     done
+
+        塔
+        点点点
+        while True
+            挑战
+            战斗
+            while
+                下一关，邀请英雄、快进、结束、
+                if 下一关
+                    break
+                if 邀请英雄:
+                    ok
+                    return
+
+            
+            
+
+
+
+
+    
+    fix 市场  done
+        点市场
+        金币、钻石
+        领幸存奖励
+            back
+        while True
+            买东西
+            刷新， 如果要钻石，则退出
+        买高级东西
+        
+    
+    fix 勇者  done
+        勇者副本
+        当前关卡
+        
+        挑战
+        如果没兵
+            派兵
+            
+        while true:
+            开始战斗
+            战斗
+                    
+            如果win
+                下一关卡，确定
+                    if下一关卡
+                        就点下一关卡，点挑战
+                    if确定
+                        就点确定，找当前关卡
+                    点挑战
+            else：
+                点ok
+                
+        战斗
+            while：
+                卡片，lose 结束 快进
+                如果 快进，结束：
+                    点击
+                卡片
+                    点两次，return win
+                lose
+                    return lose
+                sleep 1
+            
+        
+    
+    fix 公会战
+    
+
     

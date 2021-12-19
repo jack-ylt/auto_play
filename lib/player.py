@@ -1,4 +1,4 @@
-from lib.ui_data import POS_DICT, WINDOW_DICT, WIDTH, HIGH
+from lib.ui_data import POS_DICT, WINDOW_DICT, WIDTH, HIGH, CLOSE_BUTTONS, OK_BUTTONS
 from lib import player_hand
 from lib import player_eye
 import asyncio
@@ -7,6 +7,7 @@ import queue
 import functools
 import time
 import os
+from datetime import datetime
 logger = logging.getLogger(__name__)
 
 
@@ -35,13 +36,13 @@ class Player(object):
         self.eye = player_eye.Eye()
         self.hand = player_hand.Hand()
 
-        self.log_queue = queue.Queue(10)
+        self.log_queue = queue.Queue(20)
 
-    def _cache_operation_pic(self, msg, pos=None, ext=".jpg"):
+    def _cache_operation_pic(self, msg, pos=None, new=True, ext=".jpg"):
         msg = msg.replace(', ', ',').replace(':', '-').replace(' ', '-')
-        now = time.strftime("%H-%M-%S", time.localtime())
+        now = datetime.now().strftime('%H-%M-%S,%f')[:-3]
         name = now + '_' + msg + ext
-        img = self.eye.get_lates_screen(area=self.bbox)
+        img = self.eye.get_lates_screen(area=self.bbox, new=new)
         if pos:
             if isinstance(pos, tuple):
                 img = self.eye.draw_point(img, pos)
@@ -60,11 +61,23 @@ class Player(object):
             pic_path = os.path.join(dir, name)
             self.eye.save_picture(img, pic_path)
 
+        # 保存以下最新的屏幕截图
+        img = self.eye.get_lates_screen(area=self.bbox, new=True)
+        now = datetime.now().strftime('%H-%M-%S,%f')[:-3]
+        name = now + '_' + 'last_screen.jpg'
+        pic_path = os.path.join(dir, name)
+        self.eye.save_picture(img, pic_path)
+
 
     def real_pos(self, pos):
         x, y = pos
         dx, dy = WINDOW_DICT[self.window_name]
         return (x + dx, y + dy)
+
+    async def is_disabled_button(self, pos):
+        if pos[0] < WIDTH and pos[1] < HIGH:
+            pos = self.real_pos(pos)
+        return await self.eye.is_gray(pos)
 
     async def monitor(self, names, timeout=10, threshold=0.8, filter_func=_get_first):
         """return (name, pos), all rease timeout_error"""
@@ -75,7 +88,7 @@ class Player(object):
         pos = filter_func(pos_list)
         msg = f"found {name} at {pos}"
         # logger.debug(msg)
-        self._cache_operation_pic(msg, pos)
+        self._cache_operation_pic(msg, pos, new=False)
 
         return name, pos
 
@@ -85,13 +98,16 @@ class Player(object):
             names = [names]
 
         pos_list = await self.eye.find_all_pos(names, area=self.bbox, threshold=threshold)
-        msg = f"found {names} at {pos_list}"
-        # logger.debug(msg)
-        self._cache_operation_pic(msg, pos_list)
+        # 如果没找到，就不要记录了
+        if pos_list:
+            msg = f"found {names} at {pos_list}"
+            # logger.debug(msg)
+            self._cache_operation_pic(msg, pos_list, new=False)
         return pos_list
 
 
     async def click(self, pos, delay=1, cheat=True):
+        await asyncio.sleep(delay / 2)
         pos_copy = pos[:]
         if isinstance(pos, str):
             pos = POS_DICT[pos]
@@ -104,8 +120,9 @@ class Player(object):
         logger.debug(msg)
         async with self.g_player_lock:
             await self.hand.click(pos, cheat=cheat)
+        
+        await asyncio.sleep(delay / 2)
         self._cache_operation_pic(msg, pos_copy)
-        await asyncio.sleep(delay)
 
     async def double_click(self, pos, delay=1, cheat=True):
         pos_copy = pos[:]
@@ -120,20 +137,23 @@ class Player(object):
         logger.debug(msg)
         async with self.g_player_lock:
             await self.hand.double_click(pos, cheat=cheat)
-        self._cache_operation_pic(msg, pos_copy)
+        
         await asyncio.sleep(delay)
+        self._cache_operation_pic(msg, pos_copy)
 
     async def drag(self, p1, p2, speed=0.05, stop=False):
         """drag from position 1 to position 2"""
         msg = f"{self.window_name}: drag from {p1} to {p2}"
-        self._cache_operation_pic(msg, [p1, p2])
         logger.debug(msg)
 
         p1, p2 = map(self.real_pos, [p1, p2])
         async with self.g_player_lock:
             await self.hand.drag(p1, p2, speed, stop)
 
+        self._cache_operation_pic(msg, [p1, p2])
+
     async def scroll(self, vertical_num, pos=None, delay=0.2):
+        """滚动 家园的楼层地图的时候，容易误操作"""
         if vertical_num < 0:
             msg = f"{self.window_name}: scroll down {vertical_num}"
         else:
@@ -165,8 +185,9 @@ class Player(object):
 
         msg = f"{self.window_name}: tap_key {key}"
         logger.debug(msg)
-        self._cache_operation_pic(msg)
+        
         await asyncio.sleep(delay)
+        self._cache_operation_pic(msg)
 
     def in_window(self, pos):
         min_x, min_y = WINDOW_DICT[self.window_name]
@@ -184,14 +205,30 @@ class Player(object):
                 await self.hand.click(pos, cheat=False)
                 await asyncio.sleep(0.2)
             await self.hand.tap_key('esc')
-            self._cache_operation_pic(msg)
+            
         await asyncio.sleep(1)    # 切换界面需要点时间
+        self._cache_operation_pic(msg)
+
+
+    async def go_back_to(self, pic):
+        msg = f"{self.window_name}: go back to {pic}"
+        logger.debug(msg)
+        # 弹出框的标志要放前面，比如colose和go_back都有，要先close
+        pics =  OK_BUTTONS + CLOSE_BUTTONS + [pic] + ['go_back']
+        for _ in range(10):
+            name, pos = await self.monitor(pics)
+            if name == pic:
+                return True
+            await self.click(pos)
+            self._cache_operation_pic(msg)
+        
+        return False
 
     async def information_input(self, pos, info):
         """click the input box, then input info"""
         msg = f"{self.window_name}: input '{info}' at {pos}"
         logger.debug(msg)
-        self._cache_operation_pic(msg)
+        
         async with self.g_player_lock:
             if pos[0] < WIDTH and pos[1] < HIGH:
                 pos = self.real_pos(pos)
@@ -201,6 +238,8 @@ class Player(object):
             await self.hand.tap_key('backspace')
             await asyncio.sleep(0.2)
             await self.hand.type_string(info)
+
+        self._cache_operation_pic(msg)
 
     async def multi_click(self, pos_list, delay=1, cheat=True):
         new_pos_list = []
@@ -217,11 +256,11 @@ class Player(object):
         async with self.g_player_lock:
             for pos in new_pos_list:
                 await self.hand.click(pos, cheat=cheat)
-                await asyncio.sleep(0.1)
+                await asyncio.sleep(0.2)
             await asyncio.sleep(0.1)
 
-        self._cache_operation_pic(msg, pos_list)
         await asyncio.sleep(delay)
+        self._cache_operation_pic(msg, pos_list)
 
     async def find_then_click(self, name_list, pos=None, threshold=0.7, timeout=10, delay=1, raise_exception=True, cheat=True):
         """find a image, then click it ant return its name
@@ -251,5 +290,6 @@ class Player(object):
         logger.debug(msg)
         async with self.g_player_lock:
             await self.hand.type_string(a_string, delay)
-        self._cache_operation_pic(msg)
+        
         await asyncio.sleep(delay)
+        self._cache_operation_pic(msg)

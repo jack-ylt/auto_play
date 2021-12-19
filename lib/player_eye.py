@@ -18,6 +18,7 @@ import asyncio
 from lib.helper import get_window_region
 from lib.ui_data import SCREEN_DICT
 from copy import deepcopy
+import pyautogui
 
 
 import logging
@@ -48,11 +49,14 @@ class Eye(object):
     # def get_lates_screen(self):
     #     return self.screen_img
 
-    def get_lates_screen(self, area=None):
-        img = ImageGrab.grab(bbox=area)
-        img_np = np.array(img)
-        return img_np
-
+    def get_lates_screen(self, area=None, new=True):
+        if new:
+            img = ImageGrab.grab(bbox=area)
+            img_np = np.array(img)
+            return img_np
+        else:
+            return self.screen_img
+        
     def save_picture_log(self, msg="", ext=".jpg"):
         img = self.get_lates_screen()
         now = time.strftime("%Y-%m-%d-%H-%M-%S", time.localtime())
@@ -70,6 +74,10 @@ class Eye(object):
         rgb_img = cv2.cvtColor(img_np, cv2.COLOR_BGR2RGB)
         # rgb_img.save(path)
         cv2.imwrite(path, rgb_img)
+
+    async def is_gray(self, pos):
+        r, g, b = pyautogui.pixel(*pos)
+        return r == g == b
 
     async def find_all_pos(self, names, area=None, threshold=0.8):
         """return list of pos"""
@@ -117,9 +125,11 @@ class Eye(object):
 
         try:
             name, pos_list = await asyncio.wait_for(_monitor(), timeout=timeout)
+            logger.debug(f"find {name} at {pos_list}")
             return name, pos_list
         except asyncio.TimeoutError:
             msg = (f"monitor {names} timeout. ({timeout} s)")
+            logger.debug(msg)
             raise FindTimeout(msg)
 
     def _screenshot(self, area=None, name=None):
@@ -140,6 +150,7 @@ class Eye(object):
 
         img_gray = cv2.cvtColor(img_np, cv2.COLOR_BGR2GRAY)
         return img_gray
+        # return rgb_img
 
     def _get_img(self, name):
         """return img obj according to its name"""
@@ -217,11 +228,11 @@ class Eye(object):
         return new_pos_list
 
 
-async def test(names, bbox=None):
+async def test(names, bbox=None, threshold=0.8):
     eye = Eye()
     t1 = time.time()
 
-    res = await eye.find_all_pos(names, area=bbox)
+    res = await eye.find_all_pos(names, area=bbox, threshold=threshold)
     print(res)
 
     t2 = time.time()

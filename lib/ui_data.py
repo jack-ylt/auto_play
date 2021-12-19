@@ -53,6 +53,15 @@ OK_BUTTONS = [
     'ok_btn1'
 ]
 
+CLOSE_BUTTONS = [
+    'close',
+    'close_btn',
+    'close_btn1',
+    'close_btn2',
+    'close_btn3',
+    'close_btn4',
+]
+
 GOOD_TASKS = [
     'task_3star',
     'task_4star',
