@@ -1191,7 +1191,7 @@ class AutoPlay(object):
         #             return False
         
         await self.player.monitor('current_level', threshold=0.95)
-        await self.sleep(2)
+        await asyncio.sleep(1)
         _, (x, y) = await self.player.monitor('current_level', threshold=0.95)
         await self.player.click((x, y + 40), cheat=False) 
         return True
