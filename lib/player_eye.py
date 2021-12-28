@@ -42,9 +42,13 @@ class FindTimeout(Exception):
 
 
 class Eye(object):
-    def __init__(self):
+    def __init__(self, my_logger=None):
         self.img_dict = {}    # {name: img_obj, ...}
         self.screen_img = None
+        if my_logger:
+            self.logger = my_logger
+        else:
+            self.logger = logger
 
     # def get_lates_screen(self):
     #     return self.screen_img
@@ -77,11 +81,12 @@ class Eye(object):
 
     async def is_gray(self, pos):
         r, g, b = pyautogui.pixel(*pos)
-        return r == g == b
+        # rgb相同，且不是纯白或纯黑，认为是灰色
+        return r == g == b and 10 < r < 245
 
     async def find_all_pos(self, names, area=None, threshold=0.8):
         """return list of pos"""
-        logger.debug(
+        self.logger.debug(
             f'Start to find all positions of: {names}')
 
         if not isinstance(names, list):
@@ -95,14 +100,14 @@ class Eye(object):
             pos_list, max_val = self._find_img_pos(
                 img_bg, img_target, threshold=threshold)
             if pos_list:
-                logger.debug(
+                self.logger.debug(
                     f"Found {name} at {pos_list}, max_val: {max_val}")
                 all_pos.extend(pos_list)
 
         all_pos = sorted(self._de_duplication(all_pos))
 
         if not all_pos:
-            logger.debug(f'No find any pos of {names}')
+            self.logger.debug(f'No find any pos of {names}')
 
         return all_pos
 
@@ -116,20 +121,20 @@ class Eye(object):
                     pos_list, max_val = self._find_img_pos(
                         img_bg, img_target, threshold=threshold)
                     if pos_list:
-                        logger.debug(
+                        self.logger.debug(
                             f"Found {name} at {pos_list}, max_val: {max_val}")
                         return name, pos_list
                 await asyncio.sleep(1)
 
-        logger.debug(f'start monitor: {names}')
+        self.logger.debug(f'start monitor: {names}')
 
         try:
             name, pos_list = await asyncio.wait_for(_monitor(), timeout=timeout)
-            logger.debug(f"find {name} at {pos_list}")
+            self.logger.debug(f"find {name} at {pos_list}")
             return name, pos_list
         except asyncio.TimeoutError:
             msg = (f"monitor {names} timeout. ({timeout} s)")
-            logger.debug(msg)
+            self.logger.debug(msg)
             raise FindTimeout(msg)
 
     def _screenshot(self, area=None, name=None):

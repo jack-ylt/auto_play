@@ -59,33 +59,34 @@ class PlayException(Exception):
 class AutoPlay(object):
     def __init__(self, player):
         self.player = player
+        self.logger = self.player.logger
 
     #
     # public functions
     #
     async def _move_to_left_top(self):
-        logger.debug(f'{self.player.window_name}: _move_to_left_top')
+        self.logger.debug('_move_to_left_top')
         p1 = (200, 300)
         p2 = (800, 400)
         await self.player.drag(p1, p2)
         await self.player.drag(p1, p2)
 
     async def _move_to_right_top(self):
-        logger.debug(f'{self.player.window_name}: _move_to_right_top')
+        self.logger.debug('_move_to_right_top')
         p1 = (700, 200)
         p2 = (200, 400)
         await self.player.drag(p1, p2)
         await self.player.drag(p1, p2)
 
     async def _move_to_center(self):
-        logger.debug(f'{self.player.window_name}: _move_to_center')
+        self.logger.debug('_move_to_center')
         await self._move_to_left_top()
         p1 = (500, 300)
         p2 = (200, 300)
         await self.player.drag(p1, p2)
 
     async def _move_to_left_down(self):
-        logger.debug(f'{self.player.window_name}: _move_to_left_down')
+        self.logger.debug('_move_to_left_down')
         p1 = (200, 400)
         p2 = (700, 200)
         await self.player.drag(p1, p2)
@@ -117,9 +118,9 @@ class AutoPlay(object):
     async def goto_main_interface(self):
         success = await self.player.go_back_to('setting')
         if not success:
-            msg = f"{self.player.window_name}: [goto main interface failed]"
+            msg = "[goto main interface failed]"
             self.save_operation_pics(msg)
-            logger.error(msg, exc_info=True)
+            self.logger.error(msg, exc_info=True)
             raise Exception(msg)
 
     async def _equip_team(self):
@@ -161,7 +162,7 @@ class AutoPlay(object):
         try:
             name, pos = await self.player.monitor(['search', 'level_map'])
         except FindTimeout:
-            logger.debug("reach the max level, so return")
+            self.logger.debug("reach the max level, so return")
             return False
             # 打到当前等级的关卡上限了
         if name == 'search':
@@ -188,7 +189,7 @@ class AutoPlay(object):
         await self.player.click(pos, cheat=False)
         name, pos = await self.player.monitor(['search', 'level_low'])
         if name == 'level_low':
-            logger.debug("reach the max level, so return")
+            self.logger.debug("reach the max level, so return")
             return False
         else:
             await self.player.click(pos)
@@ -248,7 +249,7 @@ class AutoPlay(object):
             res = await self._fight()
 
             if res == 'lose':
-                logger.debug(f'{self.player.window_name}: Fight fail, so exit')
+                self.logger.debug('Fight fail, so exit')
                 # 打不过，就需要升级英雄，更新装备了
                 return
 
@@ -272,7 +273,7 @@ class AutoPlay(object):
         await asyncio.sleep(1)
         await self._move_to_right_top()
         await self.player.find_then_click(['warriors_tower'])
-        await self.player.monitor('go_back')
+        await self.player.monitor(['go_back', 'go_back1', 'go_back2'])
 
         pos_list = [
             (200, 360),
@@ -299,7 +300,7 @@ class AutoPlay(object):
         try:
             _, pos = await self.player.monitor(['mail'], threshold=0.97, timeout=1)
         except FindTimeout:
-            logger.debug(f"{self.player.window_name}: There is no new mail.")
+            self.logger.debug("There is no new mail.")
             return
         await self.player.click(pos)
         await self.player.find_then_click(['one_click_collection'])
@@ -358,8 +359,8 @@ class AutoPlay(object):
             _, pos = await self.player.monitor(['friends'], threshold=0.95, timeout=1)
             await self.player.click(pos)
         except FindTimeout:
-            logger.debug(
-                f"{self.player.window_name}: There is no new interaction of friends.")
+            self.logger.debug(
+                "There is no new interaction of friends.")
             return
 
         await self.player.find_then_click(['receive_and_send'])
@@ -368,8 +369,8 @@ class AutoPlay(object):
             _, pos = await self.player.monitor(['friends_help'], threshold=0.9, timeout=1)
             await self.player.click(pos)
         except FindTimeout:
-            logger.debug(
-                f"{self.player.window_name}: There is no friend need help.")
+            self.logger.debug(
+                "There is no friend need help.")
             return
 
         while True:
@@ -378,8 +379,8 @@ class AutoPlay(object):
                 pos = (x, y + 15)
                 await self.player.click(pos)
             except FindTimeout:
-                logger.debug(
-                    f"{self.player.window_name}: There is no more boss.")
+                self.logger.debug(
+                    "There is no more boss.")
                 return
 
             name, pos = await self.player.monitor(['fight2', 'ok', 'ok9'])
@@ -392,7 +393,7 @@ class AutoPlay(object):
 
             res = await self._fight_friend()
             if res != 'win':
-                logger.debug(f"{self.player.window_name}:  Can't win the boos")
+                self.logger.debug(" Can't win the boos")
                 return
 
     #
@@ -404,8 +405,8 @@ class AutoPlay(object):
         try:
             _, pos = await self.player.monitor(['guess_ring'], threshold=0.97, timeout=2)
         except FindTimeout:
-            logger.debug(
-                f"{self.player.window_name}: Fress guess had been used up.")
+            self.logger.debug(
+                "Fress guess had been used up.")
             return
 
         pos_lsts = [(50, 240), (50, 330), (50, 400)]
@@ -419,13 +420,13 @@ class AutoPlay(object):
         try:
             await self.player.find_then_click(['guess_ring'], threshold=0.97, timeout=1)
         except FindTimeout:
-            logger.info(
-                f"{self.player.window_name}: need buy the assistant first.")
+            self.logger.info(
+                "need buy the assistant first.")
             return
 
         while True:
             try:
-                name = await self.player.find_then_click(['close', 'cup'])
+                name = await self.player.find_then_click(['close', 'cup'], threshold=0.9)
                 if name == "close":
                     break
                 name = await self.player.find_then_click(['close', 'next_game'])
@@ -457,6 +458,8 @@ class AutoPlay(object):
             try:
                 name = await self.player.find_then_click(['start_turntable', 'close_btn1'], timeout=1)
                 if name == 'close_btn1':
+                    # 点击中间，让go_back露出来
+                    await  self.player.click((40, 200))
                     return
                 else:
                     await asyncio.sleep(5)
@@ -485,15 +488,23 @@ class AutoPlay(object):
             _, pos = await self.player.monitor(['Instance_challenge'], threshold=0.97, timeout=1)
             await self.player.click(pos)
         except FindTimeout:
-            logger.debug(f"{self.player.window_name}: No new challenge.")
+            self.logger.debug("No new challenge.")
             return
 
-        challenge_list = await self.player.find_all_pos(['challenge2'], threshold=0.93)
+        # challenge_list = await self.player.find_all_pos(['challenge2'], threshold=0.93)
+        challenge_list = await self.player.find_all_pos('red_point')
         pos_ok = (430, 430)
         pos_next = (530, 430)
         for pos in challenge_list:
+            pos = (pos[0] - 50, pos[1] + 20)
             await self.player.click(pos)
-            pos_list = await self.player.find_all_pos(['challenge3', 'mop_up'])
+            pos_list = await self.player.find_all_pos(['challenge3', 'mop_up', 'mop_up1'])
+            if not pos_list:
+                msg = "no found any of ['challenge3', 'mop_up', 'mop_up1']"
+                self.logger.warning(msg)
+                self.save_operation_pics(msg)
+                await self.player.go_back_to('challenge_dungeon')
+                continue
             pos = filter_bottom(pos_list)
             await self.player.click(pos)
             name, pos = await self.player.monitor(['start_fight', 'next_game1'])
@@ -503,7 +514,7 @@ class AutoPlay(object):
                 await asyncio.sleep(3)
                 res = await self._fight_challenge()
                 if res != 'win':
-                    logger.debug(f"{self.player.window_name}: Fight lose")
+                    self.logger.debug("Fight lose")
                 else:
                     await self.player.click(pos_next, delay=3)
                     await self._fight_challenge()
@@ -533,26 +544,25 @@ class AutoPlay(object):
             _, pos = await self.player.monitor(['guild'], threshold=0.97, timeout=1)
             await self.player.click(pos)
         except FindTimeout:
-            logger.debug(f"{self.player.window_name}: No new guild event.")
+            self.logger.debug("No new guild event.")
             return
 
-        try:
-            _, pos = await self.player.monitor(['sign_in'], threshold=0.95, timeout=1)
-            await self.player.click(pos)
-        except:
-            pass
-        pos_guild_territory = (700, 460)
+        _, pos_guild_territory = await self.player.monitor('guild_territory')
+        await self.player.find_then_click('sign_in', threshold=0.95, timeout=1, raise_exception=False)
         await self.player.click(pos_guild_territory)
 
         # guild_instance
         _, pos = await self.player.monitor(['guild_instance'])
         await self.player.click(pos)
-        await asyncio.sleep(1)
         try:
-            _, pos = await self.player.monitor(['boss_card', 'boss_card1'], threshold=0.92, timeout=2)
+            name, pos = await self.player.monitor(['boss_card', 'boss_card1'], threshold=0.92, timeout=3)
             # 匹配的是卡片边缘，而需要点击的是中间位置
-            pos = (pos[0], pos[1]+50)
+            if name == 'boss_card':
+                pos = (pos[0], pos[1]+50)
+            else:
+                pos = (pos[0], pos[1]-50)
             await self.player.click(pos)
+
             _, (x, y) = await self.player.monitor(['fight4', 'fight5'], threshold=0.84, timeout=1)
             pos = (x-50, y-50)
             await self.player.click(pos)
@@ -723,7 +733,7 @@ class AutoPlay(object):
             'right': (right, left),
         }
 
-        logger.debug(f'{self.player.window_name}: swipe_to {direction}')
+        self.logger.debug('swipe_to {direction}')
         p1, p2 = swip_map[direction]
         await self.player.drag(p1, p2, speed=0.02, stop=stop)
 
@@ -741,7 +751,12 @@ class AutoPlay(object):
             except FindTimeout:
                 return win_count, can_win
 
-            p = (p[0] + 40, p[1] - 10)
+            # 点boos中心，因为某些位置点了无效
+            p = (p[0] + 40, p[1] - 40)
+            if not self._can_click(p):
+                # 点不了，就返回，等移动了，可能就能点了
+                return win_count, can_win
+
             await self.player.click(p, cheat=False)
             win = await self._fight_home(max_try=max_try)
             if win:
@@ -749,9 +764,22 @@ class AutoPlay(object):
                 if win_count >= max_fight:
                     return win_count, can_win
             else:
-                logger.warning("Fight lose.")
+                self.logger.warning("Fight lose.")
                 can_win = False
                 return win_count, can_win
+
+    def _can_click(self, boss_pos):
+        """确保在可点击区域"""
+        x, y = boss_pos
+        if x < 30 or x > 830:
+            return False
+        if y < 90 or y > 490:
+            return False
+        if x < 100 and y > 410:
+            return False
+        if x > 690 and y > 400:
+            return False
+        return True
 
     async def _fight_home(self, max_try=2):
         pos_ok_win = (430, 430)
@@ -772,7 +800,7 @@ class AutoPlay(object):
             fight_res, pos = await self.player.monitor(['win', 'lose'], threshold=0.9, timeout=240)
             if fight_res == 'win':
                 await self.player.click(pos_ok_win)
-                await self.player.monitor('go_back')
+                # await self.player.monitor(['go_back', 'go_back1', 'go_back2'])
                 return True
             else:
                 if count < max_try:
@@ -780,7 +808,7 @@ class AutoPlay(object):
                     count += 1
                 else:
                     await self.player.click(pos_ok_lose)
-                    await self.player.monitor('go_back')
+                    # await self.player.monitor(['go_back', 'go_back1', 'go_back2'])
                     return False
 
     async def survival_home(self):
@@ -846,7 +874,8 @@ class AutoPlay(object):
     async def invite_heroes(self):
         await self._move_to_left_down()
         _, pos = await self.player.monitor(['invite_hero'])
-        await self.player.click(pos, delay=2)
+        await self.player.click(pos)
+        await self.player.monitor('beer')
         pos_list = await self.player.find_all_pos(['invite_free', 'invite_soda', 'invite_beer'])
 
         for p in pos_list:
@@ -903,8 +932,8 @@ class AutoPlay(object):
                 if count >= 3:
                     return
         else:
-            logger.info(
-                f"{self.player.window_name}: There are not enough equipment for synthesis.")
+            self.logger.info(
+                "There are not enough equipment for synthesis.")
 
     #
     # market
@@ -959,7 +988,7 @@ class AutoPlay(object):
         try:
             await self.player.find_then_click('go_page_2', timeout=2)
         except FindTimeout:
-            logger.debug("can't buy premium goods, for low level")
+            self.logger.debug("can't buy premium goods, for low level")
             return
         list1 = await self.player.find_all_pos('gold1')
         list2 = await self.player.find_all_pos('arena_tickets')
@@ -1011,7 +1040,7 @@ class AutoPlay(object):
         return fight_res
 
     async def _swip_up(self):
-        logger.debug(f'{self.player.window_name}: swipe_up')
+        self.logger.debug('swipe_up')
         p1 = (300, 400)
         p2 = (300, 150)
         await self.player.drag(p1, p2, speed=0.02)
@@ -1035,7 +1064,7 @@ class AutoPlay(object):
             await self.player.click(pos)
             res = await self._fight_arena()
             if res != 'win':
-                logger.debug(f'{self.player.window_name}: Fight lose.')
+                self.logger.debug('Fight lose.')
                 break
 
         try:
@@ -1112,7 +1141,7 @@ class AutoPlay(object):
                     break
             await self.player.click(pos_ok)
 
-        logger.info(f"win: {win}, lose: {lose}, score: {score}")
+        self.logger.info(f"win: {win}, lose: {lose}, score: {score}")
 
     #
     # brave_instance
@@ -1147,25 +1176,28 @@ class AutoPlay(object):
 
 
     async def _goto_curr_level(self):
-        try:
-            _, (x, y) = await self.player.monitor(['current_level'], threshold=0.96, timeout=2)
-        except FindTimeout:
-            await self._move_to_left_down()
-            try:
-                _, (x, y) = await self.player.monitor(['current_level'], threshold=0.96, timeout=2)
-            except FindTimeout:
-                await self._move_to_right_top()
-                try:
-                     _, (x, y) = await self.player.monitor(['current_level'], threshold=0.96, timeout=2)
-                except FindTimeout:
-                    logger.info("Can't found current level, the brave instance maybe finished.")
-                    return False
+        # try:
+        #     _, (x, y) = await self.player.monitor(['current_level'], threshold=0.96, timeout=2)
+        # except FindTimeout:
+        #     await self._move_to_left_down()
+        #     try:
+        #         _, (x, y) = await self.player.monitor(['current_level'], threshold=0.96, timeout=2)
+        #     except FindTimeout:
+        #         await self._move_to_right_top()
+        #         try:
+        #              _, (x, y) = await self.player.monitor(['current_level'], threshold=0.96, timeout=2)
+        #         except FindTimeout:
+        #             self.logger.info("Can't found current level, the brave instance maybe finished.")
+        #             return False
         
+        await self.player.monitor('current_level', threshold=0.95)
+        await self.sleep(2)
+        _, (x, y) = await self.player.monitor('current_level', threshold=0.95)
         await self.player.click((x, y + 40), cheat=False) 
         return True
 
     async def _fight_brave(self):
-        while True:
+        for _ in range(5):
             name, pos = await self.player.monitor(['card', 'lose', 'go_last', 'fast_forward1'])
             if name == "card":
                 await self.player.click(pos)
@@ -1179,13 +1211,14 @@ class AutoPlay(object):
 
     async def lucky_draw(self):
         await self.player.find_then_click(['lucky_draw'])
+        await self.player.monitor('draw_once')
         await self.player.find_then_click(['draw_once'])
         await asyncio.sleep(8)
         await self.player.find_then_click(['draw_again'])
 
     async def task_board(self):
         # 如果有任务完成不了，就不要继续刷新任务了
-        logger.info("Run task board")
+        self.logger.info("Run task board")
 
         await self.player.find_then_click('task_board')
         try:
@@ -1194,7 +1227,7 @@ class AutoPlay(object):
             # 看下是否有可领取的任务
             await self.player.monitor('receivable_task', timeout=1)
         except:
-            logger.info("Skip, there is no receivable task")
+            self.logger.info("Skip, there is no receivable task")
             return
 
         await self._accept_task()
@@ -1208,11 +1241,11 @@ class AutoPlay(object):
             try:
                 await self.player.monitor('receivable_task', timeout=1)
             except FindTimeout:
-                logger.info("All task had been accepted.")
+                self.logger.info("All task had been accepted.")
                 return
             await self._accept_task()
 
-        logger.info(f"Reach max refresh times ({max_num})")
+        self.logger.info(f"Reach max refresh times ({max_num})")
 
     async def _accept_task(self):
         one_key_to_battle = (350, 455)
@@ -1271,7 +1304,7 @@ class AutoPlay(object):
             await self.player.find_then_click(OK_BUTTONS, timeout=2)
             await asyncio.sleep(2)
             await self.player.find_then_click(OK_BUTTONS, timeout=2)
-            logger.info("All tasks had been finished.")
+            self.logger.info("All tasks had been finished.")
             return
         except FindTimeout:
             while True:
@@ -1292,7 +1325,7 @@ class AutoPlay(object):
                     except FindTimeout:
                         pass
                 except FindTimeout:
-                    logger.info("All tasks had been finished.")
+                    self.logger.info("All tasks had been finished.")
                     return
 
     async def vip_shop(self):
@@ -1309,7 +1342,7 @@ class AutoPlay(object):
         try:
             await self.player.find_then_click(['maze4'], timeout=1, cheat=False)
         except FindTimeout:
-            logger.debug("There is no maze")
+            self.logger.debug("There is no maze")
             return
 
         await self.player.monitor(['maze_text'])
@@ -1317,7 +1350,7 @@ class AutoPlay(object):
         try:
             await self.player.find_then_click(['maze_daily_gift'], threshold=0.9, timeout=1)
         except FindTimeout:
-            logger.debug("maze daily gift have been already recived.")
+            self.logger.debug("maze daily gift have been already recived.")
             return
         else:
             pos_recive = (700, 270)
@@ -1330,10 +1363,10 @@ class AutoPlay(object):
             await self.player.find_then_click(['production_workshop'])
             await self.player.find_then_click(['one_click_collection1'])
         except FindTimeout:
-            logger.debug("hero_expedition need at least one 14 star hero.")
+            self.logger.debug("hero_expedition need at least one 14 star hero.")
             while True:
-                name, pos = await self.player.monitor(['go_back', 'setting'])
-                if name == 'go_back':
+                name, pos = await self.player.monitor(['go_back', 'go_back1', 'go_back2', 'setting'])
+                if name == 'go_back' or name == 'go_back1' or name == 'go_back2':
                     await self.player.click(pos)
                 else:
                     break
@@ -1358,7 +1391,7 @@ class AutoPlay(object):
             await self.player.monitor(['server_ui'])
             pos = await self.player.find_text_pos(account_curr.server)
             if pos == (-1, -1):
-                logger.warning(
+                self.logger.warning(
                     f"login server faild: can't find the {account_curr.server}")
                 return False
 
@@ -1418,26 +1451,31 @@ class AutoPlay(object):
             await self.player.double_click(pos)
             await asyncio.sleep(50)
 
-            try:
-                _, pos = await self.player.monitor(['close_btn', 'start_game'], timeout=60)
-                await self.player.click(pos)
-            except FindTimeout:
-                logger.warning(f"{self.player.window_name}: start game failed")
-                return False
+            await self.player.monitor(['close_btn', 'close_btn5', 'start_game'], timeout=90)
+
+            for _ in range(5):
+                try:
+                    name = await self.player.find_then_click(['close_btn', 'close_btn5', 'start_game'])
+                    await asyncio.sleep(2)
+                    if name == 'start_game':
+                        await self.player.find_then_click(['close_btn', 'close_btn5', 'start_game'])
+                        break
+                except FindTimeout:
+                    self.logger.warning("start game failed")
+                    return False
 
             # TODO: 账号异地登陆
 
-            pos_start_game = (430, 490)
-            await self.player.click(pos_start_game)
-            await asyncio.sleep(3)
+            # pos_start_game = (430, 490)
+            # await self.player.click(pos_start_game)
+            # await asyncio.sleep(3)
             name, pos = await self.player.monitor(['setting', 'game_91'])
             if name == 'game_91':
                 pos_login = (430, 350)
                 await self.player.click(pos_login, delay=3)
                 name, pos = await self.player.monitor(['setting', 'game_91'])
                 if name == 'game_91':
-                    logger.debug(
-                        f"{self.player.window_name} _login_game failed.")
+                    self.logger.debug("_login_game failed.")
                     return False
                 else:
                     await self._close_ad(timeout=5)
@@ -1504,20 +1542,25 @@ class AutoPlay(object):
         count = 0
         for task in tasks:
             if not need_run(task):
-                logger.debug(f"{self.player.window_name}: skip to run {task}")
+                self.logger.debug("skip to run {task}")
                 continue
 
-            logger.info(f"{self.player.window_name}: Start to run: " + task)
+            self.logger.info("Start to run: " + task)
             try:
                 await self.goto_main_interface()
                 await getattr(self, task)()
             except FindTimeout as e:
                 count += 1
-                logger.warning(str(e))
+                self.logger.warning(str(e))
                 self.save_operation_pics(str(e))
-                if count > 5:
-                    logger.error('Timeout too many times, so exit')
-                    break
+            except Exception as e:
+                count += 1
+                self.logger.error(str(e))
+                self.save_operation_pics(str(e))
+
+            if count > 5:
+                self.logger.error('Timeout too many times, so exit')
+                break
 
         # 回到主界面，避免切账号报错
         await self.goto_main_interface()
@@ -1576,7 +1619,7 @@ async def play(window_name, account_list, g_queue, g_event, g_found, g_player_lo
     try:
         await player.monitor(['emulator_started'], timeout=60)
     except FindTimeout:
-        logger.warning(f"{window_name}: Start the emulator failed.")
+        logger.warning("Start the emulator failed.")
         return
 
     await asyncio.sleep(5)

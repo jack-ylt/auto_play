@@ -2,6 +2,8 @@
 from numpy import histogram
 from lib.ui_data import HIGH, WIDTH, WINDOW_DICT
 import math
+import logging
+from logging import handlers
 # from ui_data import HIGH, WIDTH, WINDOW_DICT
 
 def get_window_region(window_name):
@@ -35,3 +37,26 @@ def de_duplication(pos_list, offset=10):
         else:
             new_list.append((x, y))
     return new_list
+
+
+def make_logger(name):
+    filename = 'logs/' + name + '.log'
+    
+    logger = logging.getLogger(name)
+    logger.setLevel(logging.DEBUG)
+
+    fh = handlers.RotatingFileHandler(filename, mode='a', maxBytes=5*1024*1024, backupCount=3)
+    fh.setLevel(logging.DEBUG)
+
+    ch = logging.StreamHandler()
+    ch.setLevel(logging.DEBUG)
+
+    formatter = logging.Formatter(
+        '%(asctime)s   %(levelname)s   %(message)s')
+    fh.setFormatter(formatter)
+    ch.setFormatter(formatter)
+
+    logger.addHandler(fh)
+    logger.addHandler(ch)
+
+    return logger

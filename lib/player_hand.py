@@ -39,7 +39,7 @@ class Hand(object):
         random_err = (-n + 2*n*random.random()) * self.err
         await asyncio.sleep(n + random_err)
 
-    async def click(self, pos, cheat=True, delay=0.1):
+    async def click(self, pos, cheat=True, delay=0.05):
         """simulate a player to do a left-click"""
         if cheat:
             x = pos[0] + random.randint(-10, 10)
@@ -51,6 +51,8 @@ class Hand(object):
         # self.m.press(x, y)
         # await self.delay(0.2)
         # self.m.release(x, y)
+        self.m.move(x, y)    # click偶尔失灵，试试这个
+        await asyncio.sleep(delay)
         self.m.click(x, y)
         await asyncio.sleep(delay)
 

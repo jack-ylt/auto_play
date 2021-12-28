@@ -116,8 +116,8 @@ async def main():
 
 if __name__ == '__main__':
     # sleep(1)
-    names = ['boss_card1', 'ok', 'go_last', 'fast_forward1']
-    asyncio.run(test_eye(names, threshold=0.92))
+    names = ['start_game', 'go_back1', 'go_back2', 'go_last', 'fast_forward1']
+    asyncio.run(test_eye(names, threshold=0.8))
 
     # asyncio.run(main())
 

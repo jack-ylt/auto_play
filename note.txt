@@ -647,4 +647,39 @@ TODO
     fix 公会战
     
 
+
+鼠标点击失灵
+    -> 双击失灵，卸载360，解决了
+    -> 单击偶尔也失灵
+        -> 管理员身份运行
+        -> 先move_to再click
+        
+    家园boos，有些特殊的位置就是点不了
+    =》改成精确点boos图标
     
+    
+log 要分开打印
+上层要捕获异常，不能让程序直接崩溃
+    def make_logger(name):
+        handler = logging.FileHandler(filename=name + ".log")
+        logger = logging.getLogger(name)
+        logger.addHandler(handler)
+        logger.setLevel(logging.INFO)
+        return logger
+    logger = make_logger("a")
+
+    auto_play, player_eye, hand 都用player的logger （使用属性，传参的方式公用）
+    player的logger根据角色名或者窗口名创建
+    其它用main的logger
+
+threshold=0.8, timeout=10, delay=1
+因为有个函数threshold设置为了0.7，导致了各种bug，很难排查
+=> 这些值统一配置，不要弄得到处都是
+
+There are more than one hundred pictures in total
+Does anyone know: how to upload pictures in bulk?
+
+
+
+
+
