@@ -14,6 +14,7 @@ import time
 from datetime import date
 import os
 import asyncio
+import math
 # from lib.helper import get_window_region
 from lib.helper import get_window_region
 from lib.ui_data import SCREEN_DICT
@@ -111,7 +112,38 @@ class Eye(object):
 
         return all_pos
 
-    async def monitor(self, names, area=None, timeout=10, threshold=0.8):
+    async def _verify(self, name, pos, threshold):
+        """验证图片位置是否还在原地"""
+        def _is_same_pos(p1, p2, offset=2):
+            x, y = p1
+            x1, y1 = p2
+            return math.fabs(x - x1) < offset and math.fabs(y - y1) < offset
+
+        img_target = self._get_img(name)
+        h, w = img_target.shape
+        x, y = pos
+        buffer = 2
+        bbox = [
+            x - w / 2 - buffer,
+            y - h / 2 - buffer,
+            x + w / 2 + buffer,
+            y + h / 2 + buffer
+        ]
+
+        await asyncio.sleep(0.1)
+
+        img_bg = self._screenshot(area=bbox)
+
+        pos_list, max_val = self._find_img_pos(
+                        img_bg, img_target, threshold=threshold)
+        if pos_list:
+            return True
+        else:
+            self.logger.warning(f"verify not pass: not found {name} near {pos}")
+            return False
+
+
+    async def monitor(self, names, area=None, timeout=10, threshold=0.8, verify=True):
         """return (name, pos_list), or rease timeout_error"""
         async def _monitor():
             while True:
@@ -123,7 +155,10 @@ class Eye(object):
                     if pos_list:
                         self.logger.debug(
                             f"Found {name} at {pos_list}, max_val: {max_val}")
-                        return name, pos_list
+                        if verify:
+                            res = await self._verify(name, pos_list[0], threshold)
+                            if res:
+                                return name, pos_list
                 await asyncio.sleep(1)
 
         self.logger.debug(f'start monitor: {names}')

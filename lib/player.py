@@ -9,6 +9,7 @@ import time
 import os
 from datetime import datetime
 import random
+import re
 from lib.helper import make_logger
 
 logger = logging.getLogger(__name__)
@@ -50,9 +51,11 @@ class Player(object):
             
 
     def _cache_operation_pic(self, msg, pos=None, new=True, ext=".jpg"):
-        msg = msg.replace(', ', ',').replace(':', '-').replace(' ', '-')
-        now = datetime.now().strftime('%H-%M-%S,%f')[:-3]
-        name = now + '_' + msg + ext
+        msg = re.sub(r'[^a-zA-Z0-9-_]', ' ', msg)
+        msg = re.sub(r'\s+', ' ', msg)
+        now = datetime.now().strftime('%H-%M-%S-%f')[:-3]
+        name = now + ' ' + msg + ext
+        
         img = self.eye.get_lates_screen(area=self.bbox, new=new)
         if pos:
             if isinstance(pos, tuple):
@@ -74,8 +77,8 @@ class Player(object):
 
         # 保存以下最新的屏幕截图
         img = self.eye.get_lates_screen(area=self.bbox, new=True)
-        now = datetime.now().strftime('%H-%M-%S,%f')[:-3]
-        name = now + '_' + 'last_screen.jpg'
+        now = datetime.now().strftime('%H-%M-%S-%f')[:-3]
+        name = now + ' ' + 'last_screen.jpg'
         pic_path = os.path.join(dir, name)
         self.eye.save_picture(img, pic_path)
 
@@ -124,7 +127,7 @@ class Player(object):
 
 
     async def click(self, pos, delay=1, cheat=True):
-        await asyncio.sleep(delay / 2)
+        # await asyncio.sleep(delay / 2)
         pos_copy = pos[:]
         if isinstance(pos, str):
             pos = POS_DICT[pos]

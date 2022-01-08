@@ -34,8 +34,8 @@ import logging
 # log 设置：先设置root logger, 然后再每个模块引入自己的logger（名字是自己的模块名，设置继承root logger
 logger = logging.getLogger()
 logger.setLevel(logging.DEBUG)
-fh = handlers.TimedRotatingFileHandler('logs/all_log.log', when='D')
-fh = handlers.RotatingFileHandler('logs/all_log.log', mode='a', maxBytes=5*1024*1024, backupCount=3)
+fh = handlers.TimedRotatingFileHandler('logs/all_log.log', when='D', interval=1, backupCount=7)
+# fh = handlers.RotatingFileHandler('logs/all_log.log', mode='a', maxBytes=5*1024*1024, backupCount=3)
 fh.setLevel(logging.DEBUG)
 errh = logging.FileHandler('logs/error_log.log')
 errh.setLevel(logging.ERROR)

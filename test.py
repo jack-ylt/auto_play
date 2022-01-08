@@ -44,7 +44,9 @@ async def test_eye(name=None, threshold=0.8):
         name = ui_data.OK_BUTTONS
 
     # 查找一个，大概0.1s，5个0.23s， 10个0.4s
-    await player_eye.test(name, bbox, threshold)
+    # await player_eye.test(name, bbox, threshold)
+    eye = player_eye.Eye()
+    await eye.monitor(name)
 
 
 async def test_survival_home():
@@ -116,7 +118,7 @@ async def main():
 
 if __name__ == '__main__':
     # sleep(1)
-    names = ['start_game', 'go_back1', 'go_back2', 'go_last', 'fast_forward1']
+    names = ['beer', 'go_back1', 'go_back2', 'go_last', 'fast_forward1']
     asyncio.run(test_eye(names, threshold=0.8))
 
     # asyncio.run(main())

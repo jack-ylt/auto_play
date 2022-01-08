@@ -45,7 +45,8 @@ def make_logger(name):
     logger = logging.getLogger(name)
     logger.setLevel(logging.DEBUG)
 
-    fh = handlers.RotatingFileHandler(filename, mode='a', maxBytes=5*1024*1024, backupCount=3)
+    # fh = handlers.RotatingFileHandler(filename, mode='a', maxBytes=5*1024*1024, backupCount=3)
+    fh = handlers.TimedRotatingFileHandler(filename, when='D', interval=1, backupCount=7)
     fh.setLevel(logging.DEBUG)
 
     ch = logging.StreamHandler()

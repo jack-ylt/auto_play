@@ -108,9 +108,10 @@ class AutoPlay(object):
     #         return False
 
     def save_operation_pics(self, msg):
-        now = time.strftime("%Y-%m-%d-%H-%M-%S", time.localtime())
-        dir_name = msg.replace(', ', ',').replace(
-            ':', '-').replace(' ', '-') + '_' + now
+        now = time.strftime("%Y-%m-%d_%H-%M-%S", time.localtime())
+        msg = re.sub(r'[^a-zA-Z0-9-_]', ' ', msg)
+        msg = re.sub(r'\s+', ' ', msg)
+        dir_name = msg + ' ' + now
         dir = os.path.join('./timeout_pics', dir_name)
         os.makedirs(dir)
         self.player.save_operation_pics(dir)
@@ -740,7 +741,7 @@ class AutoPlay(object):
     async def _collect_box(self):
         boxes = await self.player.find_all_pos('box')
         for p in boxes:
-            await self.player.click(p, cheat=False, delay=0.2)
+            await self.player.click(p, cheat=False, delay=0.4)
 
     async def _fight_home_boos(self, win_count, max_fight, max_try=1):
         can_win = True
