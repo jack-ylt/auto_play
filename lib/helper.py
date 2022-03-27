@@ -3,7 +3,9 @@ from numpy import histogram
 from lib.ui_data import HIGH, WIDTH, WINDOW_DICT
 import math
 import logging
+import os
 from logging import handlers
+from datetime import datetime
 # from ui_data import HIGH, WIDTH, WINDOW_DICT
 
 def get_window_region(window_name):
@@ -40,7 +42,12 @@ def de_duplication(pos_list, offset=10):
 
 
 def make_logger(name):
-    filename = 'logs/' + name + '.log'
+    today = datetime.now().strftime(r'%Y-%m-%d')
+    file_dir = 'logs/' + name
+    if not os.path.exists(file_dir):
+        os.mkdir(file_dir)
+    filename = file_dir + '/' + today + '.log'
+    print(filename)
     
     logger = logging.getLogger(name)
     logger.setLevel(logging.DEBUG)
@@ -61,3 +68,7 @@ def make_logger(name):
     logger.addHandler(ch)
 
     return logger
+
+
+class GameNotResponding(Exception):
+    pass

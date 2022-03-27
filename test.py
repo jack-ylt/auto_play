@@ -22,6 +22,8 @@ from lib.player import Player
 from lib import ui_data
 from lib import helper
 
+from lib import tasks
+
 from logging import handlers
 import logging
 
@@ -44,9 +46,9 @@ async def test_eye(name=None, threshold=0.8):
         name = ui_data.OK_BUTTONS
 
     # 查找一个，大概0.1s，5个0.23s， 10个0.4s
-    # await player_eye.test(name, bbox, threshold)
-    eye = player_eye.Eye()
-    await eye.monitor(name)
+    await player_eye.test(name, bbox, threshold)
+    # eye = player_eye.Eye()
+    # await eye.monitor(name)
 
 
 async def test_survival_home():
@@ -101,27 +103,52 @@ async def test_market():
 
 async def test_brave_instance(auto):
     await auto.brave_instance()
-    
 
-async def main():
+async def test_tasks():
+    g_player_lock = asyncio.Lock()
+    player = Player('left_top', g_player_lock=g_player_lock)
+    player.load_role_cfg()
+
+    gkzd = tasks.LevelBattle(player)
+    gkzd.test()
+    await gkzd.run()
+
+async def test_drag(auto):
+    for i in range(3):
+        for j in [
+            '_move_to_left_top',
+            '_move_to_right_top',
+            '_move_to_left_down',
+            '_move_to_center',
+        ]:
+            print(j)
+            await auto.__getattribute__(j)()
+            await asyncio.sleep(2)
+
+async def test_auto_play():
     g_player_lock = asyncio.Lock()
     player = Player('left_top', g_player_lock=g_player_lock)
     auto = auto_play.AutoPlay(player)
     
     # await auto.survival_home()
     # await auto.tower_battle()
-    await auto.guild()
-
+    # await auto.guild()
+    # await auto.restart_game()
+    # await auto.level_battle()
+    # await auto.arena_champion()
     # print(await auto.player.is_disabled_button((315, 408)))
-
     # await test_brave_instance(auto)
+    # await test_drag(auto)
+    await auto.goto_main_interface()
 
 if __name__ == '__main__':
     # sleep(1)
-    names = ['beer', 'go_back1', 'go_back2', 'go_last', 'fast_forward1']
-    asyncio.run(test_eye(names, threshold=0.8))
+    # names = ['next_level_1', 'next_level1', 'next', 'next1', 'go_last']
+    # asyncio.run(test_eye(names, threshold=0.8))
 
-    # asyncio.run(main())
+    asyncio.run(test_auto_play())
+
+    # asyncio.run(test_tasks())
 
 
 

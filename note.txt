@@ -17,6 +17,7 @@ git log
 
 ★ 现在已经实现一键挂机了
 
+
 下一步是把所有情况都考虑上，提高挂机稳定性
 涉及到切界面的要考虑monitor，因为有时候快有时候慢
 
@@ -126,7 +127,7 @@ find_then_click(name_list, pos=None, timeout=5, raise_exception=True)
             nextlevel_to_fight
         except fight_lose:
             return
-        except reach_max_level:
+        except level_low:
             return
             
     
@@ -202,6 +203,8 @@ VIP shop
     i=4
     j=1
     score = 0
+    
+    ckou
     
     while score < 50:
         点战斗
@@ -645,7 +648,7 @@ TODO
         
     
     fix 公会战
-    
+
 
 
 鼠标点击失灵
@@ -681,35 +684,107 @@ Does anyone know: how to upload pictures in bulk?
 
 
 
-★ 刷题技巧
-第1，2遍 
-    （找出自己不会的，学习正确的解题方法）
-    简单：划掉
-    难：会做：在头脑中快速解题 标记√
-    不会做：参考答案并理解记忆 标记☆
-第3遍及以后
-    （把不会的变成会的，把不熟练的变成熟练的）
-    简单：划掉
-    熟练了：划掉
-    难：会做，直接做，标记√，如果有☆，标注解题关键
-    不会做：参考答案，请教他人
+游戏名字，任务名字，用中文拼音更好。
 
-总结归纳
-解题关键：考查知识点，解题技巧，做错原因
-掌握好核心的概念、定理和公式，做到举一反三，灵活结合知识点去解决题目，同时再提高自己的计算能力
+可以进一步细分 bbox，提高识别速度和正确率
+    1/4 的box 在上下左右，中，以及四个角落，9块区域
 
-根据人的能力，有三个区域，区域1是没有挑战，训练了没有进步，只增长了熟练度；
-区域2是有些难度，在这个区域内的训练是最有效的；
-区域3是不可能达成的范围
+很多click，光sleep不行，因为有时候快，有时候慢。所以要检测程序是否响应click完成
 
-不要害怕困难。很多人一开始刷题的时候，基本一道题也做不出来。然后就很容易灰心丧气。
-其实，大部分人刚开始刷题的时候都是这样的。所以不要低估自己的能力。
-最开始的时候，一天能做出1道题，就可以给自己奖励小红花了。
-熟能生巧，刷题需要反复练习。今天你费了老大劲做出的题目，一个星期后，你再来看，常常是懵逼的。
-这并不是因为你笨或者能力不够，而是因为你对题目不熟练。
-所以，对于做过的题目，最好2周后，重新再做一次，直到你下次看到他的时候，思路可以马上涌现出来，这才叫真正掌握了这道题目。
+click card 第二次要等卡片翻过来，再点击
 
 
-我想达到这样的效果：
-找出自己不会的，但又不太难的题，巩固基础知识，学习正确的解题方法
-最终把不会的变成会的，把不熟练的变成熟练的
+某一个任务异常了，加到末尾，到时候再试一次，count++       done
+回不到主界面，重启游戏     done
+
+
+
+
+Tasks 类
+    test()
+    run()
+    
+LevelBattle
+    goto_gkzd
+        move_to_center
+    collect_box
+        find rank
+        receive
+        if upgrade
+            if find setting:
+                goto_gkzd
+            else:
+                pass
+    
+    while True:
+        try:
+            goto_next_level
+                upgrade
+                    if find setting:
+                        goto_gkzd
+                        goto_next_level
+                    else:
+                        wait 5s
+                        goto_next_level
+                fight
+                passed
+                next
+                    new_map
+        except level_low:
+            return
+            
+        win = fight
+        if not win:
+            return
+            
+        
+monitor
+find_all_pos
+find_then_click
+
+
+
+# TODO
+每一个窗口都能独立工作，
+但提供一些接口，可以和主控打配合
+
+
+写个自动刷buff的程序
+
+
+findtimeout     done
+    append to task_list
+    
+    if not in exception list:
+        add to exception_list
+    else:
+        if restart_count < 3:
+            count ++
+            restart game
+        else:
+            raise restart_too_much
+
+    goto主界面
+
+
+重构 goto_main    done
+    for i in range(5)
+        try:
+            find close, setting
+            if close:
+                click
+                if find setting
+                    return 
+            else:
+                return 
+        except:
+            esc
+            sleep(1)
+
+    if restart_count < 3:
+        count ++
+        restart game
+    else:
+        raise restart_too_much
+
+    

@@ -11,7 +11,7 @@ import re
 import numpy as np
 from PIL import ImageGrab, Image
 import time
-from datetime import date
+from datetime import date, datetime
 import os
 import asyncio
 import math
@@ -64,7 +64,7 @@ class Eye(object):
         
     def save_picture_log(self, msg="", ext=".jpg"):
         img = self.get_lates_screen()
-        now = time.strftime("%Y-%m-%d-%H-%M-%S", time.localtime())
+        now = datetime.now().strftime('%Y-%m-%d_%H-%M-%S-%f')[:-3]
         name = msg.replace(' ', '_') + '_' + now + ext
         log_path = os.path.join(main_dir, 'logs', 'debug_pics', name)
         cv2.imwrite(log_path, img)
@@ -81,9 +81,13 @@ class Eye(object):
         cv2.imwrite(path, rgb_img)
 
     async def is_gray(self, pos):
-        r, g, b = pyautogui.pixel(*pos)
+        r, g, b = await self.get_pos_color(pos)
         # rgb相同，且不是纯白或纯黑，认为是灰色
         return r == g == b and 10 < r < 245
+
+    async def get_pos_color(self, pos):
+        r, g, b = pyautogui.pixel(*pos)
+        return (r, g, b)
 
     async def find_all_pos(self, names, area=None, threshold=0.8):
         """return list of pos"""
@@ -112,34 +116,41 @@ class Eye(object):
 
         return all_pos
 
-    async def _verify(self, name, pos, threshold):
+    async def _verify_monitor(self, name, pos, threshold, base_area):
         """验证图片位置是否还在原地"""
         def _is_same_pos(p1, p2, offset=2):
             x, y = p1
             x1, y1 = p2
             return math.fabs(x - x1) < offset and math.fabs(y - y1) < offset
 
+        start_t = time.time()
+
         img_target = self._get_img(name)
         h, w = img_target.shape
         x, y = pos
-        buffer = 2
+        buffer = 5
         bbox = [
-            x - w / 2 - buffer,
-            y - h / 2 - buffer,
-            x + w / 2 + buffer,
-            y + h / 2 + buffer
+            base_area[0] + x - w / 2 - buffer,
+            base_area[1] + y - h / 2 - buffer,
+            base_area[0] + x + w / 2 + buffer,
+            base_area[1] + y + h / 2 + buffer
         ]
 
         await asyncio.sleep(0.1)
 
-        img_bg = self._screenshot(area=bbox)
+        # 不用_screenshot，以免改变self.screen_img
+        img = ImageGrab.grab(bbox=bbox)
+        img_np = np.array(img)
+        img_bg = cv2.cvtColor(img_np, cv2.COLOR_BGR2GRAY)
 
         pos_list, max_val = self._find_img_pos(
                         img_bg, img_target, threshold=threshold)
         if pos_list:
+            end_t = time.time()
+            self.logger.debug("_verify_monitor pass, cost {}".format(end_t - start_t))
             return True
         else:
-            self.logger.warning(f"verify not pass: not found {name} near {pos}")
+            self.logger.warning(f"_verify_monitor not pass: not found {name} near {pos}")
             return False
 
 
@@ -156,7 +167,7 @@ class Eye(object):
                         self.logger.debug(
                             f"Found {name} at {pos_list}, max_val: {max_val}")
                         if verify:
-                            res = await self._verify(name, pos_list[0], threshold)
+                            res = await self._verify_monitor(name, pos_list[0], threshold, base_area=area)
                             if res:
                                 return name, pos_list
                 await asyncio.sleep(1)
@@ -169,7 +180,7 @@ class Eye(object):
             return name, pos_list
         except asyncio.TimeoutError:
             msg = (f"monitor {names} timeout. ({timeout} s)")
-            self.logger.debug(msg)
+            # self.logger.debug(msg)
             raise FindTimeout(msg)
 
     def _screenshot(self, area=None, name=None):

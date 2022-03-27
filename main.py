@@ -27,6 +27,7 @@ from lib.start_game import start_emulator, game_started
 from lib.read_cfg import read_account_cfg
 
 from logging import handlers
+from datetime import datetime
 import logging
 
 
@@ -34,7 +35,8 @@ import logging
 # log 设置：先设置root logger, 然后再每个模块引入自己的logger（名字是自己的模块名，设置继承root logger
 logger = logging.getLogger()
 logger.setLevel(logging.DEBUG)
-fh = handlers.TimedRotatingFileHandler('logs/all_log.log', when='D', interval=1, backupCount=7)
+today = datetime.now().strftime(r'%Y-%m-%d')
+fh = handlers.TimedRotatingFileHandler('logs/all_log_' + today + '.log', when='D', interval=1, backupCount=7)
 # fh = handlers.RotatingFileHandler('logs/all_log.log', mode='a', maxBytes=5*1024*1024, backupCount=3)
 fh.setLevel(logging.DEBUG)
 errh = logging.FileHandler('logs/error_log.log')
@@ -82,14 +84,15 @@ async def main(g_exe):
     g_event = asyncio.Event()
     g_found = dict()
     g_player_lock = asyncio.Lock()
+    g_sem = asyncio.Semaphore(1)
     account_list = read_account_cfg()
 
     await asyncio.gather(
-        play("left_top", account_list, g_queue, g_event, g_found, g_player_lock),
+        play("left_top", account_list, g_queue, g_event, g_found, g_player_lock, g_sem),
         play("left_down", account_list, g_queue, g_event,
-             g_found, g_player_lock),
+             g_found, g_player_lock, g_sem),
         play("right_top", account_list, g_queue, g_event,
-             g_found, g_player_lock),
+             g_found, g_player_lock, g_sem),
     )
 
 def stop_play():
