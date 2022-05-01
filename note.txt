@@ -15,136 +15,6 @@ git checkout
 git log
                 
 
-★ 现在已经实现一键挂机了
-
-
-下一步是把所有情况都考虑上，提高挂机稳定性
-涉及到切界面的要考虑monitor，因为有时候快有时候慢
-
-优化图片，很多图片重复
-ok1 ok2，也没法区分
-
-monitor_than_click()
-find_then_click(name_list, pos=None, timeout=5, raise_exception=True)
-
-
-    async def _fight(self):
-        """do fight, return win or lose"""
-        await self.player.find_then_click(['start_fight', 'fight1'])
-        await asyncio.sleep(3)
-        await self.player.find_then_click(['fast_forward1'], raise_exception=False)
-        await asyncio.sleep(10)
-        await self.player.find_then_click(['go_last'])
-        pos_ok = (430, 430)
-        result = await self.player.find_then_click(['win', 'lose'], pos=pos_ok, timeout=240)
-        await asyncio.sleep(3)
-        return result
-        
-        吉安县畜牧兽医局 07968442451
-        
-
-
-
-换区 change server
-    make sure in main ui
-    find and click setting
-    find and click server icon
-    wait until no find empty board
-    
-    if right top server is new server icon
-        return false
-
-    click the right top server icon
-    click ok
-    find setting
-    return true
-    
-    
-关卡战斗
-    find and click gkzd
-    if no find
-        move to center
-        find and click gkzd
-    wait untile find goback icon
-    
-    # for ther first 10 days of new player
-    if find close btn (1s)
-        find and click 'can recive'
-        find and click ok
-        find and then click close
-    
-    click box
-    click recive btn
-    
-    monitor [upgraded fight next pass]
-    
-    if find upgrade(upgrade and unlock new map)
-        find and click ok
-        sleep 5s
-        move to center
-        find and click gkzd
-        wait untile find goback icon 
-        
-        monitor [fight next pass]
-
-    if find fight btn
-        click
-        find and click fight btn
-    elif find next level btn
-        click
-        click search
-        wait 3 s (10s, vip at least 3s)
-        find and click fight btn
-        find and click fight btn
-    elif pass
-        if find nex_level_point
-            click
-            if find  search
-                click
-            else
-                return
-        else 
-            find and click the rightest next_level_flag
-            if find search
-                click
-                if find pass
-                    click map
-            else
-                return
-            
-    
-    while true
-
-        try:
-            do fight
-                ...
-                click ok
-                
-            monitor [upgrade next]
-            if upgrade
-                hand_upgrade
-            
-            nextlevel_to_fight
-        except fight_lose:
-            return
-        except level_low:
-            return
-            
-    
-
-
-挑战副本
-    find and click tzfb
-    
-
-
-公会挑战
-
-
-勇者副本
-
-
-VIP shop
 
 
 主程序逻辑
@@ -185,62 +55,6 @@ VIP shop
         登录
         
 
-场景二：继续游戏 （需要记录哪些角色玩过了，哪些任务已完成）
-
-
-冠军试炼
-    如果不是周日下午
-        退出
-        如果已经获得了200积分
-            退出
-    点竞技场
-    点冠军试炼
-    点进入
-    如果 战斗说明
-        点 close
-        如果英雄出战
-            点保存
-    i=4
-    j=1
-    score = 0
-    
-    ckou
-    
-    while score < 50:
-        点战斗
-        点 刷新 i 次
-        点 j 战斗
-        
-        点战斗
-        monitor
-        if 下一场 或 确定 或 快进
-            点
-        if card
-            点卡片 2 次
-            if win
-                score += 2  
-                win += 1
-            else
-                score += 1
-                lose += 1
-                j += 1
-                if j > 3:
-                    j = 1
-                    i += 1
-
-            点确定
-
-    log win xx lose yy
-
-
-英雄远征
-hero_expedition
-production_workshop
-one_click_collection
-    到右上角
-    点英雄远征
-    点生产车间
-    点一键领取
 
 
 模板匹配，会因为大小不同，分辨率不同，匹配失败
@@ -252,7 +66,7 @@ one_click_collection
 =》 使用其他标志图标，然后，按位置点击
 
 
-如何实现一键游戏，做到完全省心？
+★ 如何实现一键游戏，做到完全省心？
     图像识别准确
     每个逻辑都独立，并覆盖所有情况
     每个任务都可以配置，做到遵循玩家意愿
@@ -744,12 +558,14 @@ find_then_click
 
 
 
+
+
 # TODO
 每一个窗口都能独立工作，
 但提供一些接口，可以和主控打配合
 
 
-写个自动刷buff的程序
+写个自动刷buff的程序    done
 
 
 findtimeout     done
@@ -787,4 +603,106 @@ findtimeout     done
     else:
         raise restart_too_much
 
+
+说下我的看法，我们公会：
+
+加分项：
+加了微信群，好沟通
+战力高（500w以上）
+可以卡点放队伍(提前几十秒放）
+能买隐藏
+
+减分项：
+不活跃，不签到，不捐赠
+公会战进入战争时期，还把高战分散到不同队伍中
+提前很长时间就驻军，送人头
+战力低，还往银行、地堡驻军，浪费队伍
+
+
+
+# TODO list：
+用户体验
+    1. 文档有详细使用说明
+    2. 文档有异常处理
+    3. 出现异常，游戏不要报代码错，而是友好的用户提示
+
+代码优化
+    log有重复的，简化一下
     
+    
+优化竞技场
+jingjichang
+    enter
+    for i in range(7)
+        fight
+        fight3
+        start_fight
+        card or reach_max
+        if card
+            card
+            ok
+        else
+            close
+            reflesh
+            fight3
+            start_fight
+            card
+            ok
+            
+jingjichang
+    enter
+    win, lose = 0, 0
+    page = 0
+    for i in range(7)
+        page = choose_opponent(page)
+        win = do_fight
+        if win:
+            win += 1
+        else:
+            lose += 1
+            page += 1
+
+choose_opponent
+    fight
+    while true:
+        for _ in range(page):
+            click reflesh
+        fight3
+        start_fight
+        if reach_max or close
+            close
+            page += 1
+            continue
+        else:
+            break
+            
+do_fight
+    2 
+    go_last
+    card
+    
+    
+main
+    启动模拟器（如果已启动，则跳过）
+    启动4个player（task_list)
+    
+auto_play
+    启动游戏（如果已启动，则跳过）
+    play_game
+    (遇到异常可以回到主界面，或者重启游戏）
+
+player
+    操作游戏（hand，eye）
+    
+tasks
+    各种游戏任务
+        test
+        run
+        
+可以优化的点：
+    大函数拆分
+        抽取无关逻辑
+        只做一件事
+        
+    
+        

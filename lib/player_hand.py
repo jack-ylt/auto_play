@@ -32,6 +32,7 @@ class Hand(object):
     KEY_DICT = {
         'esc': k.escape_key,
         'backspace': k.backspace_key,
+        'ctrl': k.control_key,
     }
 
     async def delay(self, n):
@@ -128,6 +129,16 @@ class Hand(object):
         await self.delay(self.interval * 0.5)
         if delay:
             await self.delay(delay)
+
+    async def press_key(self, key):
+        if len(key) != 1:
+            key = self.KEY_DICT[key]
+        self.k.press_key(key)
+
+    async def release_key(self, key):
+        if len(key) != 1:
+            key = self.KEY_DICT[key]
+        self.k.release_key(key)
 
     async def type_string(self, a_string, delay=0.2):
         """type a string to the computer"""

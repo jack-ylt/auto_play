@@ -29,8 +29,12 @@ logger = logging.getLogger(__name__)
 
 # 不加入系统路径，此文件单独运行，会报错：
 # ModuleNotFoundError: No module named 'lib.text_recognition'
-file_dir = os.path.split(os.path.realpath(__file__))[0]
-main_dir = os.path.split(file_dir)[0]
+# file_dir = os.path.split(os.path.realpath(__file__))[0]
+# main_dir = os.path.split(file_dir)[0]
+# 打成单文件，只有这个打包前后路径是一致的
+# main_dir = os.path.dirname(os.path.realpath(sys.executable))
+
+from lib.helper import main_dir
 sys.path.insert(0, main_dir)
 pic_dir = os.path.join(main_dir, 'pics')
 
@@ -89,7 +93,7 @@ class Eye(object):
         r, g, b = pyautogui.pixel(*pos)
         return (r, g, b)
 
-    async def find_all_pos(self, names, area=None, threshold=0.8):
+    async def find_all_pos(self, names, area=None, threshold=0.8, verify=True):
         """return list of pos"""
         self.logger.debug(
             f'Start to find all positions of: {names}')
@@ -107,6 +111,10 @@ class Eye(object):
             if pos_list:
                 self.logger.debug(
                     f"Found {name} at {pos_list}, max_val: {max_val}")
+                if verify:
+                    res = await self._verify_monitor(name, pos_list[0], threshold, base_area=area)
+                    if not res:
+                        continue
                 all_pos.extend(pos_list)
 
         all_pos = sorted(self._de_duplication(all_pos))
@@ -123,20 +131,23 @@ class Eye(object):
             x1, y1 = p2
             return math.fabs(x - x1) < offset and math.fabs(y - y1) < offset
 
-        start_t = time.time()
-
         img_target = self._get_img(name)
         h, w = img_target.shape
         x, y = pos
         buffer = 5
-        bbox = [
-            base_area[0] + x - w / 2 - buffer,
-            base_area[1] + y - h / 2 - buffer,
-            base_area[0] + x + w / 2 + buffer,
-            base_area[1] + y + h / 2 + buffer
-        ]
 
-        await asyncio.sleep(0.1)
+        if base_area:
+            bbox = [
+                base_area[0] + x - w / 2 - buffer,
+                base_area[1] + y - h / 2 - buffer,
+                base_area[0] + x + w / 2 + buffer,
+                base_area[1] + y + h / 2 + buffer
+            ]
+        else:
+            bbox = None
+
+        await asyncio.sleep(0.5)    # 都加点时间，看是否可以防止鼠标点击，游戏未响应
+        start_t = time.time()
 
         # 不用_screenshot，以免改变self.screen_img
         img = ImageGrab.grab(bbox=bbox)
@@ -279,12 +290,18 @@ class Eye(object):
         return new_pos_list
 
 
-async def test(names, bbox=None, threshold=0.8):
+async def test(names, bbox=None, threshold=0.8, max_try=1):
     eye = Eye()
     t1 = time.time()
 
-    res = await eye.find_all_pos(names, area=bbox, threshold=threshold)
-    print(res)
+    all_res = []
+
+    for i in range(max_try):
+        res = await eye.find_all_pos(names, area=bbox, threshold=threshold)
+        all_res.extend(res)
+
+    all_res = eye._de_duplication(all_res)
+    print(all_res)
 
     t2 = time.time()
 

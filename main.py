@@ -10,7 +10,20 @@ import os
 import sys
 # 切换到脚本所在目录
 # 否则，基于相对路径的代码会出问题
-main_dir = os.path.split(os.path.realpath(__file__))[0]
+
+# print(__file__)
+# print(os.path.realpath(__file__))
+# print(sys.argv[0])
+# print(sys.path[0])
+# print(os.path.dirname(os.path.realpath(sys.argv[0])))
+
+# main_dir = os.path.split(os.path.realpath(__file__))[0]
+
+# 打成单文件，只有这个打包前后路径是一致的
+# main_dir = os.path.dirname(os.path.realpath(sys.executable))
+
+from lib.helper import main_dir
+
 os.chdir(main_dir)
 sys.path.insert(0, main_dir)
 
@@ -36,10 +49,11 @@ import logging
 logger = logging.getLogger()
 logger.setLevel(logging.DEBUG)
 today = datetime.now().strftime(r'%Y-%m-%d')
-fh = handlers.TimedRotatingFileHandler('logs/all_log_' + today + '.log', when='D', interval=1, backupCount=7)
+all_log = os.path.join(main_dir, 'logs', 'all_log_' + today + '.log')
+fh = handlers.TimedRotatingFileHandler(all_log, when='D', interval=1, backupCount=7)
 # fh = handlers.RotatingFileHandler('logs/all_log.log', mode='a', maxBytes=5*1024*1024, backupCount=3)
 fh.setLevel(logging.DEBUG)
-errh = logging.FileHandler('logs/error_log.log')
+errh = logging.FileHandler(main_dir + '/logs/error_log.log')
 errh.setLevel(logging.ERROR)
 ch = logging.StreamHandler()
 

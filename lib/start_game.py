@@ -1,3 +1,4 @@
+from gettext import find
 from lib.ui_data import POS_DICT
 from lib import player_hand
 from lib import player_eye
@@ -15,7 +16,7 @@ p = player.Player()
 
 async def game_started():
     try:
-        await p.monitor(['setting'], timeout=1)
+        await p.monitor('setting', timeout=1)
         return True
     except player_eye.FindTimeout:
         return False
@@ -27,19 +28,21 @@ async def start_emulator():
     except player_eye.FindTimeout:
         logger.info("Start emulator failed: can't find the emulator_icon")
         return False
-    # await hand.click(pos, delay=0.3)
-    # await hand.click(pos, delay=0.3)
+
     await hand.double_click(pos)
 
     await asyncio.sleep(3)
-    _, pos = await p.monitor(['emulator_ui'], timeout=10)
-    pos_select_all = (590, 312)
-    pos_start = (600, 270)
-    pos_minimize = (1300, 225)
-    await hand.click(pos_select_all, cheat=False)
+    _, pos = await p.monitor(['duo_kai_guang_li'], timeout=10)
+    await hand.click(pos)
+
+    try:
+        _, pos = await p.monitor('select_all', timeout=1)
+        await hand.click(pos)
+    except player_eye.FindTimeout:
+        pass
+
     await asyncio.sleep(1)
+    pos_start = (600, 270)
     await hand.click(pos_start, cheat=False)
-    # await asyncio.sleep(3)
-    # await hand.click(pos_minimize)
 
     await asyncio.sleep(20)

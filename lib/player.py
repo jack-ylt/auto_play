@@ -153,7 +153,7 @@ class Player(object):
         return name, pos
 
     async def find_all_pos(self, names, threshold=0.8):
-        """return (name, pos), all rease timeout_error"""
+        """return pos_list, all rease timeout_error"""
         if not isinstance(names, list):
             names = [names]
 
@@ -283,7 +283,7 @@ class Player(object):
                 await self.hand.click(pos, cheat=False)
             await self.hand.tap_key('esc')
 
-        await asyncio.sleep(2)    # 切换界面需要点时间
+        await asyncio.sleep(1)    # 切换界面需要点时间
         self._cache_operation_pic(msg)
 
     async def go_back_to(self, pic):
@@ -336,7 +336,7 @@ class Player(object):
         async with self.g_player_lock:
             for pos in new_pos_list:
                 await self.hand.click(pos, cheat=cheat)
-                await asyncio.sleep(0.2)
+                await asyncio.sleep(0.3)
             await asyncio.sleep(0.1)
 
         await asyncio.sleep(delay)
@@ -373,3 +373,12 @@ class Player(object):
 
         await asyncio.sleep(delay)
         self._cache_operation_pic(msg)
+
+    async def scrool_with_ctrl(self, pos, vertical_num=-10):
+        async with self.g_player_lock:
+            await self.hand.move(*pos)
+            await self.hand.press_key('ctrl')
+            await self.hand.scroll(vertical_num, 0.2)
+            await self.hand.release_key('ctrl')
+
+        self._cache_operation_pic('_pull_up_the_lens')

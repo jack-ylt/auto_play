@@ -109,7 +109,8 @@ async def test_tasks():
     player = Player('left_top', g_player_lock=g_player_lock)
     player.load_role_cfg()
 
-    gkzd = tasks.LevelBattle(player)
+    clazz= getattr(tasks, 'LevelBattle')
+    gkzd = clazz(player)
     gkzd.test()
     await gkzd.run()
 
@@ -139,16 +140,19 @@ async def test_auto_play():
     # print(await auto.player.is_disabled_button((315, 408)))
     # await test_brave_instance(auto)
     # await test_drag(auto)
-    await auto.goto_main_interface()
+    # await auto.goto_main_interface()
+    # await auto.market()
+    # await auto.shen_yuan_mo_ku()
+    # await auto.instance_challenge()
+    # await auto._move_to_right_down()
+    await auto.ju_dian_gong_hui_zhan()
 
 if __name__ == '__main__':
-    # sleep(1)
-    # names = ['next_level_1', 'next_level1', 'next', 'next1', 'go_last']
+    # names = [ 'tiao_zhan1'] 
     # asyncio.run(test_eye(names, threshold=0.8))
 
-    asyncio.run(test_auto_play())
+    # asyncio.run(test_auto_play())
 
-    # asyncio.run(test_tasks())
-
+    asyncio.run(test_tasks())
 
 

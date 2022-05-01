@@ -6,7 +6,26 @@ import logging
 import os
 from logging import handlers
 from datetime import datetime
+import sys
 # from ui_data import HIGH, WIDTH, WINDOW_DICT
+
+
+# file_dir = os.path.split(os.path.realpath(__file__))[0]
+# main_dir = os.path.split(file_dir)[0]
+# 打成单文件，只有这个打包前后路径是一致的
+
+release = False
+
+if release:
+    main_dir = os.path.dirname(os.path.realpath(sys.executable))
+    print("main_dir for release:", main_dir)
+else:
+    file_dir = os.path.split(os.path.realpath(__file__))[0]
+    main_dir = os.path.split(file_dir)[0]
+    print("main_dir for dev:", main_dir)
+
+sys.path.insert(0, main_dir)
+log_dir = os.path.join(main_dir, 'logs')
 
 def get_window_region(window_name):
     x, y = WINDOW_DICT[window_name]
@@ -43,7 +62,7 @@ def de_duplication(pos_list, offset=10):
 
 def make_logger(name):
     today = datetime.now().strftime(r'%Y-%m-%d')
-    file_dir = 'logs/' + name
+    file_dir = os.path.join(log_dir, name)
     if not os.path.exists(file_dir):
         os.mkdir(file_dir)
     filename = file_dir + '/' + today + '.log'
