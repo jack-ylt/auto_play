@@ -456,9 +456,9 @@ class AutoPlay(object):
                     await self.player.monitor('ranking_icon3')    # 界面跳转的时候是没法esc回主界面的
                     return False
 
-    #
+    
     # collect_mail
-    #
+    
     async def collect_mail(self):
         try:
             _, pos = await self.player.monitor(['mail'], threshold=0.97, timeout=1)
@@ -472,11 +472,11 @@ class AutoPlay(object):
     # friends_interaction
     #
     async def _fight_friend(self, max_try=5):
-        max_try = max_try
-        count = 0
+        
         pos_ok_win = (430, 430)
         pos_ok_lose = (340, 430)
         pos_next = (530, 430)
+        await self.player.find_then_click('fight3')
         _, pos_fight = await self.player.monitor(['start_fight'])
 
         try:
@@ -487,6 +487,7 @@ class AutoPlay(object):
 
         await self.player.click(pos_fight)
 
+        count = 0
         while True:
             count += 1
             if not skip_fight:
@@ -537,7 +538,7 @@ class AutoPlay(object):
             except FindTimeout:
                 break
 
-            await self.player.find_then_click('fight3')
+            
             res = await self._fight_friend()
             if res != 'win':
                 self.logger.debug(" Can't win the friend boos")
@@ -569,8 +570,6 @@ class AutoPlay(object):
                 return
 
             await self.player.click(pos)
-            _, pos = await self.player.monitor(['fight3'])
-            await self.player.click(pos)
 
             res = await self._fight_friend()
             if res != 'win':
@@ -587,7 +586,7 @@ class AutoPlay(object):
             _, pos = await self.player.monitor(['guess_ring'], threshold=0.97, timeout=2)
         except FindTimeout:
             self.logger.debug(
-                "Fress guess had been used up.")
+                "Free guess had been used up.")
             return
 
         pos_lsts = [(50, 240), (50, 330), (50, 400)]
@@ -890,26 +889,24 @@ class AutoPlay(object):
         return floors
 
 
-    async def _goto_floor(self, i, pre=None):
-        if pre is None:
-            # 第一次进来，刚好就在最高的那一层
-            return i
-
+    async def _goto_floor(self, i):
         pos_map = {
             1: (50, 288),
             2: (50, 321),
             3: (50, 356),
-            4: (50, 306),
-            5: (50, 342),
+            4: (50, 388),
+            5: (50, 341),
             6: (50, 375),
             7: (50, 409)
         }
 
         await self.player.find_then_click('switch_map')
+        await asyncio.sleep(1)
 
-        if pre >= 4 and i <= 3:
-            # await self.player.scroll(5, pos=(50, 350))
+        if i <= 4:
             await self._drag('down')
+        else:
+            await self._drag('up')
 
         await asyncio.sleep(0.2)
         await self.player.click(pos_map[i])
@@ -1595,20 +1592,6 @@ class AutoPlay(object):
         await self.player.find_then_click('receive_all')
 
 
-    # TODO 
-    # 改造成类
-    # test
-    # run
-    #   _enter， _exit
-
-    # 进入
-    # 拉高视线
-    # for 中上下左右
-        # for 宝箱怪
-            # for 挑战
-                # if 都挑战好了
-                    # return
-
     async def ju_dian_gong_hui_zhan(self):
         if not await self._enter_ghz():
             return 
@@ -1641,7 +1624,12 @@ class AutoPlay(object):
             await self.player.find_then_click('ju_dian_ghz', timeout=1)
         except FindTimeout:
             return False
-        await self.player.find_then_click('enter1')
+
+        name, pos = await self.player.monitor(['bao_ming', 'enter1'])
+        if name == 'bao_ming':
+            return False
+
+        await self.player.click(pos)
         await asyncio.sleep(10)
         await self.player.monitor('jidi')
         return True
@@ -1868,7 +1856,21 @@ class AutoPlay(object):
                     return False
 
             try:
+                # -------如果是在同一个命名空间
+                # clazz = globals()['classname']
+                # instance= clazz()
+                # ------如果在其它module，先import导入该module
+                # import module
+                # clazz= getattr(module, 'classname')
+                # instance = clazz()
+
                 await getattr(self, task)()
+
+                # clazz= getattr(tasks, task)
+                # instance = clazz()
+                # self.logger.info(f"Run {task}")
+                # instance.run()
+
             except Exception as e:
                 tasks.append(task)
                 self.logger.error(str(e))
