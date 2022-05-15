@@ -7,6 +7,7 @@ import os
 from logging import handlers
 from datetime import datetime
 import sys
+import time
 # from ui_data import HIGH, WIDTH, WINDOW_DICT
 
 
@@ -88,6 +89,14 @@ def make_logger(name):
 
     return logger
 
+
+def is_afternoon():
+    t = time.localtime()
+    hour = t.tm_hour
+    return hour > 12
+
+def is_monday():
+    return datetime.now().weekday() == 0
 
 class GameNotResponding(Exception):
     pass

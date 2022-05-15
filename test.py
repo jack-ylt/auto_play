@@ -37,7 +37,7 @@ formatter = logging.Formatter(
 ch.setFormatter(formatter)
 logger.addHandler(ch)
 
-async def test_eye(name=None, threshold=0.8):
+async def test_eye(name=None, threshold=0.8, verify=True):
     # bbox = (0, 0, 1000, 540)
     bbox = None
 
@@ -46,7 +46,7 @@ async def test_eye(name=None, threshold=0.8):
         name = ui_data.OK_BUTTONS
 
     # 查找一个，大概0.1s，5个0.23s， 10个0.4s
-    await player_eye.test(name, bbox, threshold)
+    await player_eye.test(name, bbox, threshold, verify=verify)
     # eye = player_eye.Eye()
     # await eye.monitor(name)
 
@@ -104,15 +104,7 @@ async def test_market():
 async def test_brave_instance(auto):
     await auto.brave_instance()
 
-async def test_tasks():
-    g_player_lock = asyncio.Lock()
-    player = Player('left_top', g_player_lock=g_player_lock)
-    player.load_role_cfg()
 
-    clazz= getattr(tasks, 'LevelBattle')
-    gkzd = clazz(player)
-    gkzd.test()
-    await gkzd.run()
 
 async def test_drag(auto):
     for i in range(3):
@@ -145,14 +137,25 @@ async def test_auto_play():
     # await auto.shen_yuan_mo_ku()
     # await auto.instance_challenge()
     # await auto._move_to_right_down()
-    await auto.ju_dian_gong_hui_zhan()
+    # await auto.ju_dian_gong_hui_zhan()
+    await auto.invite_heroes()
+
+async def test_tasks(cls_name):
+    g_player_lock = asyncio.Lock()
+    player = Player('left_top', g_player_lock=g_player_lock)
+    player.load_role_cfg()
+    obj = getattr(tasks, cls_name)(player)
+    await obj.run()
+
 
 if __name__ == '__main__':
-    # names = [ 'tiao_zhan1'] 
-    # asyncio.run(test_eye(names, threshold=0.8))
+    # names = ['max1', 'yi_jian_shang_zhen'] 
+    # asyncio.run(test_eye(names, threshold=0.8, verify=False))
 
     # asyncio.run(test_auto_play())
 
-    asyncio.run(test_tasks())
+    asyncio.run(test_tasks('YingXiongYuanZheng'))
 
 
+# TODO 每个任务都要记录完成情况，以便后续检查是否有任务没做到（比如说识别失败）
+# 任务本身不要考虑识别失败的问题，以简化逻辑（要考虑各个点识别失败的话就太复杂了）

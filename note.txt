@@ -518,7 +518,7 @@ Tasks 类
     test()
     run()
     
-LevelBattle
+XianShiJie
     goto_gkzd
         move_to_center
     collect_box
@@ -675,6 +675,7 @@ choose_opponent
             continue
         else:
             break
+    return page
             
 do_fight
     2 
@@ -700,9 +701,17 @@ tasks
         run
         
 可以优化的点：
-    大函数拆分
-        抽取无关逻辑
-        只做一件事
+    把所有任务提取到tasks文件中，作为类
+    
+    只保留最近3天的log
+    
+    每个任务完成了，记录下
+    
+    
+    # TODO 钻石不够，会进入vip商店
+        
+        
         
     
-        
+玩家建议：
+@缘、六星币 那个任务栏刷新可以改掉，要是十来个任务，一次就浪费五百个钻石了

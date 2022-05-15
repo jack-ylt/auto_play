@@ -117,32 +117,12 @@ class Player(object):
                 return True
         return False
 
-    async def monitor(self, names, timeout=10, threshold=0.8, filter_func=_get_first):
+    async def monitor(self, names, timeout=10, threshold=0.8, filter_func=_get_first, verify=True):
         """return (name, pos), all rease timeout_error"""
         if not isinstance(names, list):
             names = [names]
 
-        # # >3s 的都是应该要出现的，如果未出现可能是点击没反应，或者哪里出错了
-        # if timeout > 3:
-        #     try:
-        #         name, pos_list = await self.eye.monitor(names, area=self.bbox, timeout=3, threshold=threshold)
-        #     except FindTimeout:
-        #         if self.last_click:
-        #             pos, color = self.last_click
-        #             if color == await self.eye.get_pos_color(pos):
-        #                 await self.click(pos)
-        #                 msg = f"re-click {pos}"
-        #                 self.logger.debug(msg)
-        #                 await asyncio.sleep(5)
-        #                 if color == await self.eye.get_pos_color(pos):
-        #                     msg = "Game not responding"
-        #                     self.logger.warning(msg)
-        #                     self.save_operation_pics(msg)
-        #                     raise GameNotResponding(msg)
-                    
-        #         name, pos_list = await self.eye.monitor(names, area=self.bbox, timeout=timeout-3, threshold=threshold)
-        # else:
-        name, pos_list = await self.eye.monitor(names, area=self.bbox, timeout=timeout, threshold=threshold)
+        name, pos_list = await self.eye.monitor(names, area=self.bbox, timeout=timeout, threshold=threshold, verify=verify)
         
         pos = filter_func(pos_list)
         msg = f"found {name} at {pos}"
@@ -336,13 +316,13 @@ class Player(object):
         async with self.g_player_lock:
             for pos in new_pos_list:
                 await self.hand.click(pos, cheat=cheat)
-                await asyncio.sleep(0.3)
+                await asyncio.sleep(0.5)
             await asyncio.sleep(0.1)
 
         await asyncio.sleep(delay)
         self._cache_operation_pic(msg, pos_list)
 
-    async def find_then_click(self, name_list, pos=None, threshold=0.8, timeout=10, delay=1, raise_exception=True, cheat=True):
+    async def find_then_click(self, name_list, pos=None, threshold=0.8, timeout=10, delay=1, raise_exception=True, cheat=True, verify=True):
         """find a image, then click it ant return its name
 
         if pos given, click the pos instead.
@@ -351,7 +331,7 @@ class Player(object):
             name_list = [name_list]
 
         try:
-            name, pos_img = await self.monitor(name_list, threshold=threshold, timeout=timeout)
+            name, pos_img = await self.monitor(name_list, threshold=threshold, timeout=timeout, verify=verify)
         except FindTimeout:
             if raise_exception:
                 raise

@@ -1,33 +1,26 @@
-import concurrent.futures
-import math
 
-PRIMES = [
-    112272535095293,
-    112582705942171,
-    112272535095293,
-    115280095190773,
-    115797848077099,
-    1099726899285419]
+import random
 
-def is_prime(n):
-    if n < 2:
-        return False
-    if n == 2:
-        return True
-    if n % 2 == 0:
-        return False
+def _select_equipment_randomly():
+    """随机选择锻造装备，不能每次都薅同一只羊"""
+    pos_types = [
+        (820, 190),
+        (820, 270),
+        (820, 350),
+        (820, 440),
+    ]
+    seen = set()
 
-    sqrt_n = int(math.floor(math.sqrt(n)))
-    for i in range(3, sqrt_n + 1, 2):
-        if n % i == 0:
-            return False
-    return True
+    def _select():
+        while True:
+            if len(seen) == len(pos_types):
+                return ()
+            pos = random.choice(pos_types)
+            if pos not in seen:
+                seen.add(pos)
+                return pos
 
-def main():
-    with concurrent.futures.ProcessPoolExecutor() as executor:
-        for number, prime in zip(PRIMES, executor.map(is_prime, PRIMES)):
-            print('%d is prime: %s' % (number, prime))
+    return _select()
 
-
-if __name__ == '__main__':
-    main()
+for _ in range(5):
+    print(_select_equipment_randomly())

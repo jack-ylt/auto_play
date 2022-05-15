@@ -182,20 +182,33 @@ class AutoPlay(object):
                 logger.info("The shen yuan mo ku is not open yet.")
                 return False
 
-            await self.player.monitor('skill_preview_list')
-            try:
-                _, pos = await self.player.monitor('you_she_you_de', timeout=1)
-                if pos[1] < 360:
-                    return True    # 有舍有得要在前三个buff中才行
-            except FindTimeout:
-                pos_list = await self.player.find_all_pos(CLOSE_BUTTONS)
-                await self.player.click(sorted(pos_list)[0])
-                await self.player.find_then_click(CLOSE_BUTTONS)
+            if await self.have_good_skills():
+                return True
+
+            pos_list = await self.player.find_all_pos(CLOSE_BUTTONS)
+            await self.player.click(sorted(pos_list)[0])
+            await self.player.find_then_click(CLOSE_BUTTONS)
 
             # TODO 可能不需要重新登陆
             # await self.re_login()
             # await 
 
+    async def have_good_skills(self):
+        await self.player.monitor('skill_preview_list')
+
+        try:
+            _, pos = await self.player.monitor('you_she_you_de', timeout=1)
+        except FindTimeout:
+            return False
+
+        if pos[1] < 360:    # 不是在前三个
+            return False
+
+        return True
+        
+        # TODO
+        # 'su_zhan_su_jue', 'feng_chi_dian_che'
+        # 'bao_ji_20'
 
     async def _enter_symk(self):
         await self._move_to_right_down()
@@ -589,6 +602,8 @@ class AutoPlay(object):
                 "Free guess had been used up.")
             return
 
+        # 目前只会做前4个助理，如果都满了，会继续做第四个
+        # 第5、6个助理不会做
         pos_lsts = [(50, 240), (50, 330), (50, 400)]
         for pos in pos_lsts:
             try:
@@ -1040,10 +1055,9 @@ class AutoPlay(object):
 
         max_fight = 4
         win_count = 0
-        pre_floor = None
         for i in range(total_floors, 4, -1):
             print(i)
-            pre_floor = await self._goto_floor(i, pre_floor)
+            await self._goto_floor(i)
             await asyncio.sleep(1)    # 点太快，可能卡住
             can_win = True
             for d in [None, 'left_top', 'left_down', 'right_down', 'right_top']:

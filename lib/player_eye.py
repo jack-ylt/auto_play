@@ -181,6 +181,8 @@ class Eye(object):
                             res = await self._verify_monitor(name, pos_list[0], threshold, base_area=area)
                             if res:
                                 return name, pos_list
+                        else:
+                            return name, pos_list
                 await asyncio.sleep(1)
 
         self.logger.debug(f'start monitor: {names}')
@@ -290,14 +292,14 @@ class Eye(object):
         return new_pos_list
 
 
-async def test(names, bbox=None, threshold=0.8, max_try=1):
+async def test(names, bbox=None, threshold=0.8, max_try=1, verify=True):
     eye = Eye()
     t1 = time.time()
 
     all_res = []
 
     for i in range(max_try):
-        res = await eye.find_all_pos(names, area=bbox, threshold=threshold)
+        res = await eye.find_all_pos(names, area=bbox, threshold=threshold, verify=verify)
         all_res.extend(res)
 
     all_res = eye._de_duplication(all_res)
