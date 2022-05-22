@@ -1,3 +1,19 @@
+import logging
+from logging import handlers
+from lib import tasks
+from lib import helper
+from lib import ui_data
+from lib.player import Player
+from lib import player_eye
+from lib.read_cfg import read_account_cfg
+from lib.start_game import start_emulator, game_started
+from lib import auto_play
+import signal
+import keyboard
+from multiprocessing import freeze_support
+from time import sleep
+import concurrent.futures
+import asyncio
 import os
 import sys
 # 切换到脚本所在目录
@@ -6,26 +22,6 @@ main_dir = os.path.split(os.path.realpath(__file__))[0]
 os.chdir(main_dir)
 sys.path.insert(0, main_dir)
 
-
-import asyncio
-import concurrent.futures
-
-from time import sleep
-from multiprocessing import freeze_support
-import keyboard
-import signal
-from lib import auto_play
-from lib.start_game import start_emulator, game_started
-from lib.read_cfg import read_account_cfg
-from lib import player_eye
-from lib.player import Player
-from lib import ui_data
-from lib import helper
-
-from lib import tasks
-
-from logging import handlers
-import logging
 
 logger = logging.getLogger()
 logger.setLevel(logging.DEBUG)
@@ -36,6 +32,7 @@ formatter = logging.Formatter(
     '%(asctime)s   %(levelname)s   %(message)s')
 ch.setFormatter(formatter)
 logger.addHandler(ch)
+
 
 async def test_eye(name=None, threshold=0.8, verify=True):
     # bbox = (0, 0, 1000, 540)
@@ -51,95 +48,6 @@ async def test_eye(name=None, threshold=0.8, verify=True):
     # await eye.monitor(name)
 
 
-async def test_survival_home():
-    g_player_lock = asyncio.Lock()
-    player = Player('left_top', g_player_lock=g_player_lock)
-    auto = auto_play.AutoPlay(player)
-
-    # c = await auto._get_total_floors()
-    # print(c)
-
-    # await auto._goto_floor(6)
-
-    # for d in ['left_top',
-    #         'left_down',
-    #         'right_down',
-    #         'right_top']:
-    #     await auto._swip_to(d)
-    #     await asyncio.sleep(1)
-
-    # c = await auto._fight_home_boos(3, 5)
-    # print(c)
-
-    await auto.survival_home()
-
-async def test_task_board():
-    g_player_lock = asyncio.Lock()
-    player = Player('left_top', g_player_lock=g_player_lock)
-    auto = auto_play.AutoPlay(player)
-    
-    # for i in range(5):
-    #     for i in range(2):
-    #         await auto._swip_to('right', stop=True)
-    #     for i in range(2):
-    #         await auto._swip_to('left', stop=True)
-
-    # await auto._accept_task()
-
-    # await auto._finish_all_tasks()
-    
-    await auto.task_board()
-
-
-async def test_market():
-    g_player_lock = asyncio.Lock()
-    player = Player('left_top', g_player_lock=g_player_lock)
-    auto = auto_play.AutoPlay(player)
-
-    # await auto._receive_survival_reward()
-    # await auto._buy_goods()
-    await auto.market()
-    
-
-async def test_brave_instance(auto):
-    await auto.brave_instance()
-
-
-
-async def test_drag(auto):
-    for i in range(3):
-        for j in [
-            '_move_to_left_top',
-            '_move_to_right_top',
-            '_move_to_left_down',
-            '_move_to_center',
-        ]:
-            print(j)
-            await auto.__getattribute__(j)()
-            await asyncio.sleep(2)
-
-async def test_auto_play():
-    g_player_lock = asyncio.Lock()
-    player = Player('left_top', g_player_lock=g_player_lock)
-    auto = auto_play.AutoPlay(player)
-    
-    # await auto.survival_home()
-    # await auto.tower_battle()
-    # await auto.guild()
-    # await auto.restart_game()
-    # await auto.level_battle()
-    # await auto.arena_champion()
-    # print(await auto.player.is_disabled_button((315, 408)))
-    # await test_brave_instance(auto)
-    # await test_drag(auto)
-    # await auto.goto_main_interface()
-    # await auto.market()
-    # await auto.shen_yuan_mo_ku()
-    # await auto.instance_challenge()
-    # await auto._move_to_right_down()
-    # await auto.ju_dian_gong_hui_zhan()
-    await auto.invite_heroes()
-
 async def test_tasks(cls_name):
     g_player_lock = asyncio.Lock()
     player = Player('left_top', g_player_lock=g_player_lock)
@@ -149,12 +57,10 @@ async def test_tasks(cls_name):
 
 
 if __name__ == '__main__':
-    # names = ['start_turntable', 'yi_jian_shang_zhen'] 
-    # asyncio.run(test_eye(names, threshold=0.8, verify=False))
+    names = ['friend_boss', 'yi_jian_shang_zhen']
+    asyncio.run(test_eye(names, threshold=0.8, verify=False))
 
-    # asyncio.run(test_auto_play())
-
-    asyncio.run(test_tasks('ShenYuanMoKu'))
+    # asyncio.run(test_tasks('ShenYuanMoKu'))
 
 
 # TODO 每个任务都要记录完成情况，以便后续检查是否有任务没做到（比如说识别失败）
