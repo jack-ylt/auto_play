@@ -15,6 +15,7 @@ import math
 
 from lib.ui_data import SCREEN_DICT, OK_BUTTONS, GOOD_TASKS, CLOSE_BUTTONS
 from lib.player import Player, FindTimeout, GameNotResponding
+from lib import tasks
 
 # from ui_data import SCREEN_DICT
 # from player import Player, FindTimeout
@@ -65,68 +66,7 @@ class AutoPlay(object):
         self.player = player
         self.logger = self.player.logger
 
-    #
-    # public functions
-    #
-    async def _move_to_left_top(self):
-        self.logger.debug('_move_to_left_top')
-        p1 = (150, 200)
-        p2 = (650, 400)
-        for i in range(3):
-            await self.player.drag(p1, p2, speed=0.02)
-            try:
-                await self.player.monitor('dismiss_hero', timeout=1)
-                return
-            except FindTimeout:
-                pass
-        raise GameNotResponding('_move_to_left_top failed')
-
-    async def _move_to_right_top(self):
-        self.logger.debug('_move_to_right_top')
-        p1 = (600, 200)
-        p2 = (100, 400)
-        for i in range(3):
-            await self.player.drag(p1, p2, speed=0.02)
-            try:
-                await self.player.monitor('warriors_tower', timeout=1)
-                return
-            except FindTimeout:
-                pass
-        raise GameNotResponding('_move_to_right_top failed')
-
-    async def _move_to_center(self):
-        self.logger.debug('_move_to_center')
-        await self._move_to_left_top()
-        p1 = (450, 300)
-        p2 = (200, 300)
-        await self.player.drag(p1, p2)
-
-    async def _move_to_left_down(self):
-        self.logger.debug('_move_to_left_down')
-        p1 = (100, 400)
-        p2 = (600, 100)
-
-        for i in range(3):
-            await self.player.drag(p1, p2, speed=0.02)
-            try:
-                await self.player.monitor('market', timeout=1)
-                return
-            except FindTimeout:
-                pass
-        raise GameNotResponding('_move_to_left_down failed')
-
-    async def _move_to_right_down(self):
-        self.logger.debug('_move_to_right_down')
-        p1 = (700, 400)
-        p2 = (100, 150)
-        for i in range(3):
-            await self.player.drag(p1, p2, speed=0.02)
-            try:
-                await self.player.monitor('bottom_right', timeout=1)
-                return
-            except FindTimeout:
-                pass
-        raise GameNotResponding('_move_to_right_down failed')
+ 
 
     async def _close_ad(self, timeout=2):
         try:
@@ -135,12 +75,6 @@ class AutoPlay(object):
         except FindTimeout:
             pass
 
-    # async def in_main_interface(self):
-    #     try:
-    #         await self.player.monitor(['setting'], timeout=1)
-    #         return True
-    #     except FindTimeout:
-    #         return False
 
     def save_operation_pics(self, msg):
         self.player.save_operation_pics(msg)
@@ -158,7 +92,7 @@ class AutoPlay(object):
             else:
                 break
 
-        await self.player.find_then_click('close_btn4', timeout=1, raise_exception=False)
+        await self.player.find_then_click(CLOSE_BUTTONS, timeout=1, raise_exception=False)
 
         try:
             await self.player.monitor('setting', timeout=1)
@@ -167,11 +101,10 @@ class AutoPlay(object):
 
         return
 
-
     async def shen_yuan_mo_ku(self):
         await self._move_to_right_down()
         await self.player.click((635, 350))
-        
+
         pos_enter = (550, 435)
         while True:
             try:
@@ -191,7 +124,7 @@ class AutoPlay(object):
 
             # TODO 可能不需要重新登陆
             # await self.re_login()
-            # await 
+            # await
 
     async def have_good_skills(self):
         await self.player.monitor('skill_preview_list')
@@ -205,7 +138,7 @@ class AutoPlay(object):
             return False
 
         return True
-        
+
         # TODO
         # 'su_zhan_su_jue', 'feng_chi_dian_che'
         # 'bao_ji_20'
@@ -217,7 +150,7 @@ class AutoPlay(object):
         await self.player.monitor('ranking_icon4')
         pos_enter = (550, 435)
         await self.player.click(pos_enter)
-        
+
         try:
             await self.player.find_then_click('skill_preview_btn', timeout=3)
         except FindTimeout:
@@ -230,7 +163,7 @@ class AutoPlay(object):
         await self.player.find_then_click('setting')
         await self.player.find_then_click('exit_btn')
         await self.player.find_then_click(OK_BUTTONS)
-        await asyncio.sleep(10)    # 重新登陆多了，游戏会崩溃。所以试试延时
+        await asyncio.sleep(5)    # 重新登陆多了，游戏会崩溃。所以试试延时
         await self.player.find_then_click('start_game')
         await self.player.find_then_click(['login_btn', 'login_btn2'])
 
@@ -244,1371 +177,9 @@ class AutoPlay(object):
         await self.player.monitor('setting')
 
 
-
-    async def _equip_team(self):
-        x = 120
-        y = 450
-        dx = 65
-        pos_list = [(x, y)]
-        for _ in range(5):
-            x += dx
-            pos_list.append((x, y))
-
-        await self.player.multi_click(pos_list)
-
-
-    async def _do_fight(self):
-        name_list = ['fast_forward1', 'go_last', 'win', 'lose']
-        while True:
-            name = await self.player.find_then_click(name_list, threshold=0.9, timeout=240)
-            if name in ['win', 'lose']:
-                return name
-            else:
-                name_list = name_list[name_list.index(name) + 1:]
-
-    async def _fight(self):
-        """do fight, return win or lose"""
-        await self.player.find_then_click(['start_fight', 'fight1'])
-        await asyncio.sleep(10)
-        res = await self._do_fight()
-        pos_ok = (430, 430)
-        await self.player.click(pos_ok, delay=4)
-        return res
-
-    #
-    # level_battle
-    #
-    async def _nextlevel_to_fight(self, pos):
-        """go from next_level to fight"""
-        def _get_next_pos(pos_list):
-            def _get_near_pos(pos, pos_list):
-                pos_near = None
-                min_dis = 100000
-                x1, y1 = pos
-                for (x2, y2) in pos_list:
-                    dis = ((x2 - x1) ** 2 + (y2 - y1) ** 2) ** 0.5
-                    if dis < min_dis:
-                        min_dis = dis
-                        pos_near = (x2, y2)
-                return pos_near
-                
-            if len(pos_list) == 1:
-                return (pos[0] + 50, pos[1])
-
-            pos_left = min(pos_list)
-            pos_list.remove(pos_left)
-            pos_near = pos_left
-            while len(pos_list) > 1:
-                pos_near = _get_near_pos(pos_near, pos_list)
-                pos_list.remove(pos_near)
-                print(pos_near)
-
-            x1, y1 = pos_near 
-            x2, y2 = pos_list[0]
-            pos_next = (x2 + x2 - x1, y2 + y2 - y1)
-            return pos_next
-
-        async def _goto_next_page(self):
-            x = 200
-            y = 68
-            for i in range(7):
-                await self.player.click((x, y))
-                await asyncio.sleep(1)
-                pos_list = await self.player.find_all_pos(['point', 'point3', 'point4'], threshold=0.9)
-                if not pos_list:
-                    await self.player.click((220, 250))
-                x += 78
-            await self.player.find_then_click(['ok1'])
-            await asyncio.sleep(3)
-
-        await self.player.click(pos)
-        try:
-            name, pos = await self.player.monitor(['search', 'level_map', 'level_low', 'reach_max_level'])
-        except FindTimeout:
-            self.logger.debug("reach the max level, so return")
-            return False
-            # 打到当前等级的关卡上限了
-        if name == 'level_low' or name == 'reach_max_level':
-            await self.player.click(pos)
-            self.logger.debug("reach the max level, so return")
-            return False
-        elif name == 'search':
-            await self.player.click(pos)
-            await asyncio.sleep(10)    # TODO vip no need 10s
-        else:
-
-            # TODO 翻页的大关卡过不去
-            await asyncio.sleep(5)
-            pos_list = await self.player.find_all_pos(['point', 'point3', 'point4'], threshold=0.9)
-            # pos = filter_rightmost(pos_list)
-            pos = _get_next_pos(pos_list)
-            # 往右偏移一点，刚好能点击进入到下一个大关卡
-            await self.player.click((pos[0] + 50, pos[1]))
-            await self.player.find_then_click(['ok1'])
-            await asyncio.sleep(10)
-
-        await self.player.find_then_click(['fight'])
-        return True
-
-    async def _passed_to_fight(self):
-        """go from already_passed to fight"""
-        try:
-            name, pos = await self.player.monitor(['next_level2', 'next_level3'], threshold=0.85)
-        except FindTimeout:
-            return False
-        await self.player.click(pos, cheat=False)
-        try:
-            name, pos = await self.player.monitor(['search', 'level_low', 'reach_max_level'])
-        except FindTimeout:
-            return False    # next_level2 可能会误识别
-        if name == 'level_low' or name == 'reach_max_level':
-            await self.player.click(pos)
-            self.logger.debug("reach the max level, so return")
-            return False
-        else:
-            await self.player.click(pos)
-            await asyncio.sleep(10)
-            await self.player.find_then_click(['fight'])
-            return True
-
-    async def _hand_upgraded(self):
-        await asyncio.sleep(5)
-
-        try:
-            _, pos = await self.player.monitor(['map_unlocked'])
-        except FindTimeout:
-            pass
-        else:
-            await self.player.click(pos)
-            await asyncio.sleep(5)
-
-            await self._move_to_center()
-            _, pos = await self.player.monitor(['level_battle'])
-            await self.player.click(pos, delay=3)
-        finally:
-            name, pos = await self.player.monitor(['next_level_1', 'already_passed', 'fight'])
-
-        return (name, pos)
-
-    async def level_battle(self):
-        """关卡战斗"""
-        await self._move_to_center()
-
-        await self.player.find_then_click(['level_battle'])
-        await asyncio.sleep(3)
-
-        await self.player.monitor(['ranking_icon'])
-        await self._close_ad()
-
-        pos_box = (750, 470)
-        await self.player.click(pos_box)
-        await self.player.find_then_click(['receive'], raise_exception=False)
-
-        name, pos = await self.player.monitor(['upgraded', 'next_level_1', 'already_passed', 'fight'])
-        if name == 'upgraded':
-            name, pos = await self._hand_upgraded()
-
-        if name == 'next_level_1':
-            success = await self._nextlevel_to_fight(pos)
-            if not success:
-                return
-        elif name == 'already_passed':
-            success = await self._passed_to_fight()
-            if not success:
-                return
-        else:    # fight
-            await self.player.click(pos)
-
-        while True:
-            res = await self._fight()
-
-            if res == 'lose':
-                self.logger.debug('Fight fail, so exit')
-                # 打不过，就需要升级英雄，更新装备了
-                return
-
-            try:
-                name, pos = await self.player.monitor(['upgraded', 'next_level_1'])
-            except FindTimeout:
-                # 打到最新关了
-                return
-
-            if name == 'upgraded':
-                name, pos = await self._hand_upgraded()
-
-            success = await self._nextlevel_to_fight(pos)
-            if not success:
-                return
-
-    #
-    # tower_battle
-    #
-    # 弃用，因为游戏官方可以自动爬塔了
-    async def tower_battle(self):
-        await asyncio.sleep(1)
-        await self._move_to_right_top()
-        await self.player.find_then_click(['warriors_tower'])
-        await self.player.monitor(['go_back', 'go_back1', 'go_back2'])
-
-        pos_list = [
-            (200, 360),
-            (420, 360),
-            (650, 360),
-        ]
-        await self.player.multi_click(pos_list)
-
-        while True:
-            await self.player.find_then_click('challenge')
-            # await self.player.find_then_click('start_fight')
-            while True:
-                name = await self.player.find_then_click(['next_level4', 'ok', 'fast_forward1', 'go_last'], timeout=60)
-                if name == 'next_level4':
-                    break
-                if name == 'ok':
-                    # 打不过，就需要升级英雄，更新装备了
-                    await self.player.monitor('ranking_icon3')    # 界面跳转的时候是没法esc回主界面的
-                    return False
-
-    
-    # collect_mail
-    
-    async def collect_mail(self):
-        try:
-            _, pos = await self.player.monitor(['mail'], threshold=0.97, timeout=1)
-        except FindTimeout:
-            self.logger.debug("There is no new mail.")
-            return
-        await self.player.click(pos)
-        await self.player.find_then_click(['one_click_collection'])
-
-    #
-    # friends_interaction
-    #
-    async def _fight_friend(self, max_try=5):
-        
-        pos_ok_win = (430, 430)
-        pos_ok_lose = (340, 430)
-        pos_next = (530, 430)
-        await self.player.find_then_click('fight3')
-        _, pos_fight = await self.player.monitor(['start_fight'])
-
-        try:
-            await self.player.monitor(['skip_fight'], threshold=0.9, timeout=1)
-            skip_fight = True
-        except FindTimeout:
-            skip_fight = False
-
-        await self.player.click(pos_fight)
-
-        count = 0
-        while True:
-            count += 1
-            if not skip_fight:
-                await asyncio.sleep(3)
-                # 25级以下无法加速，60以下无法快进
-                for _ in range(3):
-                    pos_list = await self.player.find_all_pos(['fast_forward1', 'go_last'], threshold=0.9)
-                    if pos_list:
-                        for pos in pos_list:
-                            await self.player.click(pos)
-                        break
-                    await asyncio.sleep(1)
-            _, pos = await self.player.monitor(['card'], timeout=240)
-            await self.player.click(pos)    # 卡片点两次，才会消失
-            await self.player.click(pos)
-            fight_res, pos = await self.player.monitor(['win', 'lose'], threshold=0.9)
-            if fight_res == 'win':
-                await self.player.click(pos_ok_win)
-                break
-            else:
-                if count < max_try:
-                    await self.player.click(pos_next)
-                else:
-                    await self.player.click(pos_ok_lose)
-                    break
-
-        if not skip_fight:
-            await asyncio.sleep(3)
-        return fight_res
-
-    async def friends_interaction(self):
-        try:
-            _, pos = await self.player.monitor(['friends'], threshold=0.95, timeout=1)
-            await self.player.click(pos)
-        except FindTimeout:
-            self.logger.debug(
-                "There is no new interaction of friends.")
-            return
-
-        await self.player.find_then_click(['receive_and_send'])
-
-        # 打好友boos
-
-        # TODO, 可以设定最多能打过多少级的boos
-        while True:
-            try:
-                await self.player.find_then_click('friend_boss', timeout=1)
-            except FindTimeout:
-                break
-
-            
-            res = await self._fight_friend()
-            if res != 'win':
-                self.logger.debug(" Can't win the friend boos")
-                break
-            else:
-                self.logger.debug("win the friend boos")
-                continue
-
-        try:
-            _, pos = await self.player.monitor(['friends_help'], threshold=0.9, timeout=1)
-            await self.player.click(pos)
-        except FindTimeout:
-            self.logger.debug(
-                "There is no friend need help.")
-            return
-
-        while True:
-            try:
-                _, (x, y) = await self.player.monitor(['search1'], threshold=0.9, timeout=1)
-                pos = (x, y + 15)
-                await self.player.click(pos)
-            except FindTimeout:
-                self.logger.debug(
-                    "There is no more boss.")
-                return
-
-            name, pos = await self.player.monitor(['fight2', 'ok', 'ok9'])
-            if name in ['ok', 'ok9']:
-                return
-
-            await self.player.click(pos)
-
-            res = await self._fight_friend()
-            if res != 'win':
-                self.logger.debug(" Can't win the boos")
-                return
-
-    #
-    # community_assistant
-    #
-    async def community_assistant(self):
-        await self.player.find_then_click(['community_assistant'])
-
-        try:
-            _, pos = await self.player.monitor(['guess_ring'], threshold=0.97, timeout=2)
-        except FindTimeout:
-            self.logger.debug(
-                "Free guess had been used up.")
-            return
-
-        # 目前只会做前4个助理，如果都满了，会继续做第四个
-        # 第5、6个助理不会做
-        pos_lsts = [(50, 240), (50, 330), (50, 400)]
-        for pos in pos_lsts:
-            try:
-                # 达到60级，且满了，才看下一个
-                await self.player.monitor('level_60', threshold=0.9, timeout=1)
-                await self.player.monitor('level_full', threshold=0.9, timeout=1)
-                await self.player.click(pos, delay=2)
-            except FindTimeout:
-                break
-
-        try:
-            await self.player.find_then_click(['guess_ring'], threshold=0.97, timeout=1)
-        except FindTimeout:
-            self.logger.info(
-                "need buy the assistant first.")
-            return
-
-        while True:
-            try:
-                name = await self.player.find_then_click(['close', 'cup'], threshold=0.9)
-                if name == "close":
-                    break
-                name = await self.player.find_then_click(['close', 'next_game'])
-                if name == "close":
-                    break
-            except FindTimeout:
-                break
-
-        await self.player.go_back_to('gift')
-
-        try:
-            await self.player.find_then_click(['have_a_drink'], timeout=2)
-        except FindTimeout:
-            pass
-
-        try:
-            _, pos = await self.player.monitor(['gift'])
-            pos_recive_all = (800, 255)
-            await self.player.click(pos_recive_all)
-            await self.player.click(pos)
-        except FindTimeout:
-            return
-
-        pos_select_gift = (70, 450)
-        pos_send_gift = (810, 450)
-        while True:
-            await self.player.click(pos_select_gift, delay=0.2)
-            await self.player.click(pos_send_gift)
-            try:
-                name = await self.player.find_then_click(['start_turntable', 'close_btn1'], timeout=2)
-                if name == 'close_btn1':
-                    # 点击中间，让go_back露出来
-                    await  self.player.click((40, 200))
-                    return
-                else:
-                    await asyncio.sleep(5)
-            except FindTimeout:
-                pass
-
-    #
-    # instance_challenge
-    #
-
-    async def _fight_challenge(self):
-        # 25级以下无法加速，60以下无法快进
-        for _ in range(3):
-            pos_list = await self.player.find_all_pos(['fast_forward1', 'go_last'], threshold=0.9)
-            if pos_list:
-                for pos in pos_list:
-                    await self.player.click(pos)
-                break
-            await asyncio.sleep(1)
-
-        fight_res, pos = await self.player.monitor(['win', 'lose'], threshold=0.9, timeout=240)
-        return fight_res
-
-    async def instance_challenge(self):
-        await self.player.find_then_click('Instance_challenge', timeout=1)
-        await self.player.monitor(CLOSE_BUTTONS)
-        challenge_list = await self.player.find_all_pos('red_point')
-        if not challenge_list:
-            self.logger.debug("No new challenge.")
-            return True
-
-        pos_ok = (430, 430)
-        pos_next = (530, 430)
-
-        for pos in challenge_list:
-            pos = (pos[0] - 50, pos[1] + 20)
-            await self.player.click(pos)
-            await self.player.monitor(['challenge3', 'mop_up', 'mop_up1', 'mop_up2'])
-            pos_list = await self.player.find_all_pos(['challenge3', 'mop_up', 'mop_up1', 'mop_up2'])
-            if not pos_list:
-                msg = "no found any of ['challenge3', 'mop_up', 'mop_up1', 'mop_up2']"
-                self.logger.warning(msg)
-                self.save_operation_pics(msg)
-                await self.player.go_back_to('challenge_dungeon')
-                continue
-            pos = filter_bottom(pos_list)
-            await self.player.click(pos)
-            name, pos = await self.player.monitor(['start_fight', 'next_game1'])
-
-            if name == 'start_fight':
-                await self.player.click(pos)
-                await asyncio.sleep(3)
-                res = await self._fight_challenge()
-                if res != 'win':
-                    self.logger.debug("Fight lose")
-                else:
-                    await self.player.click(pos_next, delay=3)
-                    await self._fight_challenge()
-                await self.player.click(pos_ok, delay=3)
-            else:
-                await self.player.click(pos_next)
-                await self.player.click(pos_ok)
-
-            await self.player.go_back_to('challenge_dungeon')
-
-    #
-    # guild
-    #
-
-    async def guild(self):
-        try:
-            _, pos = await self.player.monitor(['guild'], threshold=0.97, timeout=1)
-            await self.player.click(pos)
-        except FindTimeout:
-            self.logger.debug("No new guild event.")
-            return
-
-        _, pos_guild_territory = await self.player.monitor('guild_territory')
-        await self.player.find_then_click('sign_in', threshold=0.95, timeout=1, raise_exception=False)
-        await self.player.click(pos_guild_territory)
-
-        # guild_instance
-        _, pos = await self.player.monitor(['guild_instance'])
-        await self.player.click(pos)
-        
-        name, pos = await self.player.monitor(['boss_card', 'boss_card1'], threshold=0.92, timeout=3)
-        # 匹配的是卡片边缘，而需要点击的是中间位置
-        if name == 'boss_card':
-            pos = (pos[0], pos[1]+50)
-        else:
-            pos = (pos[0], pos[1]-50)
-        await self.player.click(pos)
-
-        # TODO 匹配战斗，直接战斗两次，以避免钻石0和钻石40的分辨
-        await self.player.monitor('ranking_icon2')
-        try:
-            _, pos = await self.player.monitor('fight4', threshold=0.84, timeout=1)
-            await self.player.click(pos)
-            await self._fight_guild()
-        except FindTimeout:
-            pass    # 这有问题，异常处理要更严谨
-
-        # guild_factory
-        await self.player.monitor('ranking_icon2')
-        await self.player.go_back_to('guild_factory')
-
-        await asyncio.sleep(1)    # 防止点太快
-        await self.player.find_then_click('guild_factory', timeout=1)
-
-        try:
-            for i in range(2):
-                _, pos = await self.player.monitor(['order_completed', 'ok1'], timeout=3)
-                await self.player.click(pos)
-        except FindTimeout:
-            pass
-
-        _, pos = await self.player.monitor(['get_order'])
-        await self.player.click(pos)
-        await asyncio.sleep(1)    # 防止点太快
-        pos_start_all = (510, 140)
-        await self.player.click(pos_start_all)
-
-        # Donate
-        pos_donate_home = (770, 270)
-        await self.player.click(pos_donate_home)
-        _, pos = await self.player.monitor(['donate'])
-        await self.player.click(pos)
-        try:
-            _, pos = await self.player.monitor(['ok5'], timeout=2)
-            await self.player.click(pos)
-        except:
-            pass
-
-        # # open boxes
-        # pos_list = await self.player.find_all_pos(['box1'], threshold=0.9)
-        # for p in sorted(pos_list):
-        #     await self.player.click(p)
-        #     _, pos = await self.player.monitor(['ok4', 'ok13'], timeout=2)
-        #     await self.player.click(pos)
-
-    async def _fight_guild(self):
-        go_last = (835, 56)
-        next_fight = (520, 425)
-
-        _, pos = await self.player.monitor(['start_fight'])
-        await self.player.click(pos, delay=5)
-        await self.player.monitor('message')
-        await asyncio.sleep(1)
-        await self.player.click(go_last)
-
-        # 有时候单击会没反应
-        for _ in range(3):
-            try:
-                await self.player.monitor('fight_report', timeout=2)
-                break
-            except FindTimeout:
-                self.logger.warning("game not response, not found fight_report")
-                await self.player.click(go_last)
-
-        await self.player.click(next_fight, delay=5)
-        await self.player.monitor('message')
-        await asyncio.sleep(1)
-        await self.player.click(go_last)
-
-        for _ in range(3):
-            try:
-                await self.player.monitor('fight_report', timeout=2)
-                break
-            except FindTimeout:
-                self.logger.warning("game not response, not found fight_report")
-                await self.player.click(go_last)
-
-        _, pos = await self.player.find_then_click('ok')
-
-    #
-    # exciting_activities
-    #
-
-    async def exciting_activities(self):
-        pos_exciting_activities = (740, 70)
-        await self.player.click(pos_exciting_activities)
-        pos_sign_in = (700, 430)
-        for _ in range(2):
-            await self.player.click(pos_sign_in)
-
-    #
-    # jedi_space
-    #
-
-    async def jedi_space(self):
-        await self._move_to_left_top()
-        await self.player.find_then_click('jedi_space')
-
-        await self.player.find_then_click('challenge5')
-        await self.player.find_then_click('mop_up3')
-        # pos_challenge = (430, 450)
-        # await self.player.click(pos_challenge)
-        # pos_mop_up = (650, 150)
-        # await self.player.click(pos_mop_up)
-
-        try:
-            await self.player.find_then_click(['max'], timeout=3, cheat=False)
-        except FindTimeout:
-            return
-
-        pos_ok1 = (430, 415)
-        await self.player.click(pos_ok1)
-
-    #
-    # 生存家园 survival_home
-    #
-
-    async def _drag(self, d):
-        pos1 = (55, 300)
-        pos2 = (55, 400)
-        if d == 'up':
-            await self.player.drag(pos2, pos1, speed=0.02)
-        elif d == 'down':
-            await self.player.drag(pos1, pos2, speed=0.02)
-        await asyncio.sleep(1)
-
-    async def _get_total_floors(self):
-        await self.player.find_then_click('switch_map')
-        await asyncio.sleep(1)
-        
-        await self._drag('up')
-        map_list = await self.player.find_all_pos('locked_field')
-        locked_field = len(map_list)
-        if locked_field == 0:
-            await self.player.find_then_click('switch_map')
-            return 7
-
-        await self._drag('down')
-        map_list = await self.player.find_all_pos('locked_field')
-        locked_field += len(map_list)
-        
-        if locked_field >= 5:
-            # 第四层没有解锁的话，会被重复统计
-            floors = 7 - locked_field + 1
-        else:
-            floors = 7 - locked_field
-
-        await self._drag('up')
-        await self.player.find_then_click('switch_map')
-        return floors
-
-
-    async def _goto_floor(self, i):
-        pos_map = {
-            1: (50, 288),
-            2: (50, 321),
-            3: (50, 356),
-            4: (50, 388),
-            5: (50, 341),
-            6: (50, 375),
-            7: (50, 409)
-        }
-
-        await self.player.find_then_click('switch_map')
-        await asyncio.sleep(1)
-
-        if i <= 4:
-            await self._drag('down')
-        else:
-            await self._drag('up')
-
-        await asyncio.sleep(0.2)
-        await self.player.click(pos_map[i])
-        await self.player.find_then_click('switch_map')
-
-        return i
-
-    async def _swip_to(self, direction, stop=False):
-        left_top = (150, 150)
-        top = (400, 150)
-        right_top = (700, 150)
-        left = (150, 270)
-        right = (700, 270)
-        left_down = (150, 370)
-        down = (400, 370)
-        right_down = (700, 370)
-
-        swip_map = {
-            'left_top': (left_top, right_down),
-            'left_down': (left_down, right_top),
-            'right_down': (right_down, left_top),
-            'right_top': (right_top, left_down),
-            'top': (top, down),
-            'down': (down, top),
-            'left': (left, right),
-            'right': (right, left),
-        }
-
-        self.logger.debug('swipe_to {direction}')
-        p1, p2 = swip_map[direction]
-        await self.player.drag(p1, p2, speed=0.02, stop=stop)
-
-    async def _collect_box(self):
-        boxes = await self.player.find_all_pos('box')
-        for p in boxes:
-            await self.player.click(p, cheat=False, delay=0.4)
-
-    async def _fight_home_boos(self, win_count, max_fight, max_try=1):
-        can_win = True
-
-        while True:
-            try:
-                name, p = await self.player.monitor(['boss', 'boss1', 'boss2'], timeout=1)
-            except FindTimeout:
-                return win_count, can_win
-
-            # 点boos中心，因为某些位置点了无效
-            p = (p[0] + 40, p[1] - 40)
-            if not self._can_click(p):
-                # 点不了，就返回，等移动了，可能就能点了
-                return win_count, can_win
-
-            await self.player.click(p, cheat=False)
-            win = await self._fight_home(max_try=max_try)
-            if win:
-                win_count += 1
-                if win_count >= max_fight:
-                    return win_count, can_win
-            else:
-                self.logger.warning("Fight lose.")
-                can_win = False
-                return win_count, can_win
-
-    def _can_click(self, boss_pos):
-        """确保在可点击区域"""
-        x, y = boss_pos
-        if x < 30 or x > 830:
-            return False
-        if y < 90 or y > 490:
-            return False
-        if x < 100 and y > 410:
-            return False
-        if x > 690 and y > 400:
-            return False
-        return True
-
-    async def _fight_home(self, max_try=2):
-        pos_ok_win = (430, 430)
-        pos_ok_lose = (340, 430)
-        pos_next = (530, 430)
-        count = 1
-
-        await self.player.find_then_click('fight6')
-        await self.player.find_then_click('start_fight')
-
-        while True:
-            try:
-                await self.player.find_then_click(['win', 'lose', 'go_last'], threshold=0.9)
-            except FindTimeout:
-                pos_go_last = (836, 57)
-                await self.player.click(pos_go_last)
-
-            fight_res, pos = await self.player.monitor(['win', 'lose'], threshold=0.9, timeout=240)
-            if fight_res == 'win':
-                await self.player.click(pos_ok_win)
-                # await self.player.monitor(['go_back', 'go_back1', 'go_back2'])
-                return True
-            else:
-                if count < max_try:
-                    await self.player.click(pos_next)
-                    count += 1
-                else:
-                    await self.player.click(pos_ok_lose)
-                    # await self.player.monitor(['go_back', 'go_back1', 'go_back2'])
-                    return False
-
-    async def survival_home(self):
-        await self._move_to_left_top()
-        await self.player.find_then_click('survival_home')
-        try:
-            _, pos = await self.player.monitor('resources', timeout=3)
-            await asyncio.sleep(3)    # 点太快，可能卡住
-            await self.player.click(pos)
-        except FindTimeout:
-            await asyncio.sleep(3)    # 点太快，可能卡住
-
-        pos_fight = (830, 490)
-        await self.player.click(pos_fight)
-        await asyncio.sleep(3)
-        total_floors = await self._get_total_floors()
-
-        try:
-            await self.player.find_then_click('collect_all_box', timeout=1)
-        except FindTimeout:
-            pass
-        else:
-            try:
-                await self.player.find_then_click('receive3', timeout=3)
-            except FindTimeout:
-                pass    # 可能以及收集完了
-
-        max_fight = 4
-        win_count = 0
-        for i in range(total_floors, 4, -1):
-            print(i)
-            await self._goto_floor(i)
-            await asyncio.sleep(1)    # 点太快，可能卡住
-            can_win = True
-            for d in [None, 'left_top', 'left_down', 'right_down', 'right_top']:
-                if d:
-                    await self._swip_to(d)
-                # await self._collect_box()
-                if can_win and win_count < max_fight and (not await self._reach_point_limit()):
-                    win_count, can_win = await self._fight_home_boos(win_count, max_fight, max_try=1)
-
-    async def _reach_point_limit(self):
-        # 如果达到了90或者95分，就不能再打boos了
-        try:
-            await self.player.monitor(['num_90', 'num_95'], threshold= 0.9, timeout=1)
-            return True
-        except FindTimeout:
-            return False
-
-    #
-    # invite_heroes
-    #
-
-    async def _dismiss_heroes(self):
-        await self.player.find_then_click('dismiss_hero2')
-        pos_1 = (520, 425)
-        pos_2 = (580, 425)
-        pos_put_into = (150, 440)
-        pos_dismiss = (320, 440)
-
-        await self.player.find_then_click('quick_put_in')
-        await asyncio.sleep(1)
-        await self.player.find_then_click('dismiss')
-        await self.player.find_then_click('receive1')
-
-    async def invite_heroes(self):
-        await self._move_to_left_down()
-        _, pos = await self.player.monitor(['invite_hero'])
-        await self.player.click(pos)
-        await self.player.monitor('beer')
-        pos_list = await self.player.find_all_pos(['invite_free', 'invite_soda', 'invite_beer'])
-
-        for p in pos_list:
-            await self.player.click(p)
-            name, pos = await self.player.monitor(['ok9', 'ok10', 'ok17', 'close'])
-            await self.player.click(pos)
-            # 如果英雄列表满了，就遣散英雄
-            if name == 'close':
-                raise PlayException("The hero list is full")
-                # pos_list.append(p)    # ，没邀请成功，就再试一次
-                
-                # await self._dismiss_heroes()
-
-
-    #
-    # armory
-    #
-
-    async def armory(self):
-        await self._move_to_right_top()
-        _, pos = await self.player.monitor(['armory'])
-        await self.player.click(pos, delay=2)
-        pos_types = [
-            (820, 190),
-            (820, 270),
-            (820, 350),
-            (820, 440),
-        ]
-        pos_quantity = (220, 330)
-        pos_enter = (810, 480)
-        pos_forging = (250, 450)
-        # 不能每次都薅同一只羊
-        len_num = len(pos_types)
-        idx = random.choice(range(len_num))
-
-        count = 0
-        for i in range(len_num):
-            pos_type = pos_types[(idx + i) % len_num]
-            await self.player.click(pos_type)
-            # 匹配上所有点，但排除右边pos_types的那些点
-            pos_list = await self.player.find_all_pos(['arms'], threshold=0.8)
-            pos_list = list(
-                filter(lambda x: x[0] < 800 or 0 < x[0] - 910 < 800, pos_list))
-            if pos_list:
-                await self.player.information_input(pos_quantity, '3')
-                await self.player.click(pos_enter)
-                try:
-                    await self.player.monitor('number_3', threshold=0.9, timeout=1)
-                    count += 3
-                except:
-                    count += 1
-                await self.player.click(pos_forging)
-
-                if count >= 3:
-                    return
-        else:
-            self.logger.info(
-                "There are not enough equipment for synthesis.")
-
-    #
-    # market
-    #
-
-    async def market(self):
-        await self._move_to_left_down()
-        await self.player.find_then_click('market')
-        await self.player.monitor(['gold', 'diamond'])
-        await self._receive_survival_reward()
-
-        fresh_btn = (690, 135)
-        for i in range(4):
-            await self._buy_goods()
-            await self.player.click(fresh_btn)
-            try:
-                await self.player.find_then_click('cancle', timeout=1)
-                break
-            except FindTimeout:
-                pass
-
-        await self._buy_premium_goods()
-
-    async def _receive_survival_reward(self):
-        pos_plus = (411, 54)
-        await self.player.click(pos_plus, cheat=False)
-        pos_receive = (350, 390)
-        for i in range(2):
-            await self.player.click(pos_receive)
-            try:
-                await self.player.find_then_click(OK_BUTTONS, timeout=1)
-            except FindTimeout:
-                break
-        await self.player.go_back_to('premium')
-
-    async def _buy_goods(self):
-        nice_goods = ['task_ticket', 'hero_badge', 'arena_tickets',
-                      'soda_water', 'hero_blue', 'hero_green', 'hero_light_blue', 'hero_red']
-        list1 = await self.player.find_all_pos('gold')
-        list2 = await self.player.find_all_pos(nice_goods)
-        pos_list1 = self._merge_pos_list(list1, list2, dx=50, dy=100)
-        
-        list3 = await self.player.find_all_pos('diamond_1000')
-        list4 = await self.player.find_all_pos('beer_8')
-        pos_list2 = self._merge_pos_list(list3, list4, dx=50, dy=100)
-
-        for pos in pos_list1 + pos_list2:
-            if await self.player.is_disabled_button(pos):
-                continue
-            pos = (pos[0] + 30, pos[1])
-            await self.player.click(pos)
-            await self.player.find_then_click(OK_BUTTONS)
-            await self.player.find_then_click(OK_BUTTONS)
-
-    async def _buy_premium_goods(self):
-        await self.player.find_then_click('premium')
-        try:
-            await self.player.find_then_click('go_page_2', timeout=2)
-        except FindTimeout:
-            self.logger.debug("can't buy premium goods, for low level")
-            return
-
-        list1 = await self.player.find_all_pos('gold1')
-        list2 = await self.player.find_all_pos('arena_tickets')
-        pos_list = self._merge_pos_list(list1, list2, dx=50, dy=100)
-
-        pos_list2 = []
-        # TODO 买宝图，要可以配置
-        # list3 = await self.player.find_all_pos('diamond2')
-        # list4 = await self.player.find_all_pos('treasure_map')
-        # pos_list2 = self._merge_pos_list(list3, list4, dx=50, dy=100)
-
-        for pos in pos_list + pos_list2:
-            if await self.player.is_disabled_button(pos):
-                continue
-            pos = (pos[0] + 30, pos[1])
-            await self.player.click(pos)
-            await self.player.find_then_click(OK_BUTTONS)
-            await self.player.find_then_click(OK_BUTTONS)
-
- 
-
-    #
-    # arena
-    #
-
-    async def _fight_arena(self):
-        _, pos_fight = await self.player.monitor(['start_fight'])
-
-        try:
-            await self.player.monitor(['skip_fight'], threshold=0.9, timeout=1)
-            skip_fight = True
-        except FindTimeout:
-            skip_fight = False
-
-        await self.player.click(pos_fight)
-
-        if not skip_fight:
-            # 25级以下无法加速，60以下无法快进
-            for _ in range(3):
-                pos_list = await self.player.find_all_pos(['fast_forward1', 'go_last'], threshold=0.9)
-                if pos_list:
-                    for pos in pos_list:
-                        await self.player.click(pos)
-                    break
-                await asyncio.sleep(1)
-
-        _, pos = await self.player.monitor(['card'], timeout=240)
-        await self.player.click(pos)
-        await self.player.click(pos)
-        fight_res, pos = await self.player.monitor(['win', 'lose'], threshold=0.9)
-        pos_ok = (430, 430)
-        await self.player.click(pos_ok)
-        if not skip_fight:
-            await asyncio.sleep(4)
-
-        return fight_res
-
-    async def _swip_up(self):
-        self.logger.debug('swipe_up')
-        p1 = (300, 400)
-        p2 = (300, 150)
-        await self.player.drag(p1, p2, speed=0.02)
-        await asyncio.sleep(1)
-
-    async def arena(self):
-        # await self._move_to_center()
-        await self._move_to_left_top()
-        _, pos = await self.player.monitor(['arena'])
-        await self.player.click(pos)
-
-        _, pos = await self.player.monitor(['enter'])
-        await self.player.click(pos, delay=2)
-
-        pos_refresh = (660, 170)
-        for i in range(7):
-            _, pos = await self.player.monitor(['fight7'])
-            await self.player.click(pos)
-            if i > 4:
-                await self.player.click(pos_refresh)
-            _, pos = await self.player.monitor(['fight8'], filter_func=filter_bottom)
-            await self.player.click(pos)
-            res = await self._fight_arena()
-            if res != 'win':
-                # TODO 失败了，也应该打满3次，完成日常任务
-                self.logger.debug('Fight lose.')
-                break
-
-        try:
-            _, pos = await self.player.monitor(['reward'], timeout=1, threshold=0.9)
-            await self.player.click(pos)
-
-            pos_list = await self.player.find_all_pos(['receive2'], threshold=0.9)
-            if not pos_list:
-                await self._swip_up()
-                pos_list = await self.player.find_all_pos(['receive2'], threshold=0.9)
-
-            for pos in sorted(pos_list, key=lambda x: x[1]):
-                await self.player.click(pos)
-                try:
-                    _, pos = await self.player.monitor(['ok12'], timeout=1)
-                    await self.player.click(pos)
-                except FindTimeout:
-                    break
-        except FindTimeout:
-            pass
-
-    async def arena_champion(self, min_score=50):
-        await self._move_to_left_top()
-
-        await self.player.find_then_click('arena')
-        await self.player.find_then_click('champion')
-        await self.player.find_then_click('enter')
-
-        # 第一次进入，需要设置上阵英雄
-        try:
-            await self.player.find_then_click(CLOSE_BUTTONS, timeout=2)
-            await self.player.find_then_click('save')
-        except FindTimeout:
-            pass
-
-        page = 4
-        idx = 1
-        score = 0
-        win = 0
-        lose = 0
-        pos_refresh = (660, 170)
-        pos_fight = (700, 340)
-        pos_ok = (440, 430)
-        pos_fights = [
-            (650, 250),
-            (650, 330),
-            (650, 415),
-        ]
-
-        while score < min_score:
-            await self.player.monitor('fight7')
-            await asyncio.sleep(1)
-            # 如果没有跳过战斗，按钮有个从下往上的动画
-            await self.player.find_then_click('fight7')
-            await self.player.monitor('refresh_green')
-            for _ in range(page):
-                await self.player.click(pos_refresh, delay=0.3)
-            await self.player.click(pos_fights[idx])
-            await self.player.find_then_click(['fight_green'])
-            for _ in range(10):
-                name = await self.player.find_then_click(['card', 'ok12', 'ok16', 'next', 'next1', 'go_last'])
-                if name == 'card':
-                    await self.player.click(pos_ok)
-                    name = await self.player.find_then_click(['win', 'lose'], threshold=0.9)
-                    if name == 'win':
-                        score += 2
-                        win += 1
-                    else:
-                        score += 1
-                        lose += 1
-                        idx += 1
-                        if idx > 3:
-                            idx = 1
-                            page += 1
-                    break
-            await self.player.click(pos_ok)
-
-        self.logger.info(f"win: {win}, lose: {lose}, score: {score}")
-
-    #
-    # brave_instance
-    #
-
-    async def brave_instance(self):
-        """勇者副本"""
-        await self._move_to_right_top()
-        await self.player.find_then_click('brave_instance')
-        if not await self._goto_curr_level():
-            return 
-
-        await self.player.find_then_click('challenge4')
-        try:
-            _, _ = await self.player.monitor('team_empty', timeout=2)
-            await self._equip_team()
-        except FindTimeout:
-            pass
-
-        while True:
-            await self.player.find_then_click('start_fight')
-            result = await self._fight_brave()
-            if result == 'win':
-                name = await self.player.find_then_click(['next_level4', 'ok'])
-                if name == 'ok':
-                    if not await self._goto_curr_level():
-                        return
-                await self.player.find_then_click('challenge4')
-            else:
-                await self.player.find_then_click(OK_BUTTONS)
-                return
-
-
-    async def _goto_curr_level(self):
-        # 确保进入了勇者副本主界面
-        await self.player.monitor(['box_opend', 'box_closed'])
-
-        try:
-            await self.player.monitor('brave_finished', timeout=1)
-            return False
-        except FindTimeout:
-            _, (x, y) = await self.player.monitor('current_level', threshold=0.9)
-            await self.player.click((x, y + 40), cheat=False) 
-            return True
-    
-
-    async def _fight_brave(self):
-        for _ in range(5):
-            name, pos = await self.player.monitor(['card', 'lose', 'go_last', 'fast_forward1'])
-            if name == "card":
-                await self.player.click(pos)
-                await self.player.click(pos)
-                return 'win'
-            elif name in ['go_last', 'fast_forward1']:
-                await self.player.click(pos)
-            else:
-                return 'lose'
-
-
-    async def lucky_draw(self):
-        await self.player.find_then_click(['lucky_draw'])
-        await self.player.monitor('draw_once')
-        await self.player.find_then_click(['draw_once'])
-        await asyncio.sleep(8)
-        await self.player.find_then_click(['draw_again'])
-
-    async def task_board(self):
-        # 如果有任务完成不了，就不要继续刷新任务了
-        self.logger.info("Run task board")
-
-        await self.player.find_then_click('task_board')
-        try:
-            # 确保界面刷新出来了
-            await self.player.monitor(['receivable_task', 'delete_task', 'finish_btn'])
-            # 看下是否有可领取的任务
-            await self.player.monitor('receivable_task', timeout=1)
-        except:
-            self.logger.info("Skip, there is no receivable task")
-            return
-
-        await self._accept_task()
-        await self._finish_all_tasks()
-
-        # 最多刷新5次，如果钻石不够也能退出
-        max_num = 5
-        for i in range(max_num):
-            await self.player.find_then_click('refresh4')
-            await asyncio.sleep(2)
-            try:
-                await self.player.monitor('receivable_task', timeout=1)
-            except FindTimeout:
-                self.logger.info("All task had been accepted.")
-                return
-            await self._accept_task()
-
-        self.logger.info(f"Reach max refresh times ({max_num})")
-
-    async def _accept_task(self):
-        one_key_to_battle = (350, 455)
-        start_task = (520, 455)
-
-        while True:
-            list1 = await self.player.find_all_pos('receivable_task')
-            list2 = await self.player.find_all_pos(GOOD_TASKS)
-            pos_list = self._merge_pos_list(list1, list2, dx=10)
-            for pos in pos_list:
-                await self.player.click(pos)
-                await self.player.monitor('close')
-                await self.player.click(one_key_to_battle)
-                await self.player.click(start_task)
-                pos_list2 = await self.player.find_all_pos(['close', 'no_hero'])
-                if pos_list2:
-                    await self.player.click(start_task)
-                    pos_list2 = await self.player.find_all_pos(['close', 'no_hero'])
-                    if pos_list2:
-                        raise PlayException("Lack of heroes to accept task")
-
-            await self._swip_to('right', stop=True)
-
-            try:
-                await self.player.monitor('receivable_task', timeout=1)
-            except FindTimeout:
-                return
-
-            try:
-                await self.player.monitor(['finish_btn', 'unlock_more'], timeout=1)
-                return
-            except FindTimeout:
-                pass
-
-    def _merge_pos_list(self, btn_list, icon_list, dx=1000, dy=1000):
-        def _is_close(p1, p2):
-            x1, y1 = p1
-            x2, y2 = p2
-            # dy不试用绝对值，因为按钮一般在图标的下面
-            if math.fabs(x1 - x2) <= dx and 0 <= y1 - y2 <= dy:
-                return True
-            return False
-
-        merge_set = set()
-        for p1 in btn_list:
-            for p2 in icon_list:
-                if _is_close(p1, p2):
-                    merge_set.add(p1)
-        merge_list = sorted(list(merge_set), key=lambda pos: pos[1])
-        print(f"merge_list: {merge_list}")
-        return merge_list
-
-    async def _finish_all_tasks(self):
-        await self.player.find_then_click('one_click_collection2')
-        try:
-            await self.player.find_then_click(OK_BUTTONS, timeout=2)
-            await asyncio.sleep(2)
-            await self.player.find_then_click(OK_BUTTONS, timeout=2)
-            self.logger.info("All tasks had been finished.")
-            return
-        except FindTimeout:
-            while True:
-                await self._swip_to('right')
-                try:
-                    await self.player.monitor('unlock_more', timeout=2)
-                    break
-                except FindTimeout:
-                    pass
-
-            while True:
-                try:
-                    await self.player.find_then_click('finish_btn', timeout=1)
-                    await self.player.find_then_click(OK_BUTTONS, timeout=1)
-                    try:
-                        # 高星任务会一次词确认
-                        await self.player.find_then_click(OK_BUTTONS, timeout=1)
-                    except FindTimeout:
-                        pass
-                except FindTimeout:
-                    self.logger.info("All tasks had been finished.")
-                    return
-
-    async def vip_shop(self):
-        pos_vip = (28, 135)
-        await self.player.click(pos_vip, cheat=False)
-        await self.player.monitor(['vip_shop'])
-        try:
-            await self.player.find_then_click(['receive_small'], timeout=1)
-        except FindTimeout:
-            pass
-
-    async def maze(self):
-        """Maze Treasure Hunt"""
-        try:
-            await self.player.find_then_click(['maze4'], timeout=1, cheat=False)
-        except FindTimeout:
-            self.logger.debug("There is no maze")
-            return
-
-        await self.player.monitor(['maze_text'])
-
-        try:
-            await self.player.find_then_click(['maze_daily_gift'], threshold=0.9, timeout=1)
-        except FindTimeout:
-            self.logger.debug("maze daily gift have been already recived.")
-            return
-        else:
-            pos_recive = (700, 270)
-            await self.player.click(pos_recive)
-
-    async def hero_expedition(self):
-        await self._move_to_right_top()
-        await self.player.find_then_click('hero_expedition')
-        try:
-            await self.player.find_then_click(['production_workshop'])
-            await self.player.find_then_click(['one_click_collection1'])
-        except FindTimeout:
-            self.logger.debug("hero_expedition need at least one 14 star hero.")
-            while True:
-                name, pos = await self.player.monitor(['go_back', 'go_back1', 'go_back2', 'setting'])
-                if name == 'go_back' or name == 'go_back1' or name == 'go_back2':
-                    await self.player.click(pos)
-                else:
-                    break
-
-    
-    async def daily_task(self):
-        await self.goto_main_interface()
-        await self.player.find_then_click('task')
-        await self.player.find_then_click('receive_all')
-
-
     async def ju_dian_gong_hui_zhan(self):
         if not await self._enter_ghz():
-            return 
+            return
 
         await self._pull_up_the_lens()
 
@@ -1624,7 +195,7 @@ class AutoPlay(object):
                             await self.player.find_then_click(['tiao_zhan', 'tiao_zhan1'], timeout=1)
                         except FindTimeout:
                             await self.player.find_then_click(CLOSE_BUTTONS)
-                            break 
+                            break
                         await self.player.monitor('dui_wu_xiang_qing')
                         await self.player.find_then_click('check_box', timeout=1, raise_exception=False)
                         try:
@@ -1648,7 +219,6 @@ class AutoPlay(object):
         await self.player.monitor('jidi')
         return True
 
-    
     async def _pull_up_the_lens(self):
         _, pos = await self.player.monitor('jidi')
         for _ in range(3):
@@ -1659,7 +229,6 @@ class AutoPlay(object):
             except FindTimeout:
                 continue
         return False
-
 
     async def _close_game(self):
         pos_recent_tasks = (885, 500)
@@ -1740,12 +309,12 @@ class AutoPlay(object):
 
             # 同时启动，可能会导致闪退
             async with self.player.g_sem:
+                await asyncio.sleep(5)
                 await self.player.double_click(pos)
-                await asyncio.sleep(10)
 
-            await asyncio.sleep(50)
+            await asyncio.sleep(30)
 
-            await self.player.monitor(['close_btn', 'close_btn5', 'start_game'], timeout=90)
+            await self.player.monitor(['close_btn', 'close_btn5', 'start_game'], timeout=120)
 
             for _ in range(3):
                 await asyncio.sleep(3)
@@ -1821,44 +390,43 @@ class AutoPlay(object):
         return True
 
     async def play_game(self):
-        tasks = [
-            'maze',
-            'collect_mail',
-            'vip_shop',
-            'friends_interaction',
-            'community_assistant',
-            'instance_challenge',
-            'guild',
-            'exciting_activities',
-            'jedi_space',
-            'survival_home',
-            'market',
-            'invite_heroes',
-            'level_battle',
-            'arena',
-            'arena_champion',
-            'task_board',
-            'armory',
-            'lucky_draw',
-            'brave_instance',
-            'hero_expedition',
-            'ju_dian_gong_hui_zhan',
-            'daily_task',
+        task_list = [
+            'XianShiJie',
+            'YouJian',
+            'HaoYou',
+            'SheQvZhuLi',
+            'TiaoZhanFuben',
+            'GongHui',
+            'MeiRiQianDao',
+            'JueDiKongJian',
+            'ShengCunJiaYuan',
+            'YaoQingYingXion',
+            'WuQiKu',
+            'XingCunJiangLi',
+            'ShiChang',
+            'JingJiChang',
+            'GuanJunShiLian',
+            'YongZheFuBen',
+            'XingYunZhuanPan',
+            'RenWuLan',
+            'VipShangDian',
+            'YingXiongYuanZheng',
+            'MiGong',
+            'RenWu',
+
         ]
 
-        # tasks = [
+        # task_list = [
         #     'shen_yuan_mo_ku',
         # ]
 
         restart_count = 0
         failed_task = set()
 
-        for task in tasks:
-            if not need_run(task):
-                self.logger.debug("skip to run {task}")
-                continue
+        self.player.load_role_cfg()
 
-            self.logger.info("Start to run: " + task)
+        for cls_name in task_list:
+            self.logger.info("Start to run: " + cls_name)
             try:
                 await self.goto_main_interface()
             except Exception as e:
@@ -1867,46 +435,33 @@ class AutoPlay(object):
                 success = await self.restart_game()
                 if not success:
                     self.save_operation_pics(str(e))
-                    return False
+                    # return False
 
+            obj = getattr(tasks, cls_name)(self.player)
             try:
-                # -------如果是在同一个命名空间
-                # clazz = globals()['classname']
-                # instance= clazz()
-                # ------如果在其它module，先import导入该module
-                # import module
-                # clazz= getattr(module, 'classname')
-                # instance = clazz()
-
-                await getattr(self, task)()
-
-                # clazz= getattr(tasks, task)
-                # instance = clazz()
-                # self.logger.info(f"Run {task}")
-                # instance.run()
-
+                await obj.run()
             except Exception as e:
-                tasks.append(task)
+                task_list.append(cls_name)
                 self.logger.error(str(e))
                 self.save_operation_pics(str(e))
 
                 # TODO 如果累计timeout3次，也restart game
-                if task not in failed_task:
-                    failed_task.add(task)
+                if cls_name not in failed_task:
+                    failed_task.add(cls_name)
                 else:
                     if restart_count < 3:
-                        self.logger.warning(f'the {task} failed again, so restart game')
+                        self.logger.warning(
+                            f'the {cls_name} failed again, so restart game')
                         restart_count += 1
                         success = await self.restart_game()
                         if not success:
                             self.save_operation_pics(str(e))
-                            return False
+                            # return False
                     else:
                         self.logger.error('restart too many times, so exit')
-                        return False
+                        # return False
 
-        # await self.daily_task()
-
+        self.player.counter.save_data()
 
     async def restart_game(self):
         await self.player.find_then_click('recent_tasks')

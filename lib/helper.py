@@ -15,7 +15,11 @@ import time
 # main_dir = os.path.split(file_dir)[0]
 # 打成单文件，只有这个打包前后路径是一致的
 
-release = False
+mode = open('./configs/mode.txt').read().strip()
+if mode == 'release':
+    release = True
+else:
+    release = False
 
 if release:
     main_dir = os.path.dirname(os.path.realpath(sys.executable))
@@ -97,6 +101,9 @@ def is_afternoon():
 
 def is_monday():
     return datetime.now().weekday() == 0
+    
+def is_sunday():
+    return datetime.now().weekday() == 6
 
 class GameNotResponding(Exception):
     pass

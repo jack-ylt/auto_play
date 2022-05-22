@@ -12,6 +12,7 @@ import random
 import re
 from lib.helper import make_logger, GameNotResponding
 from lib.read_cfg import read_role_cfg
+from lib.recorder import PlayCounter
 
 logger = logging.getLogger(__name__)
 
@@ -37,9 +38,11 @@ class Player(object):
             right, bottom = left + WIDTH, top + HIGH
             self.bbox = (left, top, right, bottom)
             self.logger = make_logger(window_name)
+            self.counter = PlayCounter(window_name)
         else:
             self.bbox = (0, 0, 1920, 1080)
             self.logger = logger
+            self.counter = PlayCounter('debug')
 
         self.g_queue = g_queue
         self.g_event = g_event
@@ -117,7 +120,7 @@ class Player(object):
                 return True
         return False
 
-    async def monitor(self, names, timeout=10, threshold=0.8, filter_func=_get_first, verify=True):
+    async def monitor(self, names, timeout=10, threshold=0.8, filter_func=_get_first, verify=False):
         """return (name, pos), all rease timeout_error"""
         if not isinstance(names, list):
             names = [names]
@@ -322,6 +325,7 @@ class Player(object):
         await asyncio.sleep(delay)
         self._cache_operation_pic(msg, pos_list)
 
+    # 防止误点击到运动目标，所以verify默认True，monitor通常用于监控目标是否出现，因此默认verify是False
     async def find_then_click(self, name_list, pos=None, threshold=0.8, timeout=10, delay=1, raise_exception=True, cheat=True, verify=True):
         """find a image, then click it ant return its name
 

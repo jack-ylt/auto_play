@@ -1,5 +1,5 @@
-WIDTH = 910
-HIGH = 518
+WIDTH = 905
+HIGH = 519
 
 WINDOW_DICT = {
     'left_top': (0, 0),

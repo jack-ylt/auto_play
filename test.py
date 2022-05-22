@@ -149,12 +149,12 @@ async def test_tasks(cls_name):
 
 
 if __name__ == '__main__':
-    # names = ['max1', 'yi_jian_shang_zhen'] 
+    # names = ['start_turntable', 'yi_jian_shang_zhen'] 
     # asyncio.run(test_eye(names, threshold=0.8, verify=False))
 
     # asyncio.run(test_auto_play())
 
-    asyncio.run(test_tasks('YingXiongYuanZheng'))
+    asyncio.run(test_tasks('ShenYuanMoKu'))
 
 
 # TODO 每个任务都要记录完成情况，以便后续检查是否有任务没做到（比如说识别失败）
