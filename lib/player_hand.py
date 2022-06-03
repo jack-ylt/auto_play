@@ -14,7 +14,6 @@ import math
 from time import sleep
 
 import logging
-logger = logging.getLogger(__name__)
 
 
 def distance(p1, p2):

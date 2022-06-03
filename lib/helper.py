@@ -67,17 +67,17 @@ def de_duplication(pos_list, offset=10):
 
 def make_logger(name):
     today = datetime.now().strftime(r'%Y-%m-%d')
-    file_dir = os.path.join(log_dir, name)
-    if not os.path.exists(file_dir):
-        os.mkdir(file_dir)
-    filename = file_dir + '/' + today + '.log'
-    print(filename)
+    # file_dir = os.path.join(log_dir, name)
+    # if not os.path.exists(file_dir):
+    #     os.mkdir(file_dir)
+    file_name = os.path.join(log_dir, name + '_' + today + '.log')
+    print(file_name)
     
     logger = logging.getLogger(name)
     logger.setLevel(logging.DEBUG)
 
     # fh = handlers.RotatingFileHandler(filename, mode='a', maxBytes=5*1024*1024, backupCount=3)
-    fh = handlers.TimedRotatingFileHandler(filename, when='D', interval=1, backupCount=7)
+    fh = handlers.TimedRotatingFileHandler(file_name, when='D', interval=1, backupCount=7)
     fh.setLevel(logging.DEBUG)
 
     ch = logging.StreamHandler()
@@ -101,6 +101,9 @@ def is_afternoon():
 
 def is_monday():
     return datetime.now().weekday() == 0
+
+def is_wednesday():
+    return datetime.now().weekday() == 2
     
 def is_sunday():
     return datetime.now().weekday() == 6

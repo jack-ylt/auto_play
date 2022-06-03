@@ -158,15 +158,17 @@ class Eye(object):
                         img_bg, img_target, threshold=threshold)
         if pos_list:
             end_t = time.time()
-            self.logger.debug("_verify_monitor pass, cost {}".format(end_t - start_t))
             return True
         else:
-            self.logger.warning(f"_verify_monitor not pass: not found {name} near {pos}")
+            self.logger.debug(f"_verify_monitor not pass: not found {name} near {pos}")
             return False
 
 
     async def monitor(self, names, area=None, timeout=10, threshold=0.8, verify=True):
         """return (name, pos_list), or rease timeout_error"""
+        if not isinstance(names, list):
+            names = [names]
+            
         async def _monitor():
             while True:
                 img_bg = self._screenshot(area=area)

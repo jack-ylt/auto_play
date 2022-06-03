@@ -284,7 +284,7 @@ class AutoPlay(object):
             if name == 'game_91':
                 pos_account = (370, 235)
                 await self.player.information_input(
-                    pos_account, account_curr.account)
+                    pos_account, account_curr.user)
                 await asyncio.sleep(1)
                 pos_passwd = (370, 290)
                 await self.player.information_input(
@@ -305,7 +305,7 @@ class AutoPlay(object):
 
         async def _login_game():
             """start game and login, if sucess, return True"""
-            _, pos = await self.player.monitor([account_curr.game_name])
+            _, pos = await self.player.monitor([account_curr.game])
 
             # 同时启动，可能会导致闪退
             async with self.player.g_sem:
@@ -371,7 +371,7 @@ class AutoPlay(object):
             # await _login_account()
             # await _login_server()
         else:
-            if account_curr.game_name != account_pre.game_name:
+            if account_curr.game != account_pre.game:
                 await self._close_game()
                 sucess = await _login_game()
                 if not sucess:
@@ -391,6 +391,7 @@ class AutoPlay(object):
 
     async def play_game(self):
         task_list = [
+            'MeiRiRenWu',
             'XianShiJie',
             'YouJian',
             'HaoYou',
@@ -417,7 +418,7 @@ class AutoPlay(object):
         ]
 
         # task_list = [
-        #     'shen_yuan_mo_ku',
+        #     'ShenYuanMoKu',
         # ]
 
         restart_count = 0
@@ -573,21 +574,21 @@ async def play(window_name, account_list, g_queue, g_event, g_found, g_player_lo
 
     account_pre = None
     Account = namedtuple(
-        'Account', ['game_name', 'account', 'passwd', 'server'])
+        'Account', ['game', 'user', 'passwd', 'server'])
 
     while account_list:
         account_dict = account_list.pop()
         logger.debug(
             f'{window_name}: account_list: {account_list} account_dict: {account_dict}')
         logger.debug("remain account_list:" + str(len(account_list)))
-        game_name = account_dict['game_name']
-        account = account_dict['account']
+        game = account_dict['game']
+        user = account_dict['user']
         passwd = account_dict['passwd']
         server_ids = account_dict['server_ids']
 
         if server_ids:
             for server in server_ids:
-                account_curr = Account(game_name, account, passwd, server)
+                account_curr = Account(game, user, passwd, server)
                 success = await auto_play.login(account_pre, account_curr)
                 if not success:
                     logger.warning(f"{window_name} login failed.")
@@ -595,7 +596,7 @@ async def play(window_name, account_list, g_queue, g_event, g_found, g_player_lo
                 account_pre = account_curr
                 await auto_play.play_game()
         else:
-            account_curr = Account(game_name, account, passwd, '')
+            account_curr = Account(game, user, passwd, '')
             success = await auto_play.login(account_pre, account_curr)
             if not success:
                 logger.warning(f"{window_name} login failed.")

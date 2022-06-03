@@ -4,7 +4,8 @@ HIGH = 519
 WINDOW_DICT = {
     'left_top': (0, 0),
     'left_down': (0, HIGH),
-    'right_top': (WIDTH, 0)
+    'right_top': (WIDTH, 0),
+    'full': (0, 0)
 }
 
 

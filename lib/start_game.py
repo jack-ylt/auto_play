@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 eye = player_eye.Eye()
 hand = player_hand.Hand()
 
-p = player.Player()
+p = player.Player('full')
 
 
 async def game_started():

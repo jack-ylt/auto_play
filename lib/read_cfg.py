@@ -1,20 +1,20 @@
 import configparser
 
 # [1]
-# game_name = mo_shi_jun_tun
-# account = aa592729440
+# game = mo_shi_jun_tun
+# user = aa592729440
 # passwd = Qq8738090
 # server_ids = 4258, 4148, 20
 def read_account_cfg():
     account_list = []
 
     config = configparser.RawConfigParser()
-    config.read(r'./configs/account.cfg')
+    config.read(r'./configs/account.cfg', encoding='utf-8')
 
     for s in sorted(config.sections(), reverse=True):
         account_dict = {}
 
-        for opt in ['game_name', 'account', 'passwd']:
+        for opt in ['game', 'user', 'passwd']:
             account_dict[opt] = config.get(s, opt)
 
         opt = 'server_ids'
@@ -28,11 +28,24 @@ def read_account_cfg():
 
     return account_list
 
+def read_game_user():
+    game_user_list = []
+
+    config = configparser.RawConfigParser()
+    config.read(r'./configs/account.cfg', encoding='utf-8')
+
+    for s in sorted(config.sections(), reverse=True):
+        game = config.get(s, 'game')
+        user = config.get(s, 'user')
+        game_user_list.append((game, user))
+
+    return game_user_list
+
 
 def read_role_cfg(name='default'):
     cfg_dict = {}
     config = configparser.RawConfigParser()
-    config.read(f'./configs/roles_setting/{name}.cfg')
+    config.read(f'./configs/roles_setting/{name}.cfg', encoding='utf-8')
 
     for sct in sorted(config.sections(), reverse=True):
         cfg_dict[sct] = {}

@@ -14,7 +14,7 @@ from lib.helper import make_logger, GameNotResponding
 from lib.read_cfg import read_role_cfg
 from lib.recorder import PlayCounter
 
-logger = logging.getLogger(__name__)
+import pyperclip
 
 FindTimeout = player_eye.FindTimeout
 
@@ -30,45 +30,28 @@ def _random_offset(pos, dx=10, dy=8):
 
 
 class Player(object):
-    def __init__(self, window_name=None, g_queue=None, g_event=None, g_found=None, g_player_lock=None, g_sem=None):
-        self.window_name = window_name
-        if window_name:
-            # ImageGrab.grab(bbox=(left, top, right, bottom))
-            left, top = WINDOW_DICT[window_name]
-            right, bottom = left + WIDTH, top + HIGH
-            self.bbox = (left, top, right, bottom)
-            self.logger = make_logger(window_name)
-            self.counter = PlayCounter(window_name)
-        else:
-            self.bbox = (0, 0, 1920, 1080)
-            self.logger = logger
-            self.counter = PlayCounter('debug')
-
-        self.g_queue = g_queue
-        self.g_event = g_event
-        self.g_found = g_found
-        self.g_player_lock = g_player_lock
+    def __init__(self, g_lock=None, g_sem=None, window=None, logger=None):
+        self.g_lock = g_lock
         self.g_sem = g_sem
+        self.window = window
+        if logger is None:
+            self.logger = make_logger(self.window.name)
+        else:
+            self.logger = logger
 
         self.eye = player_eye.Eye(self.logger)
         self.hand = player_hand.Hand()
-
         self.log_queue = queue.Queue(20)
-
         self.last_click = None
-
-        self.role_cfg = {}
-
-    def load_role_cfg(self, name='default'):
-        self.role_cfg = read_role_cfg()
 
     def _cache_operation_pic(self, msg, pos=None, new=True, ext=".jpg"):
         msg = re.sub(r'[^a-zA-Z0-9-_]', ' ', msg)
         msg = re.sub(r'\s+', ' ', msg)
         now = datetime.now().strftime('%H-%M-%S-%f')[:-3]
+        time = now.replace('-', ':')[:-4]
         name = now + ' ' + msg + ext
 
-        img = self.eye.get_lates_screen(area=self.bbox, new=new)
+        img = self.eye.get_lates_screen(area=self.window.bbox, new=new)
         if pos:
             if isinstance(pos, tuple):
                 img = self.eye.draw_point(img, pos)
@@ -79,7 +62,8 @@ class Player(object):
         if self.log_queue.full():
             _ = self.log_queue.get()
             # self.save_operation_pics()
-        self.log_queue.put((name, img))
+        
+        self.log_queue.put((time, name, img))
 
     def save_operation_pics(self, msg):
         now = datetime.now().strftime('%Y-%m-%d_%H-%M-%S-%f')[:-3]
@@ -87,31 +71,50 @@ class Player(object):
         msg = re.sub(r'\s+', ' ', msg)
         dir_name = msg + ' ' + now
         # dir_path = os.path.join('./timeout_pics', dir_name)
-        dir_path = os.path.join(
-            'logs', self.window_name, dir_name
-        )
+        dir_path = os.path.join('logs', dir_name)
         os.makedirs(dir_path)
 
+        # TODO 这个实现比较粗糙
+        time, name, img = self.log_queue.get()
+        pic_path = os.path.join(dir_path, name)
+        self.eye.save_picture(img, pic_path)
+
+        today = datetime.now().strftime(r'%Y-%m-%d')
+        src_log = os.path.join('logs', self.window.name + '_' + today + '.log')
+        dst_log = os.path.join(dir_path, 'log.log')
+        self.extract_log_text(src_log, time, dst_log)
+
         while not self.log_queue.empty():
-            name, img = self.log_queue.get()
+            time, name, img = self.log_queue.get()
             pic_path = os.path.join(dir_path, name)
             self.eye.save_picture(img, pic_path)
 
-        # 保存以下最新的屏幕截图
-        img = self.eye.get_lates_screen(area=self.bbox, new=True)
+        # 保存一下最新的屏幕截图
+        img = self.eye.get_lates_screen(area=self.window.bbox, new=True)
         now = datetime.now().strftime('%H-%M-%S-%f')[:-3]
         name = now + ' ' + 'last_screen.jpg'
         pic_path = os.path.join(dir_path, name)
         self.eye.save_picture(img, pic_path)
 
-    def real_pos(self, pos):
-        x, y = pos
-        dx, dy = WINDOW_DICT[self.window_name]
-        return (x + dx, y + dy)
+    def extract_log_text(self, src_log, time, dst_log):
+        lines = []
+
+        with open(src_log) as f:
+            tag = False
+            for line in f:
+                if tag:
+                    lines.append(line)
+                else:
+                    if time in line:
+                        tag = True
+                        lines.append(line)
+
+        with open(dst_log, 'w') as f:
+            f.write(''.join(lines))
+
 
     async def is_disabled_button(self, pos):
-        if pos[0] < WIDTH and pos[1] < HIGH:
-            pos = self.real_pos(pos)
+        pos = self.window.real_pos(pos)
 
         # 灰色按钮有少量像素不是灰色的, 需要多判断几个点
         for _ in range(3):
@@ -125,7 +128,7 @@ class Player(object):
         if not isinstance(names, list):
             names = [names]
 
-        name, pos_list = await self.eye.monitor(names, area=self.bbox, timeout=timeout, threshold=threshold, verify=verify)
+        name, pos_list = await self.eye.monitor(names, area=self.window.bbox, timeout=timeout, threshold=threshold, verify=verify)
         
         pos = filter_func(pos_list)
         msg = f"found {name} at {pos}"
@@ -140,7 +143,7 @@ class Player(object):
         if not isinstance(names, list):
             names = [names]
 
-        pos_list = await self.eye.find_all_pos(names, area=self.bbox, threshold=threshold)
+        pos_list = await self.eye.find_all_pos(names, area=self.window.bbox, threshold=threshold)
         # 如果没找到，就不要记录了
         if pos_list:
             msg = f"found {names} at {pos_list}"
@@ -174,12 +177,12 @@ class Player(object):
 
         # click 的 pos 可能来自monitor的实际坐标，也可能是代码中的伪坐标
         if pos[0] < WIDTH and pos[1] < HIGH:
-            pos = self.real_pos(pos)
+            pos = self.window.real_pos(pos)
 
-        async with self.g_player_lock:
+        async with self.g_lock:
             await self.hand.click(pos, cheat=cheat)
 
-        msg = f"{self.window_name}: click {pos_copy}"
+        msg = f"{self.window.name}: click {pos_copy}"
         self.logger.debug(msg)
 
         await asyncio.sleep(delay / 2)
@@ -192,11 +195,11 @@ class Player(object):
 
         # click 的 pos 可能来自monitor的实际坐标，也可能是代码中的伪坐标
         if pos[0] < WIDTH and pos[1] < HIGH:
-            pos = self.real_pos(pos)
+            pos = self.window.real_pos(pos)
 
-        msg = f"{self.window_name}: double-click {pos_copy}"
+        msg = f"{self.window.name}: double-click {pos_copy}"
         self.logger.debug(msg)
-        async with self.g_player_lock:
+        async with self.g_lock:
             await self.hand.double_click(pos, cheat=cheat)
 
         await asyncio.sleep(delay)
@@ -204,11 +207,11 @@ class Player(object):
 
     async def drag(self, p1, p2, speed=0.05, stop=False):
         """drag from position 1 to position 2"""
-        msg = f"{self.window_name}: drag from {p1} to {p2}"
+        msg = f"{self.window.name}: drag from {p1} to {p2}"
         self.logger.debug(msg)
 
-        p1, p2 = map(self.real_pos, [p1, p2])
-        async with self.g_player_lock:
+        p1, p2 = map(self.window.real_pos, [p1, p2])
+        async with self.g_lock:
             await self.hand.drag(p1, p2, speed, stop)
 
         self._cache_operation_pic(msg, [p1, p2])
@@ -216,11 +219,11 @@ class Player(object):
     async def scroll(self, vertical_num, pos=None, delay=0.2):
         """滚动 家园的楼层地图的时候，容易误操作"""
         if vertical_num < 0:
-            msg = f"{self.window_name}: scroll down {vertical_num}"
+            msg = f"{self.window.name}: scroll down {vertical_num}"
         else:
-            msg = f"{self.window_name}: scroll up {vertical_num}"
+            msg = f"{self.window.name}: scroll up {vertical_num}"
 
-        async with self.g_player_lock:
+        async with self.g_lock:
             if pos:
                 await self.hand.move(*pos)
             await self.hand.scroll(vertical_num, delay)
@@ -230,39 +233,39 @@ class Player(object):
 
     async def move(self, x, y, delay=0.2):
         pos_copy = (x, y)
-        x, y = self.real_pos((x, y))
+        x, y = self.window.real_pos((x, y))
 
-        async with self.g_player_lock:
+        async with self.g_lock:
             await self.hand.move(x, y, delay)
 
-        msg = f"{self.window_name}: move to {pos_copy}"
+        msg = f"{self.window.name}: move to {pos_copy}"
         self.logger.debug(msg)
         self._cache_operation_pic(msg, pos_copy)
 
     async def tap_key(self, key, delay=1):
         """tap a key with a random interval"""
-        async with self.g_player_lock:
+        async with self.g_lock:
             await self.hand.tap_key(key)
 
-        msg = f"{self.window_name}: tap_key {key}"
+        msg = f"{self.window.name}: tap_key {key}"
         self.logger.debug(msg)
 
         await asyncio.sleep(delay)
         self._cache_operation_pic(msg)
 
     def in_window(self, pos):
-        min_x, min_y = WINDOW_DICT[self.window_name]
+        min_x, min_y = WINDOW_DICT[self.window.name]
         max_x, max_y = min_x + WIDTH, min_y + HIGH
         return min_x < pos[0] < max_x and min_y < pos[1] < max_y
 
     async def go_back(self):
         pos_window_border = (400, 8)
-        msg = f"{self.window_name}: go_back via esc"
+        msg = f"{self.window.name}: go_back via esc"
         self.logger.debug(msg)
-        async with self.g_player_lock:
+        async with self.g_lock:
             mouse_pos = await self.hand.mouse_pos()
             if not self.in_window(mouse_pos):
-                pos = self.real_pos(pos_window_border)
+                pos = self.window.real_pos(pos_window_border)
                 await self.hand.click(pos, cheat=False)
             await self.hand.tap_key('esc')
 
@@ -270,7 +273,7 @@ class Player(object):
         self._cache_operation_pic(msg)
 
     async def go_back_to(self, pic):
-        msg = f"{self.window_name}: go back to {pic}"
+        msg = f"{self.window.name}: go back to {pic}"
         self.logger.debug(msg)
         # 弹出框的标志要放前面，比如colose和go_back都有，要先close
         pics = OK_BUTTONS + CLOSE_BUTTONS + ['go_back', 'go_back1', 'go_back2']
@@ -289,12 +292,12 @@ class Player(object):
 
     async def information_input(self, pos, info):
         """click the input box, then input info"""
-        msg = f"{self.window_name}: input '{info}' at {pos}"
+        msg = f"{self.window.name}: input '{info}' at {pos}"
         self.logger.debug(msg)
 
-        async with self.g_player_lock:
+        async with self.g_lock:
             if pos[0] < WIDTH and pos[1] < HIGH:
-                pos = self.real_pos(pos)
+                pos = self.window.real_pos(pos)
             # await self.hand.click(pos)
             await self.hand.double_click(pos)
             await asyncio.sleep(0.2)
@@ -311,12 +314,12 @@ class Player(object):
             if isinstance(pos, str):
                 pos = POS_DICT[pos]
             if pos[0] < WIDTH and pos[1] < HIGH:
-                pos = self.real_pos(pos)
+                pos = self.window.real_pos(pos)
             new_pos_list.append(pos)
 
-        msg = f"{self.window_name}: multi click {new_pos_list}"
+        msg = f"{self.window.name}: multi click {new_pos_list}"
         self.logger.debug(msg)
-        async with self.g_player_lock:
+        async with self.g_lock:
             for pos in new_pos_list:
                 await self.hand.click(pos, cheat=cheat)
                 await asyncio.sleep(0.5)
@@ -350,19 +353,31 @@ class Player(object):
 
     async def type_string(self, a_string, delay=1):
         """type a string to the computer"""
-        msg = f"{self.window_name}: type_string {a_string}"
+        msg = f"{self.window.name}: type_string {a_string}"
         self.logger.debug(msg)
-        async with self.g_player_lock:
+        async with self.g_lock:
             await self.hand.type_string(a_string, delay)
 
         await asyncio.sleep(delay)
         self._cache_operation_pic(msg)
 
     async def scrool_with_ctrl(self, pos, vertical_num=-10):
-        async with self.g_player_lock:
+        async with self.g_lock:
             await self.hand.move(*pos)
             await self.hand.press_key('ctrl')
             await self.hand.scroll(vertical_num, 0.2)
             await self.hand.release_key('ctrl')
 
         self._cache_operation_pic('_pull_up_the_lens')
+
+    async def copy_input(self, pos):
+        """click the input box, then copy the input info"""
+        async with self.g_lock:
+            pos = self.window.real_pos(pos)
+            # await self.hand.click(pos)
+            await self.hand.double_click(pos)
+            name, pos_list = await self.eye.monitor('copy', area=self.window.bbox)
+            await self.hand.click(pos_list[0])
+            text = pyperclip.paste()  
+        return text
+
