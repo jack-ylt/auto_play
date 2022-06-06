@@ -73,28 +73,29 @@ async def main(goal):
             logger.info(f'start to play on {w.name} 2')
             asyncio.create_task(play(goal, player, None, g_queue))
 
-    while True:
-        status, window, role = await g_queue.get()
+    if goal == 'daily_play':
+        while True:
+            status, window, role = await g_queue.get()
 
-        if role in idle_list:
-            idle_list.remove(role)
+            if role in idle_list:
+                idle_list.remove(role)
 
-        if status == 'running':
-            logger.info(f'{role} running')
-            running_list.append(role)
-        elif status == 'done':
-            logger.info(f'{role} done')
-            running_list.remove(role)
-            done_list.append(role)
-            if running_list == idle_list == []:
-                logger.info('Done')
-                break
+            if status == 'running':
+                logger.info(f'{role} running')
+                running_list.append(role)
+            elif status == 'done':
+                logger.info(f'{role} done')
+                running_list.remove(role)
+                done_list.append(role)
+                if running_list == idle_list == []:
+                    logger.info('Done')
+                    break
 
-            if idle_list:
-                role = idle_list.pop()
-                player = Player(g_lock=g_lock, g_sem=g_sem,
-                                window=window, logger=make_logger(window.name))
-                task = asyncio.create_task(play(goal, player, role, g_queue))
+                if idle_list:
+                    role = idle_list.pop()
+                    player = Player(g_lock=g_lock, g_sem=g_sem,
+                                    window=window, logger=make_logger(window.name))
+                    task = asyncio.create_task(play(goal, player, role, g_queue))
 
 
 def stop_play():
@@ -110,6 +111,7 @@ if __name__ == "__main__":
         goal = sys.argv[1]
     else:
         goal = 'daily_play'
+        # goal = 'shen_yuan_mo_ku'
 
     loop = asyncio.get_event_loop()
     loop.create_task(main(goal))

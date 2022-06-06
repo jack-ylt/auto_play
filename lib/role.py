@@ -36,18 +36,29 @@ class Role(object):
             if game == self.game and user == self.user:
                 self.passwd = config.get(s, 'passwd')
                 self.cfg_name = config.get(s, 'setting')
+                self.ext_cfg_name = config.get(s, 'setting_ext')
                 break
         else:
             self.passwd = ''
-            self.cfg_name = 'default'
+            self.cfg_name = 'basic'
+            self.ext_cfg_name = ''
 
-        # load from roles_setting
+        # load from roles_setting and ext_roles_setting
         self.play_setting = {}
-        config = configparser.RawConfigParser()
-        config.read(
-            f'./configs/roles_setting/{self.cfg_name}.cfg', encoding='utf-8')
-
-        for sct in config.sections():
-            self.play_setting[sct] = {}
-            for opt in config[sct]:
-                self.play_setting[sct][opt] = config.get(sct, opt)
+        for name in [self.cfg_name, self.ext_cfg_name]:
+            if name:
+                config = configparser.RawConfigParser()
+                config.read(
+                    f'./configs/roles_setting/{name}.cfg', encoding='utf-8')
+                for sct in config.sections():
+                    if sct not in self.play_setting:
+                        self.play_setting[sct] = {}
+                    for opt in config[sct]:
+                        # TODO 还有一些其它配置也是布尔值，如何区分呢？
+                        # 全部作为str处理？
+                        val = config.get(sct, opt).lower().strip()
+                        if val == 'yes':
+                            val = True
+                        elif val == 'no':
+                            val = False
+                        self.play_setting[sct][opt] = val

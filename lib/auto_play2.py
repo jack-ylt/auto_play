@@ -103,6 +103,12 @@ async def play(goal, player, role, g_queue):
 
     counter = PlayCounter(role.game + '_' + role.user)
     task_list = TASK_DICT[goal]
+
+    # TODO 连续两次timeout，就重启
+    # timeout_count = 0
+    # self.timeout_count += 1
+    # self.timeout_count = max(0, self.timeout_count - 1)
+
     for cls_name in task_list:
         await game.goto_main_interface(role.game)
 
@@ -117,7 +123,7 @@ async def play(goal, player, role, g_queue):
             if cls_name not in failed_task:
                 failed_task.add(cls_name)
             else:
-                if game.restart_count < 2:
+                if game.restart_count == 0:
                     await game.restart_game(role.game)
                 else:
                     player.logger.error('restart too many times, so exit')

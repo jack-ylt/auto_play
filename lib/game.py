@@ -29,6 +29,7 @@ class Game(object):
 
         await self.player.find_then_click('login_btn')
         await self.player.monitor('setting')
+        await self._close_ad(timeout=5)
 
         return account
 
@@ -114,6 +115,7 @@ class Game(object):
 
         await self.player.find_then_click('login_btn')
         await self.player.monitor('setting')
+        await self._close_ad(timeout=5)
 
     async def goto_main_interface(self, game):
         """通过esc回主界面

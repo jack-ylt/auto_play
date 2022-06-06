@@ -42,7 +42,7 @@ def read_game_user():
     return game_user_list
 
 
-def read_role_cfg(name='default'):
+def read_role_cfg(name='basic'):
     cfg_dict = {}
     config = configparser.RawConfigParser()
     config.read(f'./configs/roles_setting/{name}.cfg', encoding='utf-8')

@@ -550,7 +550,7 @@ async def play(window_name, account_list, g_queue, g_event, g_found, g_player_lo
         pass
 
     try:
-        await player.monitor(['emulator_started'], timeout=60)
+        await player.monitor('emulator_started', timeout=60)
     except FindTimeout:
         logger.warning("Start the emulator failed.")
         return

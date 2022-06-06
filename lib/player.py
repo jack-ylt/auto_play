@@ -296,14 +296,14 @@ class Player(object):
         self.logger.debug(msg)
 
         async with self.g_lock:
-            if pos[0] < WIDTH and pos[1] < HIGH:
-                pos = self.window.real_pos(pos)
+            pos = self.window.real_pos(pos)
             # await self.hand.click(pos)
             await self.hand.double_click(pos)
             await asyncio.sleep(0.2)
             await self.hand.tap_key('backspace')
             await asyncio.sleep(0.2)
             await self.hand.type_string(info)
+            await asyncio.sleep(0.2)
 
         self._cache_operation_pic(msg)
 
@@ -377,7 +377,8 @@ class Player(object):
             # await self.hand.click(pos)
             await self.hand.double_click(pos)
             name, pos_list = await self.eye.monitor('copy', area=self.window.bbox)
-            await self.hand.click(pos_list[0])
+            pos = self.window.real_pos(pos_list[0])
+            await self.hand.click(pos)
             text = pyperclip.paste()  
         return text
 

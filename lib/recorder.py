@@ -60,7 +60,7 @@ class PlayCounter(object):
 
     def get(self, cls_name, key):
         try:
-            return self._data[cls_name][key]
+            return int(self._data[cls_name][key])
         except KeyError:
             return 0
 

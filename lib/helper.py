@@ -64,8 +64,13 @@ def de_duplication(pos_list, offset=10):
             new_list.append((x, y))
     return new_list
 
+# 实现logger单例，避免多次make_logger, 导致日志重复打印
+logger_dict = {}
 
 def make_logger(name):
+    if name in logger_dict:
+        return logger_dict[name]
+
     today = datetime.now().strftime(r'%Y-%m-%d')
     # file_dir = os.path.join(log_dir, name)
     # if not os.path.exists(file_dir):
@@ -91,6 +96,7 @@ def make_logger(name):
     logger.addHandler(fh)
     logger.addHandler(ch)
 
+    logger_dict[name] = logger
     return logger
 
 
