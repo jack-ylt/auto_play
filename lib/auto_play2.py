@@ -56,10 +56,6 @@ TASK_DICT = {
 }
 
 
-class PlayException(Exception):
-    pass
-
-
 async def play(goal, player, role, g_queue):
     player.logger.info(f"start to play, role: {role}")
 
@@ -88,7 +84,8 @@ async def play(goal, player, role, g_queue):
         await game.start_game(game_name)
     else:
         # 模拟器没开，或者用户把它最小化了
-        raise PlayException('error in play')
+        # await g_queue.put(('idle', player.window, None))
+        return False
 
     # 主控传了role，就切换登录，否则就用原有账号继续游戏
     if role is None:
@@ -116,6 +113,10 @@ async def play(goal, player, role, g_queue):
         obj = getattr(tasks, cls_name)(player, role.play_setting, counter)
         try:
             await obj.run()
+        except tasks.PlayException as e:
+            # 预料中的错误，就不必重启了
+            task_list.append(cls_name)
+            player.logger.warning(str(e))
         except Exception as e:
             task_list.append(cls_name)
             player.logger.error(str(e))

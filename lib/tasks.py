@@ -584,12 +584,10 @@ class TiaoZhanFuben(Task):
 
             await self.player.find_then_click(CLOSE_BUTTONS)
 
-            self._increate_count('count')
-
         await self.player.find_then_click(CLOSE_BUTTONS)
 
     def _test(self):
-        return self.cfg['TiaoZhanFuben']['enable'] and self._get_count('count') < 3
+        return self.cfg['TiaoZhanFuben']['enable'] and self._get_count('count') < 6
 
     async def _click_bottom_button(self):
         await self.player.monitor('dao_ji_shi')
@@ -605,16 +603,20 @@ class TiaoZhanFuben(Task):
         return 'tiao_zhan'
 
     async def _sao_dang(self):
+        self._increate_count('count')
         await self.player.find_then_click('next_game1')
         await self.player.find_then_click(OK_BUTTONS)
+        self._increate_count('count')
 
     async def _tiao_zhan(self):
         await self.player.find_then_click('start_fight')
         res = await self._fight_challenge()
-
+        
         if res == 'win':
+            self._increate_count('count')
             await self.player.find_then_click('xia_yi_chang')
             await self._fight_challenge()
+            self._increate_count('count')
         else:
             self.logger.warning("Fight lose in TiaoZhanFuben")
 
@@ -1086,7 +1088,7 @@ class YaoQingYingXion(Task):
         await self.player.find_then_click('receive1')
 
         # 回到啤酒邀请界面
-        await self.player.tap_key('esc')
+        await self.player.go_back()
 
 
 class WuQiKu(Task):
@@ -1262,7 +1264,7 @@ class JingJiChang(Task):
             else:
                 num = self.num - c
         else:
-            num = 3
+            num = min(3, self.num - self.count)
 
         win, lose = 0, 0
         page = 0
@@ -1285,6 +1287,8 @@ class JingJiChang(Task):
             return False
         if self.count >= self.num:
             return False
+        if (not is_afternoon()) and self.count >= 3:
+            return False
         return True
 
     async def _choose_opponent(self, page=0):
@@ -1299,7 +1303,12 @@ class JingJiChang(Task):
             await self.player.monitor('fight8')
             pos_list = await self.player.find_all_pos('fight8')
             await self.player.click(filter_bottom(pos_list))
-            await self.player.find_then_click('start_fight')
+            name, pos = await self.player.monitor(['buy_ticket', 'start_fight'])
+            
+            if name == 'start_fight':
+                await self.player.find_then_click('start_fight')
+            else:
+                raise PlayException('lack of ticket.')
 
             await asyncio.sleep(1)
             try:
@@ -1589,7 +1598,7 @@ class RenWuLan(Task):
         except FindTimeout:
             await self._move_to_center()
         await self.player.find_then_click('task_board')
-        await self.player.monitor('wu_jiao_xing')
+        await self.player.monitor(['unlock', 'lock'])
 
     async def _accept_all_tasks(self):
         while True:
