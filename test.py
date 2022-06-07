@@ -10,7 +10,7 @@ from lib.read_cfg import read_account_cfg
 # from lib.start_game import start_emulator, game_started
 from lib import emulator
 # from lib import auto_play
-from lib import auto_play2
+from lib import auto_play
 from lib import windows
 import signal
 import keyboard

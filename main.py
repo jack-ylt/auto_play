@@ -14,7 +14,7 @@ from datetime import datetime
 from logging import handlers
 from lib.read_cfg import read_account_cfg, read_game_user
 # from lib.start_game import start_emulator, game_started
-from lib.auto_play2 import play
+from lib.auto_play import play
 import signal
 import keyboard
 from multiprocessing import freeze_support
