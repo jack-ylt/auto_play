@@ -773,8 +773,6 @@ class JueDiKongJian(Task):
             'hui_mie': 5,
         }
 
-        ['shou_hu', 'zhi_xu', 'hun_dun', 'xie_e', 'chuang_zao', 'hui_mie']
-
     async def run(self):
         if not self._test():
             return
@@ -1927,7 +1925,7 @@ class MeiRiRenWu(Task):
     async def _update_counter(self):
         self._increate_count('count', val=3, cls_name='XianShiJie')
         self._increate_count('count', val=2, cls_name='XingYunZhuanPan')
-        self._increate_count('count', val=3, cls_name='TiaoZhanFuben')
+        self._increate_count('count', val=6, cls_name='TiaoZhanFuben')
         self._increate_count('count', val=3, cls_name='WuQiKu')
         self._increate_count('count', val=3, cls_name='JingJiChang')
         # TODO 快捷任务使用了免费啤酒，后来的英雄邀请task还是会使用一次啤酒

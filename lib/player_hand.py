@@ -90,6 +90,8 @@ class Hand(object):
         self.m.move(x2, y2)
         if stop:
             await asyncio.sleep(0.6)
+        else:
+            await asyncio.sleep(0.1)
         self.m.release(x2, y2)
         await asyncio.sleep(0.3)
 

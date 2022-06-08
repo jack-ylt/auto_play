@@ -96,7 +96,9 @@ async def play(goal, player, role, g_queue):
         await role.load_all_attributes()
         await game.switch_account_login(role.game, role.user, role.passwd)
 
+    player.logger.info(f"running {role} on {player.window}")
     await g_queue.put(('running', player.window, role))
+
 
     counter = PlayCounter(role.game + '_' + role.user)
     task_list = TASK_DICT[goal]
@@ -113,10 +115,12 @@ async def play(goal, player, role, g_queue):
         obj = getattr(tasks, cls_name)(player, role.play_setting, counter)
         try:
             await obj.run()
-        except tasks.PlayException as e:
-            # 预料中的错误，就不必重启了
-            task_list.append(cls_name)
-            player.logger.warning(str(e))
+        # except tasks.PlayException as e:
+        #     # 预料中的错误，就不必重启了
+
+        # -> 这样会死循环的
+        #     task_list.append(cls_name)
+        #     player.logger.warning(str(e))
         except Exception as e:
             task_list.append(cls_name)
             player.logger.error(str(e))
@@ -131,7 +135,8 @@ async def play(goal, player, role, g_queue):
                     break
         finally:
             counter.save_data()
-        
+    
+    player.logger.info(f"play for {role} done")
     await g_queue.put(('done', player.window, role))
 
 

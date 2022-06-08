@@ -28,6 +28,9 @@ class Window(object):
     def __eq__(self, other):
         return self.name == other.name
 
+    def __str__(self):
+        return f"{self.name} window"
+
     def in_window(self, pos):
         x, y = pos
         # x0, y0 = self.START_POS[self.name]
