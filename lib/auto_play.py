@@ -3,8 +3,8 @@
 #
 ##############################################################################
 
-import asyncio
-import logging
+# import asyncio
+# import logging
 from lib import tasks
 from lib.game import Game
 from lib.recorder import PlayCounter
@@ -56,7 +56,7 @@ async def play(goal, player, role, g_queue):
     else:
         game_name = role.game
 
-    name, pos = await player.monitor(['setting', 'emulator_started', 'recent_tasks', 'ye_sheng'])
+    name, _ = await player.monitor(['setting', 'emulator_started', 'recent_tasks', 'ye_sheng'])
     if name == 'setting':
         # 在游戏主界面
         pass

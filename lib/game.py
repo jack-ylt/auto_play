@@ -4,10 +4,10 @@
 ##############################################################################
 
 import asyncio
-import logging
-from lib.player import Player, FindTimeout
+# import logging
+from lib.player import FindTimeout
 from lib.ui_data import OK_BUTTONS, CLOSE_BUTTONS
-from lib.windows import Window
+# from lib.windows import Window
 import configparser
 
 
@@ -98,7 +98,7 @@ class Game(object):
     async def _close_game(self, game):
         await self.player.find_then_click('recent_tasks')
         await self.player.find_then_click(['close6', 'close7'])
-        _, pos = await self.player.monitor(game)
+        await self.player.monitor(game)
 
 
     async def switch_account_login(self, game, user, passwd):
@@ -131,7 +131,7 @@ class Game(object):
         如果esc不行，则业务要自己回主界面
         """
         self.logger.debug('goto_main_interface')
-        for i in range(5):
+        for _ in range(5):
             try:
                 await self.player.monitor(['close_btn4', 'setting'], timeout=1)
             except FindTimeout:

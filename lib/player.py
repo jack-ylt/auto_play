@@ -2,17 +2,17 @@ from lib.ui_data import POS_DICT, WINDOW_DICT, WIDTH, HIGH, CLOSE_BUTTONS, OK_BU
 from lib import player_hand
 from lib import player_eye
 import asyncio
-import logging
+# import logging
 import queue
-import functools
+# import functools
 import time
 import os
 from datetime import datetime
 import random
 import re
-from lib.helper import make_logger, GameNotResponding
-from lib.read_cfg import read_role_cfg
-from lib.recorder import PlayCounter
+from lib.helper import make_logger
+# from lib.read_cfg import read_role_cfg
+# from lib.recorder import PlayCounter
 
 import pyperclip
 
@@ -48,7 +48,7 @@ class Player(object):
         msg = re.sub(r'[^a-zA-Z0-9-_]', ' ', msg)
         msg = re.sub(r'\s+', ' ', msg)
         now = datetime.now().strftime('%H-%M-%S-%f')[:-3]
-        time = now.replace('-', ':')[:-4]
+        time_str = now.replace('-', ':')[:-4]
         name = now + ' ' + msg + ext
 
         img = self.eye.get_lates_screen(area=self.window.bbox, new=new)
@@ -62,8 +62,8 @@ class Player(object):
         if self.log_queue.full():
             _ = self.log_queue.get()
             # self.save_operation_pics()
-        
-        self.log_queue.put((time, name, img))
+
+        self.log_queue.put((time_str, name, img))
 
     def save_operation_pics(self, msg):
         now = datetime.now().strftime('%Y-%m-%d_%H-%M-%S-%f')[:-3]
@@ -75,17 +75,17 @@ class Player(object):
         os.makedirs(dir_path)
 
         # TODO 这个实现比较粗糙
-        time, name, img = self.log_queue.get()
+        time_str, name, img = self.log_queue.get()
         pic_path = os.path.join(dir_path, name)
         self.eye.save_picture(img, pic_path)
 
         today = datetime.now().strftime(r'%Y-%m-%d')
         src_log = os.path.join('logs', self.window.name + '_' + today + '.log')
         dst_log = os.path.join(dir_path, 'log.log')
-        self.extract_log_text(src_log, time, dst_log)
+        self.extract_log_text(src_log, time_str, dst_log)
 
         while not self.log_queue.empty():
-            time, name, img = self.log_queue.get()
+            time_str, name, img = self.log_queue.get()
             pic_path = os.path.join(dir_path, name)
             self.eye.save_picture(img, pic_path)
 
@@ -96,7 +96,7 @@ class Player(object):
         pic_path = os.path.join(dir_path, name)
         self.eye.save_picture(img, pic_path)
 
-    def extract_log_text(self, src_log, time, dst_log):
+    def extract_log_text(self, src_log, time_str, dst_log):
         lines = []
 
         with open(src_log) as f:
@@ -105,13 +105,12 @@ class Player(object):
                 if tag:
                     lines.append(line)
                 else:
-                    if time in line:
+                    if time_str in line:
                         tag = True
                         lines.append(line)
 
         with open(dst_log, 'w') as f:
             f.write(''.join(lines))
-
 
     async def is_disabled_button(self, pos):
         pos = self.window.real_pos(pos)
@@ -129,7 +128,7 @@ class Player(object):
             names = [names]
 
         name, pos_list = await self.eye.monitor(names, area=self.window.bbox, timeout=timeout, threshold=threshold, verify=verify)
-        
+
         pos = filter_func(pos_list)
         msg = f"found {name} at {pos}"
         self._cache_operation_pic(msg, pos, new=False)
@@ -155,12 +154,13 @@ class Player(object):
         start_t = time.time()
         poses = [_random_offset(pos) for i in range(2)]
         pos_colors1 = [await self.eye.get_pos_color(p) for p in poses]
-        for i in range(5):
+        for _ in range(5):
             await asyncio.sleep(0.2)
             pos_colors2 = [await self.eye.get_pos_color(p) for p in poses]
             if pos_colors1 != pos_colors2:
                 end_t = time.time()
-                self.logger.debug("_verify_click: pass, {0} != {1}, cost {2}".format(pos_colors1, pos_colors2, end_t - start_t))
+                self.logger.debug("_verify_click: pass, {0} != {1}, cost {2}".format(
+                    pos_colors1, pos_colors2, end_t - start_t))
                 return True
         self.logger.warning("_verify_click not pass")
         return False
@@ -376,9 +376,8 @@ class Player(object):
             pos = self.window.real_pos(pos)
             # await self.hand.click(pos)
             await self.hand.double_click(pos)
-            name, pos_list = await self.eye.monitor('copy', area=self.window.bbox)
+            _, pos_list = await self.eye.monitor('copy', area=self.window.bbox)
             pos = self.window.real_pos(pos_list[0])
             await self.hand.click(pos)
-            text = pyperclip.paste()  
+            text = pyperclip.paste()
         return text
-

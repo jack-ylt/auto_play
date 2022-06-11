@@ -1,22 +1,22 @@
 import logging
-from logging import handlers
+# from logging import handlers
 from lib import tasks
-from lib import helper
+# from lib import helper
 from lib import ui_data
 from lib.game import Game
 from lib.player import Player
 from lib import player_eye
-from lib.read_cfg import read_account_cfg
+# from lib.read_cfg import read_account_cfg
 # from lib.start_game import start_emulator, game_started
 from lib import emulator
 # from lib import auto_play
-from lib import auto_play
+# from lib import auto_play
 from lib import windows
-import signal
-import keyboard
-from multiprocessing import freeze_support
-from time import sleep
-import concurrent.futures
+# import signal
+# import keyboard
+# from multiprocessing import freeze_support
+# from time import sleep
+# import concurrent.futures
 import asyncio
 import os
 import sys
@@ -61,12 +61,12 @@ async def test_tasks(cls_name, func=None):
     g_player_lock = asyncio.Lock()
     window = Window('left_top')
     player = Player(window=window, g_lock=g_player_lock)
-    role = Role(game='mo_shi_jun_tun', user='uu')
-    await role.load_all_attributes()
-    counter = PlayCounter(role.game + '_' + role.user)
+    role_obj = Role(game='mo_shi_jun_tun', user='uu')
+    await role_obj.load_all_attributes()
+    counter = PlayCounter(role_obj.game + '_' + role_obj.user)
     # player.load_role_cfg()
 
-    obj = getattr(tasks, cls_name)(player, role.play_setting, counter)
+    obj = getattr(tasks, cls_name)(player, role_obj.play_setting, counter)
     if func:
         await getattr(obj, func)()
     else:
