@@ -8,14 +8,22 @@ import logging
 from lib.player import Player, FindTimeout
 from lib.ui_data import OK_BUTTONS, CLOSE_BUTTONS
 from lib.windows import Window
+import configparser
 
 
 # TODO 如何支持不同的game ico？
 class Game(object):
     def __init__(self, player):
         self.player = player
+        self.default_game = self._get_default_game()
         self.restart_count = 0
         self.logger = player.logger
+
+    def _get_default_game(self):
+        config = configparser.RawConfigParser()
+        config.read(r'./configs/common.cfg', encoding='utf-8')
+        default_game = config.get('game', 'game_default')
+        return default_game
 
     async def get_account(self):
         self.logger.info("get_account")

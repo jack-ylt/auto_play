@@ -11,7 +11,7 @@ import configparser
 
 class Role(object):
     def __init__(self, game=None, user=None):
-        self.game = game or 'mo_shi_jun_tun'
+        self.game = game
         self.user = user
 
     def __eq__(self, other):

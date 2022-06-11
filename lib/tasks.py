@@ -250,7 +250,13 @@ class XianShiJie(Task):
         else:
             name, pos = await self.player.monitor('ke_ling_qv')
             await self.player.click((pos[0], pos[1] - 50))
-            await self.player.find_then_click('close_btn1')
+            await self.player.find_then_click(OK_BUTTONS)
+            try:
+                await self.player.find_then_click('close_btn1')
+                await asyncio.sleep(1)
+                await self.player.find_then_click('close_btn1', timeout=2)
+            except FindTimeout:
+                pass
 
     async def _collect_box(self):
         pos_box = (750, 470)
@@ -377,7 +383,12 @@ class HaoYou(Task):
         return self.cfg['HaoYou']['enable']
 
     async def _fight_friend_boss(self):
-        await self.player.find_then_click('fight3')
+        try:
+            await self.player.find_then_click('fight3')
+        except FindTimeout:
+            self.logger.debug(f"Skip, reach the fight limit.")
+            return False
+
         try:
             await self.player.find_then_click('start_fight', timeout=3)
         except FindTimeout:
@@ -1291,7 +1302,7 @@ class JingJiChang(Task):
 
     async def _choose_opponent(self, page=0):
         # 避免速度太快，把确定误识别战斗
-        await asyncio.sleep(1)
+        await self.player.monitor('fight_ico')
         await self.player.find_then_click('fight7')
 
         for _ in range(page):
@@ -1417,6 +1428,7 @@ class GuanJunShiLian(Task):
                 self._page += 1
             self._move_next = False
 
+        await self.player.monitor('fight_ico')
         await self.player.find_then_click('fight7')
         await self.player.monitor('refresh_green')
         for _ in range(self._page):

@@ -732,92 +732,30 @@ tasks
 
 
 问题：
-go_back via esc 可能会失败
-
 xianshijie 切换大地图有问题
 
 低等级可能有问题
 
 启动失败，要能重新启动
 
-出现问题，要截取最近2分钟的日志，这样才方便
-
 好友有多个boos，但只打一个
 
 挑战副本、合成装备。可能一次性不能完成
 
+任务栏，没有可领取任务，就不会完成任务，这是个问题。
 
-研究下别人的：
-本辅助试用版体验下载地址：
-链接：https://pan.baidu.com/s/1Y_7e17v-Vld-A0JsyBOJzQ
-提取码：mori
+用了一键执行，挑战副本可能还少一次
 
-S4220
+好友boos打够5次，就到上限了
 
-轮流登陆
-    account_setting.cfg
-    g_pics = {}  缓存所有图片
-    pending = set()
-    running = set()
-    done = set()
-    win_num = 3
-    
-    
-    主控
-        从桌面启动
-            启动模拟器
-        
-        timeout = 60
-        count = 0
-        while true:
-            monitor setting, liulanqi
-            sleep 5
-            if find:
-                wind = 
-                role =     # 用户没有配置，就用默认
-                player = 
-                
-                启动auto_play
-            
-            timeout = 10
-            count += 1
-            if count >= win_num:
-                break
-        
-        while true
-            开始监控done_q
-            有完成的
-                add to done
-                rm_from_pending
-                show progress
-                if pengding
-                    就再启动一个 (role)
-                    add to running
-                if not running
-                    break
+要能自动参加公会战，打公会宝箱怪
 
-        
-    player
-        获取任务
-        if 游戏未启动
-            启动游戏
-        else:
-            go_to_main
+nihoutao，登录方式不同，还不能复制账号
+jiuyou，也不行
 
-        玩游戏
-        发送一个done到q_out
-        从q_in中再取一个任务
-        换号登陆
-        
-    如何处理登陆冲突
-    
-★ 建立 window 类，role 类
+-> 配置了account，
+    主控直接传role，登录
+没配置
+    传的role为空，就直接登录，不支持切换账号了
+    count和logger就直接用窗口名称了
 
-role 怎么创建、管理？
--> (game, user)
-
-
-优化以下logger
-    消除重复log
-
-    

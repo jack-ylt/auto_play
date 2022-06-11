@@ -96,10 +96,10 @@ async def test_role():
             print(i, getattr(r, i))
 
 if __name__ == '__main__':
-    # names = ['wu_jiao_xing']
-    # asyncio.run(test_eye(names, threshold=0.8, verify=False))
+    names = ['fight_ico']
+    asyncio.run(test_eye(names, threshold=0.8, verify=False))
 
-    asyncio.run(test_tasks('TiaoZhanFuben'))
+    # asyncio.run(test_tasks('TiaoZhanFuben'))
 
     # asyncio.run(test_emulator())
 

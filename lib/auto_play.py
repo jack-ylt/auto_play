@@ -1,20 +1,10 @@
-from hashlib import blake2b
-import time
-import os
-import asyncio
-import shutil
-from datetime import datetime
-import re
-import random
-import math
-from operator import itemgetter
-from collections import namedtuple
-from cv2 import threshold
-from playsound import playsound
-import math
+##############################################################################
+# 游戏主控，负责一个游戏窗口的所有任务
+#
+##############################################################################
 
-from lib.ui_data import SCREEN_DICT, OK_BUTTONS, GOOD_TASKS, CLOSE_BUTTONS
-from lib.player import Player, FindTimeout, GameNotResponding
+import asyncio
+import logging
 from lib import tasks
 from lib.game import Game
 from lib.recorder import PlayCounter
@@ -24,7 +14,6 @@ from lib.role import Role
 # from ui_data import SCREEN_DICT
 # from player import Player, FindTimeout
 
-import logging
 
 TASK_DICT = {
     'daily_play': [
@@ -60,14 +49,13 @@ async def play(goal, player, role, g_queue):
     player.logger.info(f"start to play, role: {role}")
 
     failed_task = set()
-    
 
     game = Game(player)
     if role is None:
-        game_name = 'mo_shi_jun_tun'
+        game_name = game.default_game
     else:
         game_name = role.game
-    
+
     name, pos = await player.monitor(['setting', 'emulator_started', 'recent_tasks', 'ye_sheng'])
     if name == 'setting':
         # 在游戏主界面
@@ -98,7 +86,6 @@ async def play(goal, player, role, g_queue):
 
     player.logger.info(f"running {role} on {player.window}")
     await g_queue.put(('running', player.window, role))
-
 
     counter = PlayCounter(role.game + '_' + role.user)
     task_list = TASK_DICT[goal]
@@ -135,8 +122,6 @@ async def play(goal, player, role, g_queue):
                     break
         finally:
             counter.save_data()
-    
+
     player.logger.info(f"play for {role} done")
     await g_queue.put(('done', player.window, role))
-
-
