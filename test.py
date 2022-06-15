@@ -3,7 +3,7 @@ import logging
 from lib import tasks
 # from lib import helper
 from lib import ui_data
-from lib.game import Game
+from lib.gamer import Gamer
 from lib.player import Player
 from lib import player_eye
 # from lib.read_cfg import read_account_cfg
@@ -79,11 +79,11 @@ async def test_emulator():
     e = emulator.Emulator(player)
     await e.start_emulator()
 
-async def test_game(func):
+async def test_gamer(func):
     window = windows.Window('full')
     player = Player(g_lock=asyncio.Lock(), window=window)
 
-    g = Game(player)
+    g = Gamer(player)
     await getattr(g, func)()
 
 async def test_role():
@@ -96,7 +96,7 @@ async def test_role():
             print(i, getattr(r, i))
 
 if __name__ == '__main__':
-    names = ['fight_ico']
+    names = ['hand']
     asyncio.run(test_eye(names, threshold=0.8, verify=False))
 
     # asyncio.run(test_tasks('TiaoZhanFuben'))

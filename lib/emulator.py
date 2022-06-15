@@ -1,26 +1,58 @@
-import asyncio
-import logging
-from lib.player import Player, FindTimeout
-from lib.windows import Window
+"""
+用于启动模拟器
+"""
 
+import asyncio
+from lib.player import FindTimeout
+from lib.windows import Window
+import time
 
 
 class Emulator(object):
     def __init__(self, player):
         self.player = player
+        self.window_list = [Window(i)
+                            for i in ['left_top', 'left_down', 'right_top']]
 
-    async def emulator_started(self):
-        try:
-            await self.player.monitor('ye_sheng', timeout=1)
-            return True
-        except FindTimeout:
-            return False
+    async def start_all_emulator(self):
+        """start all emulator and yield the started window
+        """
+        # emulator alread started
+        pos_list = await self.player.find_all_pos('emulator_ok')
+        if pos_list:
+            for pos in pos_list:
+                yield self._in_which_window(pos)
+        else:
+            await self. _start_emulator()
+            await asyncio.sleep(20)
+            pos_list = await self.player.find_all_pos('ye_sheng')
+            win_list = list(map(self._in_which_window, pos_list))
+            while win_list:
+                # await asyncio.sleep(5)
+                time.sleep(3)
+                _, pos = await self.player.monitor('emulator_started', timeout=60)
+                win = self._in_which_window(pos)
+                # 可能会重复find同一个emulator_started
+                if win in win_list:
+                    win_list.remove(win)
+                    yield win
 
-    async def start_emulator(self):
+    def _in_which_window(self, pos):
+        for win in self.window_list:
+            if win.in_window(pos):
+                return win
+        msg = "can't find the {pos} on which window."
+        self.player.logger.warning(msg)
+        self.player.save_operation_pics(msg)
+        return None
+
+    async def _start_emulator(self):
         try:
             _, pos = await self.player.monitor('emulator_icon')
         except FindTimeout:
-            self.player.logger.info("Start emulator failed: can't find the emulator_icon")
+            msg = "Start emulator failed: can't find the emulator_icon"
+            self.player.logger.info(msg)
+            self.player.save_operation_pics(msg)
             return False
 
         await self.player.double_click(pos)
@@ -33,15 +65,3 @@ class Emulator(object):
             await self.player.find_then_click('select_all')
 
         await self.player.find_then_click('start_emulator', threshold=0.9)
-
-    async def wait_emulator_started(self, window_list):
-        windows = window_list[:]
-        while windows:
-            # await asyncio.sleep(3)
-            _, pos = await self.player.monitor('emulator_started', timeout=60)
-            for w in windows:
-                if w.in_window(pos):
-                    windows.remove(w)
-                    yield w
-
-

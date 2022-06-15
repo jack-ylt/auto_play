@@ -11,7 +11,7 @@ def read_account_cfg():
     config = configparser.RawConfigParser()
     config.read(r'./configs/account.cfg', encoding='utf-8')
 
-    for s in sorted(config.sections(), reverse=True):
+    for s in sorted(config.sections()):
         account_dict = {}
 
         for opt in ['game', 'user', 'passwd']:
@@ -34,7 +34,7 @@ def read_game_user():
     config = configparser.RawConfigParser()
     config.read(r'./configs/account.cfg', encoding='utf-8')
 
-    for s in sorted(config.sections(), reverse=True):
+    for s in list(config.sections()):
         game = config.get(s, 'game')
         user = config.get(s, 'user')
         game_user_list.append((game, user))
@@ -47,7 +47,7 @@ def read_role_cfg(name='basic'):
     config = configparser.RawConfigParser()
     config.read(f'./configs/roles_setting/{name}.cfg', encoding='utf-8')
 
-    for sct in sorted(config.sections(), reverse=True):
+    for sct in config.sections():
         cfg_dict[sct] = {}
         for opt in config[sct]:
             cfg_dict[sct][opt] = config.get(sct, opt)

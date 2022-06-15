@@ -3,30 +3,29 @@
 #
 ##############################################################################
 
-from pickle import NEXT_BUFFER
-import time
-import os
 import asyncio
-import shutil
-from datetime import datetime
-import re
+import logging
+import math
+import os
 import random
-import math
-from operator import itemgetter
+import re
+import shutil
+import time
 from collections import namedtuple
+from datetime import datetime
+from operator import itemgetter
+from pickle import NEXT_BUFFER
+
 from cv2 import threshold
-from playsound import playsound
-import math
 
-from lib.ui_data import SCREEN_DICT, OK_BUTTONS, GOOD_TASKS, CLOSE_BUTTONS
-from lib.player import Player, FindTimeout
-from lib.helper import is_monday, is_wednesday, is_sunday, is_afternoon
 
+from lib.helper import is_afternoon, is_monday, is_sunday, is_wednesday
+from lib.player import FindTimeout, Player
+from lib.ui_data import CLOSE_BUTTONS, GOOD_TASKS, OK_BUTTONS, SCREEN_DICT
 
 # from ui_data import SCREEN_DICT
 # from player import Player, FindTimeout
 
-import logging
 
 
 def filter_rightmost(pos_list):
@@ -651,6 +650,10 @@ class GongHui(Task):
             return
 
         await self.player.find_then_click('gong_hui')
+        name, _ = await self.player.monitor(['gong_hui_ling_di', 'join_guild'])
+        if name == 'join_guild':
+            return    # 还没有参加公会，则跳过
+
         await self._gong_hui_qian_dao()
 
         name, pos = await self.player.monitor(['tui_jian_gong_hui', 'gong_hui_ling_di'])
@@ -1707,7 +1710,8 @@ class RenWuLan(Task):
             if pos_list:
                 await self.player.click(sorted(pos_list)[0])
                 await self.player.find_then_click(OK_BUTTONS)
-                await self.player.find_then_click(OK_BUTTONS, timeout=1, raise_exception=False)
+                # 5星以上任务，会有两个ok确认
+                await self.player.find_then_click(OK_BUTTONS, timeout=2, raise_exception=False)
             else:
                 try:
                     await self.player.monitor('unlock_more', timeout=1)
@@ -1742,6 +1746,8 @@ class VipShangDian(Task):
 
 class YingXiongYuanZheng(Task):
     """英雄远征"""
+
+    # TODO 游戏如果在一个新设备登录，傻白就会出来，会卡住
 
     def __init__(self, player, role_setting, counter):
         super().__init__(player, role_setting, counter)
@@ -1921,13 +1927,15 @@ class MeiRiRenWu(Task):
 
         await self.player.find_then_click('quick_ico')
         await self.player.find_then_click('yi_jian_zhi_xing')
-        await asyncio.sleep(3)
         try:
-            await self.player.find_then_click(OK_BUTTONS, timeout=1)
+            await self.player.monitor(OK_BUTTONS, timeout=2)
         except FindTimeout:
             pass
         else:
             await self._update_counter()
+            # 等待时间长也没什么用，挑战副本有时候就是没有满，是官方的bug
+            await asyncio.sleep(5)
+            await self.player.find_then_click(OK_BUTTONS, timeout=1)
         finally:
             await self.player.find_then_click(CLOSE_BUTTONS)
         

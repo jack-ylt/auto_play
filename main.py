@@ -1,32 +1,28 @@
 # -*-coding:utf-8-*-
-##############################################################################
-# 模拟玩家，自动玩游戏，打怪升级、做任务。
-# 最多支持同时模拟4位玩家
-#
-##############################################################################
+
+"""
+模拟玩家，自动玩游戏，打怪升级、做任务。
+最多支持同时模拟3位玩家
+"""
 
 
-from lib.player import Player
-from lib.windows import Window
-from lib.emulator import Emulator
-import logging
-from datetime import datetime
-from logging import handlers
-from lib.read_cfg import read_account_cfg, read_game_user
-# from lib.start_game import start_emulator, game_started
-from lib.auto_play import play
-import signal
-import keyboard
-from multiprocessing import freeze_support
-from time import sleep
-import concurrent.futures
 import asyncio
 import os
+import signal
 import sys
-from lib import emulator
-from lib.role import Role
+from multiprocessing import freeze_support
+from playsound import playsound
 
+import keyboard
+
+from lib import emulator
+from lib.auto_play import play
 from lib.helper import main_dir, make_logger
+from lib.player import Player
+from lib.read_cfg import read_game_user
+from lib.role import Role
+from lib.windows import Window
+
 os.chdir(main_dir)
 sys.path.insert(0, main_dir)
 
@@ -59,19 +55,15 @@ async def main(goal):
 
     player = Player(g_lock=g_lock, window=Window('full'), logger=logger)
     e = emulator.Emulator(player)
-    window_list = [Window(i) for i in ['left_top', 'left_down', 'right_top']]
-    # window_list = [Window(i) for i in ['left_top']]
-    if not await e.emulator_started():
-        await e.start_emulator()
-        async for w in e.wait_emulator_started(window_list):
-            player = Player(g_lock=g_lock, g_sem=g_sem, window=w, logger=make_logger(w.name))
-            logger.info(f'start to play on {w.name} 1')
-            asyncio.create_task(play(goal, player, None, g_queue))
-    else:
-        for w in window_list:
-            player = Player(g_lock=g_lock, g_sem=g_sem, window=w, logger=make_logger(w.name))
-            logger.info(f'start to play on {w.name} 2')
-            asyncio.create_task(play(goal, player, None, g_queue))
+    # window_list = [Window(i) for i in ['left_top', 'left_down', 'right_top']]
+    # # window_list = [Window(i) for i in ['left_top']]
+
+    async for window in e.start_all_emulator():
+        # player = Player(g_lock=g_lock, g_sem=g_sem,
+        #                 window=w, logger=make_logger(w.name))
+        # logger.info(f'start to play on {w.name} 1')
+        # asyncio.create_task(play(goal, player, None, g_queue))
+        create_play_task(idle_list, g_lock, g_sem, window, g_queue)
 
     if goal == 'daily_play':
         while True:
@@ -89,14 +81,26 @@ async def main(goal):
                 done_list.append(role)
                 if running_list == idle_list == []:
                     logger.info('Done')
+                    playsound('./sounds/end.mp3')
                     break
 
-                if idle_list:
-                    role = idle_list.pop()
-                    player = Player(g_lock=g_lock, g_sem=g_sem,
-                                    window=window, logger=make_logger(window.name))
-                    task = asyncio.create_task(play(goal, player, role, g_queue))
+                # if idle_list:
+                    # role = idle_list.pop()
+                    # player = Player(g_lock=g_lock, g_sem=g_sem,
+                    #                 window=window, logger=make_logger(window.name))
+                    # task = asyncio.create_task(
+                    #     play(goal, player, role, g_queue))
+                create_play_task(idle_list, g_lock, g_sem, window, g_queue)
 
+
+def create_play_task(roles, g_lock, g_sem, window, g_queue):
+    if not roles:
+        return
+    role = roles.pop()
+    player = Player(g_lock=g_lock, g_sem=g_sem,
+                    window=window, logger=make_logger(window.name))
+    asyncio.create_task(play(goal, player, role, g_queue))
+    logger.info(f'start to play {role} on {window.name}')
 
 def stop_play():
     logger.info("User canceled, so exit.")
