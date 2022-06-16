@@ -48,13 +48,16 @@ TASK_DICT = {
 
 async def play(goal, player, role, g_queue):
     player.logger.info(f"start to play, role: {role}")
-    await g_queue.put(('running', player.window, role))
 
     await role.load_all_attributes()
-
     game_obj = Gamer(player, role)
 
-    await game_obj.login()
+    try:
+        await game_obj.login()
+        await g_queue.put(('running', player.window, role))
+    except FindTimeout:
+        await g_queue.put(('error', player.window, role))
+        return
 
     counter = PlayCounter(role.game + '_' + role.user)
     task_list = TASK_DICT[goal]

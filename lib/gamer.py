@@ -67,7 +67,7 @@ class GamerBase(object):
 
     async def login(self):
         """使用role登录游戏"""
-        self.logger.info("login for {role}")
+        self.logger.info(f"login for {self.role}")
 
         if await self._at_emulator_main():
             await self._login_game()

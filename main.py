@@ -69,9 +69,6 @@ async def main(goal):
         while True:
             status, window, role = await g_queue.get()
 
-            if role in idle_list:
-                idle_list.remove(role)
-
             if status == 'running':
                 logger.info(f'{role} running')
                 running_list.append(role)
@@ -83,13 +80,10 @@ async def main(goal):
                     logger.info('Done')
                     playsound('./sounds/end.mp3')
                     break
-
-                # if idle_list:
-                    # role = idle_list.pop()
-                    # player = Player(g_lock=g_lock, g_sem=g_sem,
-                    #                 window=window, logger=make_logger(window.name))
-                    # task = asyncio.create_task(
-                    #     play(goal, player, role, g_queue))
+                create_play_task(idle_list, g_lock, g_sem, window, g_queue)
+            else:
+                # 没法run，可能原因：该窗口的模拟器没有安装这个游戏
+                idle_list.insert(0, role)
                 create_play_task(idle_list, g_lock, g_sem, window, g_queue)
 
 
