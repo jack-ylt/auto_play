@@ -5,6 +5,7 @@
 
 import asyncio
 import logging
+from logging.handlers import RotatingFileHandler
 import math
 import os
 import random
@@ -396,11 +397,11 @@ class HaoYou(Task):
 
         max_try = 3
         count = 0
-        monitor_list = ['card', 'go_last', 'fast_forward1']
-
+        
         while True:
+            monitor_list = ['card', 'go_last', 'fast_forward1']
             count += 1
-            for _ in range(3):
+            for _ in range(2):
                 name, pos = await self.player.monitor(monitor_list, timeout=120)
                 if name == "card":
                     await self.player.click(pos)
@@ -509,11 +510,23 @@ class SheQvZhuLi(Task):
 
     async def _play_guess_ring(self, max_num=4):
         for _ in range(max_num):
-            await self.player.find_then_click(['ring', 'next_game'])
-            await asyncio.sleep(2)
-            name = await self.player.find_then_click(['cup', 'close', 'next_game'], timeout=1)
-            if name != 'cup':
-                break
+            # 有些平台，在新设备登陆，又需要重新勾选“跳过动画”
+            name = await self.player.find_then_click(['tiao_guo_dong_hua', 'ring', 'next_game'])
+            if name == 'tiao_guo_dong_hua':
+                await self.player.find_then_click(['tiao_guo_dong_hua', 'ring', 'next_game'])
+
+            await asyncio.sleep(3)
+
+            for _ in range(5):
+                name, pos = await self.player.monitor(['cup', 'close', 'next_game'], timeout=1)
+                if name == 'cup':
+                    await self.player.click(pos)
+                    await asyncio.sleep(2)
+                elif name == 'next_game':
+                    break
+                else:
+                    await self.player.click(pos)
+                    return
 
     async def _upgrade_Assistant(self):
         await self.player.click((800, 255))    # 一键领取所有爱心
@@ -527,12 +540,12 @@ class SheQvZhuLi(Task):
 
         try:
             # TODO 0.98 也不行，还是可能会误判
-            await self.player.monitor('level_full', threshold=0.93, timeout=1)
+            await self.player.monitor('level_full', threshold=0.92, timeout=2)
         except FindTimeout:
             return
 
         await self.player.click((820, 75))    # 升级
-        await self.player.find_then_click(OK_BUTTONS)
+        await self.player.find_then_click(OK_BUTTONS, timeout=2, raise_exception=False)
 
     async def _send_gifts(self):
         await self.player.find_then_click('gift')

@@ -107,7 +107,7 @@ class GamerBase(object):
                 break
 
     async def _close_game(self):
-        await self.player.find_then_click('recent_tasks')
+        await self.player.find_then_click('recent_tasks', cheat=False)
         await self.player.find_then_click(['close6', 'close7'])
         await self.player.monitor(self.role.game)
 
@@ -118,9 +118,10 @@ class GamerBase(object):
             'mo_ri_xue_zhan_changxiang_title': 'mo_ri_xue_zhan_changxiang',
             'mo_shi_jun_tun_title': 'mo_shi_jun_tun',
         }
-        await self.player.find_then_click('recent_tasks')
+        await self.player.find_then_click('recent_tasks', cheat=False )
         name, _ = await self.player.monitor(list(game_dict))
-        await self.player.find_then_click('recent_tasks')
+        await asyncio.sleep(1)
+        await self.player.find_then_click('recent_tasks', cheat=False)
         return game_dict[name]
 
     async def _switch_account(self):

@@ -134,10 +134,10 @@ async def find_emulator():
         # ...
 
 if __name__ == '__main__':
-    # names = ['sha_bai_left', 'sha_bai_right']
+    # names = ['go_last', 'sha_bai_right']
     # asyncio.run(test_eye(names, threshold=0.8, verify=False))
 
-    asyncio.run(test_tasks('YingXiongYuanZheng'))
+    asyncio.run(test_tasks('SheQvZhuLi'))
 
     # asyncio.run(test_emulator())
 
