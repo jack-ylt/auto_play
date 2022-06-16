@@ -27,7 +27,6 @@ from lib.ui_data import CLOSE_BUTTONS, GOOD_TASKS, OK_BUTTONS, SCREEN_DICT
 # from player import Player, FindTimeout
 
 
-
 def filter_rightmost(pos_list):
     """get the rightmost position"""
     pos = max(pos_list)
@@ -37,6 +36,7 @@ def filter_rightmost(pos_list):
 def filter_first(pos_list):
     pos = pos_list[0]
     return pos
+
 
 def filter_top(pos_list):
     lst = sorted(pos_list, key=lambda x: x[1])
@@ -458,7 +458,7 @@ class SheQvZhuLi(Task):
         try:
             await self.player.monitor('gift')
         except FindTimeout:
-            return 
+            return
 
         if not await self._have_free_guess():
             return
@@ -621,7 +621,7 @@ class TiaoZhanFuben(Task):
     async def _tiao_zhan(self):
         await self.player.find_then_click('start_fight')
         res = await self._fight_challenge()
-        
+
         if res == 'win':
             self._increate_count('count')
             await self.player.find_then_click('xia_yi_chang')
@@ -695,7 +695,7 @@ class GongHui(Task):
         # 小号通常不会设置对不，也最好不要打公会战
         try:
             await self.player.monitor('empty_box', timeout=1)
-            return 
+            return
         except FindTimeout:
             pass
 
@@ -798,7 +798,7 @@ class JueDiKongJian(Task):
         try:
             await self.player.monitor('challenge5')
         except FindTimeout:
-            return 
+            return
 
         await self._choose_camp()
         await self.player.find_then_click('challenge5')
@@ -832,7 +832,6 @@ class JueDiKongJian(Task):
         for _ in range(num):
             await self.player.click(pos_button, cheat=False)
             await asyncio.sleep(0.5)
-
 
 
 class ShengCunJiaYuan(Task):
@@ -1068,7 +1067,8 @@ class YaoQingYingXion(Task):
             name, pos = await self.player.monitor(['ok9', 'ok10', 'ok17', 'close'])
             # 如果英雄列表满了，就遣散英雄
             if name == 'close':
-                self.logger.warning("The hero list is full, so need dismiss heroes")
+                self.logger.warning(
+                    "The hero list is full, so need dismiss heroes")
                 pos_list.append(p)    # 没邀请成功，就再试一次
                 await self.player.find_then_click('qian_san_btn')
                 await self._dismiss_heroes()
@@ -1316,7 +1316,7 @@ class JingJiChang(Task):
             pos_list = await self.player.find_all_pos('fight8')
             await self.player.click(filter_bottom(pos_list))
             name, pos = await self.player.monitor(['buy_ticket', 'start_fight'])
-            
+
             if name == 'start_fight':
                 await self.player.find_then_click('start_fight')
             else:
@@ -1368,6 +1368,7 @@ class JingJiChang(Task):
                 await self.player.find_then_click(OK_BUTTONS, timeout=2)
             except FindTimeout:
                 break
+
 
 class GuanJunShiLian(Task):
     """冠军试炼"""
@@ -1556,7 +1557,6 @@ class XingYunZhuanPan(Task):
 
         self._increate_count('count', 2)
 
-
     def _test(self):
         if not self.cfg['XingYunZhuanPan']['enable']:
             return False
@@ -1605,6 +1605,7 @@ class RenWuLan(Task):
     def _test(self):
         # return self.cfg['RenWuLan']['enable'] and self._get_count('count') < 1
         return True
+
     async def _enter(self):
         try:
             await self.player.monitor('task_board', timeout=1)
@@ -1739,7 +1740,6 @@ class VipShangDian(Task):
             pass
         self._increate_count('count')
 
-
     def _test(self):
         return self.cfg['VipShangDian']['enable'] and self._get_count('count') < 1
 
@@ -1748,6 +1748,12 @@ class YingXiongYuanZheng(Task):
     """英雄远征"""
 
     # TODO 游戏如果在一个新设备登录，傻白就会出来，会卡住
+    # 只有傻白的情况下点傻白
+    # 出现手套，就要点手套
+    # 都没有就可以esc
+
+    # 如果是没有14星英雄的
+    # 则可以点两次回退按钮退出（esc无效）
 
     def __init__(self, player, role_setting, counter):
         super().__init__(player, role_setting, counter)
@@ -1758,24 +1764,77 @@ class YingXiongYuanZheng(Task):
 
         await self._move_to_right_top()
         await self.player.find_then_click('hero_expedition')
-        try:
-            await self.player.find_then_click('production_workshop')
-            await self.player.find_then_click('one_click_collection1')
-        except FindTimeout:
-            self.logger.debug("hero_expedition need at least one 14 star hero.")
-            return await self._exit()
+        await self.player.monitor('production_workshop')
 
+        try:
+            name = await self.player.find_then_click(['sha_bai_left', 'sha_bai_right'], timeout=2, verify=False)
+            if name == 'sha_bai_left':
+                await self._handle_first_login()
+            else:
+                await self.player.click((20, 63))
+                self.logger.info(
+                    "hero_expedition need at least one 14 star hero.")
+                return
+        except FindTimeout:
+            pass
+
+        await self._collect_oil()
         # 每周三、日扫荡，防止油溢出
-        if self._get_cfg('sweep'):
-            if is_afternoon() and (is_wednesday() or is_sunday()):
-                await self.player.go_back()
-                await self.player.find_then_click('yuan_zheng_fu_ben')
-                await self.player.find_then_click('sao_dang')
-                await self.player.find_then_click('max1')
-                await self.player.find_then_click('sao_dang1')
+        if self._get_cfg('sweep') and is_afternoon() and (is_wednesday() or is_sunday()):
+            await self._saodan()
 
     def _test(self):
         return self.cfg['YingXiongYuanZheng']['enable']
+
+    # TODO 不同的平台可能不同，不应该耦合在一起，需要分别处理
+    # 让gamer来处理吧
+    async def _handle_first_login(self):
+        self.logger.info("YingXiongYuanZheng: handle for first login.")
+
+        await self.player.monitor(['hand', 'hand1'])
+        await self.player.find_then_click('production_workshop')
+        await self.player.find_then_click('sha_bai_left', timeout=3, verify=False, raise_exception=False)
+        await self.player.go_back()
+
+        await self.player.monitor('sha_bai_left')
+        await self.player.find_then_click('yuan_zheng_fu_ben')
+        await self.player.monitor('sha_bai_right')
+        await self.player.click((280, 485))
+
+        name, pos = await self.player.monitor(['bei_bao', 'close1'])
+        if name == 'bei_bao':
+            await asyncio.sleep(5)
+            while True:
+                await self.player.go_back()
+                try:
+                    await self.player.monitor('sao_dang', timeout=2)
+                    break
+                except FindTimeout:
+                    await asyncio.sleep(2)
+        else:
+            await self.player.click(pos)
+
+        await self.player.go_back()
+
+        try:
+             await self.player.monitor('sha_bai_left', timeout=2)
+        except FindTimeout:
+            return 
+
+        await self.player.find_then_click('production_workshop')
+        await self.player.monitor('one_click_collection1')
+        await self.player.go_back()
+
+    async def _collect_oil(self):
+        await self.player.find_then_click('production_workshop')
+        await self.player.find_then_click('one_click_collection1')
+        await self.player.go_back()
+
+    async def _saodan(self):
+        await self.player.find_then_click('yuan_zheng_fu_ben')
+        await self.player.find_then_click('sao_dang')
+        await self.player.find_then_click('max1')
+        await self.player.find_then_click('sao_dang1')
 
     async def _exit(self):
         while True:
@@ -1904,7 +1963,6 @@ class ShenYuanMoKu(Task):
             return True
         return False
 
-
     async def _swip_down(self):
         await self.player.drag((630, 430), (630, 50), speed=0.02, stop=True)
 
@@ -1912,7 +1970,6 @@ class ShenYuanMoKu(Task):
         pos_list = await self.player.find_all_pos(CLOSE_BUTTONS)
         await self.player.click(sorted(pos_list)[0])
         await self.player.find_then_click(CLOSE_BUTTONS)
-
 
 
 class MeiRiRenWu(Task):
@@ -1938,7 +1995,7 @@ class MeiRiRenWu(Task):
             await self.player.find_then_click(OK_BUTTONS, timeout=1)
         finally:
             await self.player.find_then_click(CLOSE_BUTTONS)
-        
+
     def _test(self):
         return self.cfg['MeiRiRenWu']['enable']
 

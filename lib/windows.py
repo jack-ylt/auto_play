@@ -15,7 +15,7 @@ class Window(object):
         'left_top': (0, 0, WIDTH, HIGH),
         'left_down': (0, HIGH, WIDTH, HIGH * 2),
         'right_top': (WIDTH, 0, WIDTH * 2, HIGH),
-        'full': (0, 0, WIDTH * 2, HIGH * 2)
+        'full': (0, 0, 1920, 1080)
     }
 
     def __init__(self, name):

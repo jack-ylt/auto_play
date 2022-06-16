@@ -20,6 +20,7 @@ from lib import windows
 import asyncio
 import os
 import sys
+import time
 from lib import role
 from lib.windows import Window
 from lib.role import Role
@@ -95,22 +96,59 @@ async def test_role():
         if not i.startswith('__'):
             print(i, getattr(r, i))
 
-if __name__ == '__main__':
-    names = ['hand']
-    asyncio.run(test_eye(names, threshold=0.8, verify=False))
 
-    # asyncio.run(test_tasks('TiaoZhanFuben'))
+async def findfile(start, name):
+    if not os.path.isdir(start):
+        return ''
+
+    for path, dirs, files in os.walk(start):
+        if name in files:
+            full_path = os.path.join(start, path, name)
+            full_path = os.path.normpath(os.path.abspath(full_path))
+            return full_path
+        await asyncio.sleep(0.2)
+    return ''
+
+async def find_emulator():
+    from asyncio import as_completed
+    name = 'MultiPlayerManager.exe'
+    a_dir = 'Program Files'
+    
+    tasks = []
+    for st in [r'C:\\', r'D:\\', r'E:\\', r'F:\\']:
+
+        task = asyncio.create_task(findfile(st + a_dir, name))
+        tasks.append(task)
+
+    try:
+        for coro in as_completed(tasks, timeout=50):
+            earliest_result = await coro
+            print(earliest_result)
+            if os.path.isfile(earliest_result):
+                print('find the file')
+                return earliest_result
+            else:
+                print(f'result: {earliest_result}')
+    except asyncio.TimeoutError:
+        print('timeout, cant find the file')
+        # ...
+
+if __name__ == '__main__':
+    # names = ['sha_bai_left', 'sha_bai_right']
+    # asyncio.run(test_eye(names, threshold=0.8, verify=False))
+
+    asyncio.run(test_tasks('YingXiongYuanZheng'))
 
     # asyncio.run(test_emulator())
 
     # asyncio.run(test_role())
 
-    # from lib import read_cfg
-    # res = read_cfg.read_game_user()
-    # print(res)
+    # t1 = time.time()
+    # asyncio.run(find_emulator())
+    # t2 = time.time()
+    # print(t2 - t1)
 
-
-    pass
+    # pass
 
 
 # TODO 每个任务都要记录完成情况，以便后续检查是否有任务没做到（比如说识别失败）
