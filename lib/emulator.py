@@ -30,15 +30,23 @@ class Emulator(object):
             await asyncio.sleep(20)
             pos_list = await self.player.find_all_pos('ye_sheng')
             win_list = list(map(self._in_which_window, pos_list))
-            while win_list:
-                # await asyncio.sleep(5)
-                time.sleep(3)
-                _, pos = await self.player.monitor('emulator_started', timeout=60)
+
+            await self.player.monitor('emulator_started', timeout=120)
+            for _ in range(5):
+                try:
+                    _, pos = await self.player.monitor('emulator_started')
+                except FindTimeout:
+                    continue
                 win = self._in_which_window(pos)
                 # 可能会重复find同一个emulator_started
                 if win in win_list:
                     win_list.remove(win)
                     yield win
+            
+                if not win_list:
+                    break
+                
+                await asyncio.sleep(3)
 
     def _in_which_window(self, pos):
         for win in self.window_list:

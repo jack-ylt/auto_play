@@ -218,18 +218,19 @@ class XianShiJie(Task):
         else:
             self._increate_count('count', 1)
 
-        while True:
-            try:
-                await self._goto_next_fight()
-            except PlayException:
-                await self.player.click(self._back_btn)
-                return
+        # 现在有自动推图功能了
+        # while True:
+        #     try:
+        #         await self._goto_next_fight()
+        #     except PlayException:
+        #         await self.player.click(self._back_btn)
+        #         return
 
-            res = await self._fight()
-            if res == 'lose':
-                await self.player.monitor('ranking_icon')
-                await self.player.click(self._back_btn)
-                return
+        #     res = await self._fight()
+        #     if res == 'lose':
+        #         await self.player.monitor('ranking_icon')
+        #         await self.player.click(self._back_btn)
+        #         return
 
     async def _test(self):
         return self.cfg['XianShiJie']['enable']
@@ -395,17 +396,17 @@ class HaoYou(Task):
             self.logger.debug(f"Skip, lack of physical strength.")
             return False
 
-        max_try = 3
+        max_try = 2
         count = 0
         
         while True:
-            monitor_list = ['card', 'go_last', 'fast_forward1']
+            monitor_list = ['fast_forward1', 'go_last', 'card']
             count += 1
-            for _ in range(2):
+            for _ in range(5):
                 name, pos = await self.player.monitor(monitor_list, timeout=120)
                 if name == "card":
                     await self.player.click(pos)
-                    await asyncio.sleep(2)
+                    await self.player.wait_disappear('card')
                     await self.player.click(pos)
                     break
                 else:
@@ -816,9 +817,11 @@ class JueDiKongJian(Task):
         await self._choose_camp()
         await self.player.find_then_click('challenge5')
 
-        await self.player.find_then_click('mop_up3')
-
+        await self.player.monitor('ying_xiong_lie_biao')
         try:
+            # 一关都没通过，就没有扫荡
+            await self.player.find_then_click('mop_up3', timeout=1)
+            # 扫荡完了，就不会弹出扫荡窗口
             await self.player.find_then_click(['max'], timeout=3, cheat=False)
         except FindTimeout:
             return
@@ -1077,7 +1080,7 @@ class YaoQingYingXion(Task):
                 self._increate_count('count_pu_tong_yao_qing')
 
             await self.player.click(p)
-            name, pos = await self.player.monitor(['ok9', 'ok10', 'ok17', 'close'])
+            name, _ = await self.player.monitor(['ok9', 'ok10', 'ok17', 'close'])
             # 如果英雄列表满了，就遣散英雄
             if name == 'close':
                 self.logger.warning(
@@ -1086,7 +1089,7 @@ class YaoQingYingXion(Task):
                 await self.player.find_then_click('qian_san_btn')
                 await self._dismiss_heroes()
             else:
-                await self.player.click(pos)
+                await self.player.find_then_click(name)    # 要避免点太快
 
     def _test(self):
         if not self.cfg['YaoQingYingXion']['enable']:
@@ -1328,14 +1331,14 @@ class JingJiChang(Task):
             await self.player.monitor('fight8')
             pos_list = await self.player.find_all_pos('fight8')
             await self.player.click(filter_bottom(pos_list))
-            name, pos = await self.player.monitor(['buy_ticket', 'start_fight'])
+            name, _ = await self.player.monitor(['buy_ticket', 'start_fight'])
 
             if name == 'start_fight':
                 await self.player.find_then_click('start_fight')
             else:
                 raise PlayException('lack of ticket.')
 
-            await asyncio.sleep(1)
+            await asyncio.sleep(3)    # 避免速度太快
             try:
                 # 同一个人不能打太多次
                 # 结算前5分钟不能战斗
@@ -1357,7 +1360,7 @@ class JingJiChang(Task):
             name, pos = await self.player.monitor(name_list, threshold=0.9, timeout=240)
             if name == 'card':
                 await self.player.click(pos)
-                await asyncio.sleep(2)
+                await self.player.wait_disappear('card')
                 await self.player.click(pos)
                 break
             else:
@@ -1534,6 +1537,7 @@ class YongZheFuBen(Task):
             name, pos = await self.player.monitor(['card', 'lose', 'go_last', 'fast_forward1'])
             if name == "card":
                 await self.player.click(pos)
+                await self.player.wait_disappear('card')
                 await self.player.click(pos)
                 return True
             elif name in ['go_last', 'fast_forward1']:

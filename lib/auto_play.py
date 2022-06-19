@@ -63,17 +63,23 @@ async def play(goal, player, role, g_queue):
     task_list = TASK_DICT[goal]
 
     error_count = 0
+    restart_count = 0
+    failed_set = set()
     for cls_name in task_list:
         try:
             await game_obj.goto_main_ui()
         except FindTimeout as e:
-            # 会不到主界面，可能卡住了，需要重启
-            await game_obj.restart()
-            error_count += 1
-
             msg = "go to main interface failed"
             player.logger.error(msg + '\n' + str(e))
             player.save_operation_pics(msg)
+
+            # 会不到主界面，可能卡住了，需要重启
+            error_count += 1
+            if restart_count < 2:
+                restart_count += 1
+                await game_obj.restart()
+            else:
+                break
 
         player.logger.info("Start to run: " + cls_name)
         obj = getattr(tasks, cls_name)(player, role.play_setting, counter)
@@ -81,14 +87,22 @@ async def play(goal, player, role, g_queue):
             await obj.run()
             error_count = max(error_count - 1, 0)
         except FindTimeout as e:
-            task_list.append(cls_name)
+            player.logger.error(str(e))
+            player.save_operation_pics(str(e))
+
+            if cls_name not in failed_set:
+                failed_set.add(cls_name)
+                task_list.append(cls_name)
+
             error_count += 1
             # 连续两次任务失败，可能游戏出错了，需要重启
             if error_count >= 3:
-                await game_obj.restart()
+                if restart_count < 2:
+                    restart_count += 1
+                    await game_obj.restart()
+                else:
+                    break
 
-            player.logger.error(str(e))
-            player.save_operation_pics(str(e))
         finally:
             counter.save_data()
 

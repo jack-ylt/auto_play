@@ -49,7 +49,12 @@ async def main(goal):
     g_sem = asyncio.Semaphore(1)
     g_queue = asyncio.Queue()
     game_user_list = read_game_user()
+    
     idle_list = [Role(g, u) for (g, u) in game_user_list]
+    if not idle_list:
+        logger.error("游戏账号未配置！请先参考文档配置游戏账号。")
+        return
+
     running_list = []
     done_list = []
 
@@ -63,38 +68,43 @@ async def main(goal):
         #                 window=w, logger=make_logger(w.name))
         # logger.info(f'start to play on {w.name} 1')
         # asyncio.create_task(play(goal, player, None, g_queue))
-        create_play_task(idle_list, g_lock, g_sem, window, g_queue)
+        if idle_list:
+            role = idle_list.pop()
+            create_play_task(role, g_lock, g_sem, window, g_queue)
 
     if goal == 'daily_play':
         while True:
             status, window, role = await g_queue.get()
 
             if status == 'running':
-                logger.info(f'{role} running')
+                logger.info(f'{role} running on {window.name}')
                 running_list.append(role)
             elif status == 'done':
-                logger.info(f'{role} done')
+                logger.info(f'{role} done on {window.name}')
                 running_list.remove(role)
                 done_list.append(role)
                 if running_list == idle_list == []:
                     logger.info('Done')
                     playsound('./sounds/end.mp3')
                     break
-                create_play_task(idle_list, g_lock, g_sem, window, g_queue)
+                if idle_list:
+                    role = idle_list.pop()
+                    create_play_task(role, g_lock, g_sem, window, g_queue)
             else:
-                # 没法run，可能原因：该窗口的模拟器没有安装这个游戏
-                idle_list.insert(0, role)
-                create_play_task(idle_list, g_lock, g_sem, window, g_queue)
+                # 没法run，原因是：该窗口的模拟器没有安装这个游戏
+                logger.info(f'{role} rejected from {window.name}')
+                idle_list.append(role)
+                for a_role in idle_list:
+                    if a_role.game != role.game:
+                        idle_list.remove(a_role)
+                        create_play_task(a_role, g_lock, g_sem, window, g_queue)
 
 
-def create_play_task(roles, g_lock, g_sem, window, g_queue):
-    if not roles:
-        return
-    role = roles.pop()
+def create_play_task(role, g_lock, g_sem, window, g_queue):
     player = Player(g_lock=g_lock, g_sem=g_sem,
                     window=window, logger=make_logger(window.name))
     asyncio.create_task(play(goal, player, role, g_queue))
-    logger.info(f'start to play {role} on {window.name}')
+    logger.info(f'try to play {role} on {window.name}')
 
 def stop_play():
     logger.info("User canceled, so exit.")
