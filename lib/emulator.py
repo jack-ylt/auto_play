@@ -20,7 +20,7 @@ class Emulator(object):
         """
         try:
             # emulator alread started
-            startup_complete_flag, _ = await self.player.monitor(['emulator_ok', 'emulator_ok1', 'recent_tasks'], timeout=1)
+            startup_complete_flag, _ = await self.player.monitor(['emulator_ok', 'emulator_ok1', 'recent_tasks'], timeout=1, threshold=0.92)
             pos_list = await self.player.find_all_pos(startup_complete_flag)
             if pos_list:
                 for pos in pos_list:

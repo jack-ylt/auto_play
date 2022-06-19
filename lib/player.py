@@ -10,7 +10,7 @@ import os
 from datetime import datetime
 import random
 import re
-from lib.helper import make_logger
+from lib.helper import make_logger, change_language
 # from lib.read_cfg import read_role_cfg
 # from lib.recorder import PlayCounter
 
@@ -296,16 +296,23 @@ class Player(object):
         self.logger.debug(msg)
 
         async with self.g_lock:
+            pyperclip.copy(info)
+            
             pos = self.window.real_pos(pos)
-            # await self.hand.click(pos)
             await self.hand.double_click(pos)
-            await asyncio.sleep(0.2)
+            await asyncio.sleep(0.05)
             await self.hand.tap_key('backspace')
-            await asyncio.sleep(0.2)
-            await self.hand.type_string(info)
-            await asyncio.sleep(0.2)
+            await asyncio.sleep(0.05)
+
+            await self._do_paste()
+            await asyncio.sleep(0.1)
 
         self._cache_operation_pic(msg)
+
+    async def _do_paste(self):
+        await self.hand.press_key('ctrl')
+        await self.hand.tap_key('v')
+        await self.hand.release_key('ctrl')
 
     async def multi_click(self, pos_list, delay=1, cheat=True):
         new_pos_list = []
@@ -351,15 +358,15 @@ class Player(object):
 
         return name
 
-    async def type_string(self, a_string, delay=1):
-        """type a string to the computer"""
-        msg = f"{self.window.name}: type_string {a_string}"
-        self.logger.debug(msg)
-        async with self.g_lock:
-            await self.hand.type_string(a_string, delay)
+    # async def type_string(self, a_string, delay=1):
+    #     """type a string to the computer"""
+    #     msg = f"{self.window.name}: type_string {a_string}"
+    #     self.logger.debug(msg)
+    #     async with self.g_lock:
+    #         await self.hand.type_string(a_string, delay)
 
-        await asyncio.sleep(delay)
-        self._cache_operation_pic(msg)
+    #     await asyncio.sleep(delay)
+    #     self._cache_operation_pic(msg)
 
     async def scrool_with_ctrl(self, pos, vertical_num=-10):
         async with self.g_lock:
