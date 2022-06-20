@@ -22,6 +22,7 @@ from lib.player import Player
 from lib.read_cfg import read_game_user
 from lib.role import Role
 from lib.windows import Window
+from collections import defaultdict
 
 os.chdir(main_dir)
 sys.path.insert(0, main_dir)
@@ -72,6 +73,9 @@ async def main(goal):
             role = idle_list.pop()
             create_play_task(role, g_lock, g_sem, window, g_queue)
 
+
+    rejected_dict = defaultdict(list)
+
     if goal == 'daily_play':
         while True:
             status, window, role = await g_queue.get()
@@ -93,11 +97,17 @@ async def main(goal):
             else:
                 # 没法run，原因是：该窗口的模拟器没有安装这个游戏
                 logger.info(f'{role} rejected from {window.name}')
-                idle_list.append(role)
+                rejected_dict[window.name].append(role)
+                idle_list.insert(0, role)
+
                 for a_role in idle_list:
-                    if a_role.game != role.game:
+                    if a_role not in rejected_dict[window.name]:
                         idle_list.remove(a_role)
                         create_play_task(a_role, g_lock, g_sem, window, g_queue)
+                        break
+                else:
+                    rest_roles = '\n'.join([str(i) for i in idle_list])
+                    logger.warning(f"以下账号都无法在{window.name}上面运行:\n{rest_roles}")
 
 
 def create_play_task(role, g_lock, g_sem, window, g_queue):

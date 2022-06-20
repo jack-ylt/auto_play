@@ -421,7 +421,7 @@ class HaoYou(Task):
                 if count < max_try:
                     try:
                         await self.player.find_then_click('next2')
-                    except:
+                    except FindTimeout:
                         self.logger.debug(f"Lose, lack of physical strength.")
                         return False
                 else:

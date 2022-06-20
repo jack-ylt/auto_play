@@ -50,7 +50,7 @@ class GamerBase(object):
         self.logger.debug('goto game main ui')
         for _ in range(5):
             try:
-                await self.player.monitor(['close_btn4', 'setting'], timeout=1)
+                await self.player.monitor('setting', timeout=2)
             except FindTimeout:
                 await self.player.go_back()    # ESC 可能失效 (游戏未响应)
             else:
@@ -91,8 +91,8 @@ class GamerBase(object):
         raise NotImplementedError()
 
     async def _launch_game(self):
-        _, pos = await self.player.monitor(self.role.game)
-        await asyncio.sleep(3)
+        _, pos = await self.player.monitor(self.role.game, timeout=1, interval=0.3)
+        # await asyncio.sleep(3)    # 这边等3s，导致主控那边重复found同一个窗口，导致left_down没有启动到
         await self.player.double_click(pos)
 
         await asyncio.sleep(30)
@@ -102,13 +102,15 @@ class GamerBase(object):
         for _ in range(3):
             await asyncio.sleep(1)
             name = await self.player.find_then_click(
-                ['close_btn', 'close_btn5', 'start_game'], timeout=1)
+                ['close_btn', 'close_btn5', 'start_game'], timeout=1, delay=0.3)
             if name == 'start_game':
                 break
 
     async def _close_game(self):
         await self.player.find_then_click('recent_tasks', cheat=False)
-        await self.player.find_then_click(['close6', 'close7'])
+        # await self.player.find_then_click(['close6', 'close7'])
+        await self.player.find_then_click('quan_bu_qing_chu', cheat=False)
+
         await self.player.monitor(self.role.game)
 
     async def _get_curr_game(self):
@@ -140,12 +142,13 @@ class GamerBase(object):
         raise NotImplementedError()
 
     async def _close_ad(self, timeout=2):
-        cloes_btns = ['close_btn1', 'close_btn2', 'close_btn3', 'close9']
-        try:
-            _, pos = await self.player.monitor(cloes_btns, timeout=timeout)
-            await self.player.click(pos)
-        except FindTimeout:
-            pass
+        cloes_btns = ['close_btn1', 'close_btn2', 'close_btn3', 'close9', 'close_btn4']
+        for _ in range(3):
+            try:
+                _, pos = await self.player.monitor(cloes_btns, timeout=timeout)
+                await self.player.click(pos)
+            except FindTimeout:
+                break
 
 
 class GamerMrxzJy(GamerBase):
@@ -169,7 +172,8 @@ class GamerMrxzJy(GamerBase):
         await self._close_ad(timeout=5)
 
     async def _enter_account_info(self):
-        await self.player.find_then_click('qie_huan_zhang_hao', raise_exception=False, timeout=2)
+        # interval 小一点，以防来不及
+        await self.player.find_then_click('qie_huan_zhang_hao', raise_exception=False, timeout=2, interval=0.3)
         await self.player.find_then_click('qi_ta_zhang_hao')
         await self.player.find_then_click('mi_ma_deng_lu')
 
@@ -203,7 +207,7 @@ class GamerMrxzMht(GamerBase):
         await self._close_ad(timeout=5)
 
     async def _enter_account_info(self):
-        await self.player.find_then_click('qie_huan_zhang_hao_mht', raise_exception=False, timeout=2)
+        await self.player.find_then_click('qie_huan_zhang_hao_mht', raise_exception=False, timeout=2, interval=0.3)
         await self.player.find_then_click('qi_ta_zhang_hao_mht')
         await self.player.find_then_click('mi_hou_tao')
 

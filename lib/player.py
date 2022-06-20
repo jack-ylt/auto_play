@@ -122,15 +122,15 @@ class Player(object):
                 return True
         return False
 
-    async def monitor(self, names, timeout=10, threshold=0.8, filter_func=_get_first, verify=False):
+    async def monitor(self, names, timeout=10, threshold=0.8, filter_func=_get_first, verify=False, interval=1):
         """return (name, pos), all rease timeout_error"""
         if not isinstance(names, list):
             names = [names]
 
-        name, pos_list = await self.eye.monitor(names, area=self.window.bbox, timeout=timeout, threshold=threshold, verify=verify)
+        name, pos_list = await self.eye.monitor(names, area=self.window.bbox, timeout=timeout, threshold=threshold, verify=verify, interval=interval)
 
         pos = filter_func(pos_list)
-        msg = f"found {name} at {pos}"
+        msg = f"find {name} at {pos}"
         self._cache_operation_pic(msg, pos, new=False)
 
         # 如果找到了，清空latest_operation，防止错误re-click
@@ -145,7 +145,7 @@ class Player(object):
         pos_list = await self.eye.find_all_pos(names, area=self.window.bbox, threshold=threshold)
         # 如果没找到，就不要记录了
         if pos_list:
-            msg = f"found {names} at {pos_list}"
+            msg = f"find {names} at {pos_list}"
             # self.logger.debug(msg)
             self._cache_operation_pic(msg, pos_list, new=False)
         return pos_list
@@ -180,7 +180,8 @@ class Player(object):
             pos = self.window.real_pos(pos)
 
         async with self.g_lock:
-            await self.hand.click(pos, cheat=cheat)
+            self.hand.click(pos, cheat=cheat)
+            await asyncio.sleep(0.1)
 
         msg = f"{self.window.name}: click {pos_copy}"
         self.logger.debug(msg)
@@ -266,7 +267,8 @@ class Player(object):
             mouse_pos = await self.hand.mouse_pos()
             if not self.in_window(mouse_pos):
                 pos = self.window.real_pos(pos_window_border)
-                await self.hand.click(pos, cheat=False)
+                self.hand.click(pos, cheat=False)
+                await asyncio.sleep(0.1)
             await self.hand.tap_key('esc')
 
         await asyncio.sleep(1)    # 切换界面需要点时间
@@ -297,7 +299,7 @@ class Player(object):
 
         async with self.g_lock:
             pyperclip.copy(info)
-            
+
             pos = self.window.real_pos(pos)
             await self.hand.double_click(pos)
             await asyncio.sleep(0.05)
@@ -328,7 +330,7 @@ class Player(object):
         self.logger.debug(msg)
         async with self.g_lock:
             for pos in new_pos_list:
-                await self.hand.click(pos, cheat=cheat)
+                self.hand.click(pos, cheat=cheat)
                 await asyncio.sleep(0.5)
             await asyncio.sleep(0.1)
 
@@ -336,7 +338,7 @@ class Player(object):
         self._cache_operation_pic(msg, pos_list)
 
     # 防止误点击到运动目标，所以verify默认True，monitor通常用于监控目标是否出现，因此默认verify是False
-    async def find_then_click(self, name_list, pos=None, threshold=0.8, timeout=10, delay=1, raise_exception=True, cheat=True, verify=True):
+    async def find_then_click(self, name_list, pos=None, threshold=0.8, timeout=10, delay=1, raise_exception=True, cheat=True, verify=True, interval=1):
         """find a image, then click it ant return its name
 
         if pos given, click the pos instead.
@@ -345,7 +347,7 @@ class Player(object):
             name_list = [name_list]
 
         try:
-            name, pos_img = await self.monitor(name_list, threshold=threshold, timeout=timeout, verify=verify)
+            name, pos_img = await self.monitor(name_list, threshold=threshold, timeout=timeout, verify=verify, interval=interval)
         except FindTimeout:
             if raise_exception:
                 raise
@@ -381,11 +383,11 @@ class Player(object):
         """click the input box, then copy the input info"""
         async with self.g_lock:
             pos = self.window.real_pos(pos)
-            # await self.hand.click(pos)
             await self.hand.double_click(pos)
             _, pos_list = await self.eye.monitor('copy', area=self.window.bbox)
             pos = self.window.real_pos(pos_list[0])
-            await self.hand.click(pos)
+            self.hand.click(pos)
+            await asyncio.sleep(0.1)
             text = pyperclip.paste()
         return text
 

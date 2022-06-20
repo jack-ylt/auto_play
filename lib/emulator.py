@@ -31,22 +31,23 @@ class Emulator(object):
             pos_list = await self.player.find_all_pos('ye_sheng')
             win_list = list(map(self._in_which_window, pos_list))
 
-            await self.player.monitor('emulator_started', timeout=120)
-            for _ in range(5):
-                try:
-                    _, pos = await self.player.monitor('emulator_started')
-                except FindTimeout:
-                    continue
-                win = self._in_which_window(pos)
-                # 可能会重复find同一个emulator_started
-                if win in win_list:
-                    win_list.remove(win)
-                    yield win
-            
-                if not win_list:
+            seen = []
+            await self.player.monitor('emulator_started', timeout=120, threshold=0.9)
+            while True:
+                pos_list = await self.player.find_all_pos('emulator_started', threshold=0.9)
+                if pos_list:
+                    for pos in pos_list:
+                        win = self._in_which_window(pos)
+                        if win not in seen:
+                            seen.append(win)
+                            yield self._in_which_window(pos)
+
+                if len(win_list) == len(seen):
                     break
+
+                await asyncio.sleep(1)
                 
-                await asyncio.sleep(3)
+                
 
     def _in_which_window(self, pos):
         for win in self.window_list:
@@ -59,7 +60,7 @@ class Emulator(object):
 
     async def _start_emulator(self):
         try:
-            _, pos = await self.player.monitor(['emulator_icon', 'emulator_icon1'], timeout=2)
+            _, pos = await self.player.monitor(['emulator_icon', 'emulator_icon1'], timeout=2, threshold=0.9)
             await self.player.double_click(pos)
         except FindTimeout:
             self.player.logger.debug(
@@ -71,12 +72,12 @@ class Emulator(object):
                 raise Exception("未找到夜神模拟器，请先安装夜神模拟器")
 
         await self.player.find_then_click('duo_kai_guang_li')
-        await self.player.find_then_click('select_all')
+        await self.player.find_then_click('select_all', threshold=0.9)
 
         try:
-            await self.player.monitor('selected', timeout=2)
+            await self.player.monitor('selected', timeout=2, threshold=0.9)
         except FindTimeout:
-            await self.player.find_then_click('select_all')
+            await self.player.find_then_click('select_all', threshold=0.9)
 
         await self.player.find_then_click('start_emulator', threshold=0.9)
 

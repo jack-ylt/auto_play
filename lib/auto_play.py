@@ -57,6 +57,7 @@ async def play(goal, player, role, g_queue):
         await g_queue.put(('running', player.window, role))
     except FindTimeout:
         await g_queue.put(('error', player.window, role))
+        player.logger.warning('login failed.')
         return
 
     counter = PlayCounter(role.game + '_' + role.user)

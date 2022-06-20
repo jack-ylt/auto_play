@@ -146,7 +146,7 @@ class Eye(object):
         else:
             bbox = None
 
-        await asyncio.sleep(0.5)    # 都加点时间，看是否可以防止鼠标点击，游戏未响应
+        await asyncio.sleep(0.2)    # 都加点时间，看是否可以防止鼠标点击，游戏未响应
         start_t = time.time()
 
         # 不用_screenshot，以免改变self.screen_img
@@ -164,7 +164,7 @@ class Eye(object):
             return False
 
 
-    async def monitor(self, names, area=None, timeout=10, threshold=0.8, verify=True):
+    async def monitor(self, names, area=None, timeout=10, threshold=0.8, verify=True, interval=1):
         """return (name, pos_list), or rease timeout_error"""
         if not isinstance(names, list):
             names = [names]
@@ -185,13 +185,12 @@ class Eye(object):
                                 return name, pos_list
                         else:
                             return name, pos_list
-                await asyncio.sleep(1)
+                await asyncio.sleep(interval)
 
         self.logger.debug(f'start monitor: {names}')
 
         try:
             name, pos_list = await asyncio.wait_for(_monitor(), timeout=timeout)
-            self.logger.debug(f"find {name} at {pos_list}")
             return name, pos_list
         except asyncio.TimeoutError:
             msg = (f"monitor {names} timeout. ({timeout} s)")
