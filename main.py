@@ -96,7 +96,7 @@ async def main(goal):
                     create_play_task(role, g_lock, g_sem, window, g_queue)
             else:
                 # 没法run，原因是：该窗口的模拟器没有安装这个游戏
-                logger.info(f'{role} rejected from {window.name}')
+                logger.warning(f'{role} rejected from {window.name}')
                 rejected_dict[window.name].append(role)
                 idle_list.insert(0, role)
 

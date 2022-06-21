@@ -169,28 +169,33 @@ class Player(object):
         return False
 
     async def click(self, pos, delay=1, cheat=True):
-        # await asyncio.sleep(delay / 2)
-
-        # TODO 一个点不够，可能误判
-        color = await self.eye.get_pos_color(pos)
-        self.last_click = (pos, color)
-        pos_copy = pos[:]
         if isinstance(pos, str):
             pos = POS_DICT[pos]
 
-        # click 的 pos 可能来自monitor的实际坐标，也可能是代码中的伪坐标
-        if pos[0] < WIDTH and pos[1] < HIGH:
-            pos = self.window.real_pos(pos)
+        pos = self.window.real_pos(pos)
 
         async with self.g_lock:
             self.hand.click(pos, cheat=cheat)
             await asyncio.sleep(0.1)
 
-        msg = f"{self.window.name}: click {pos_copy}"
+        msg = f"{self.window.name}: click {pos}"
         self.logger.debug(msg)
 
         await asyncio.sleep(delay / 2)
-        self._cache_operation_pic(msg, pos_copy)
+        self._cache_operation_pic(msg, pos)
+
+    def click2(self, pos, cheat=True):
+        """不用协程，可以不用锁，让代码顺序执行"""
+        if isinstance(pos, str):
+            pos = POS_DICT[pos]
+        pos = self.window.real_pos(pos)
+
+        self.hand.click(pos, cheat=cheat)
+        time.sleep(0.05)
+        
+        msg = f"{self.window.name}: click {pos}"
+        self.logger.debug(msg)
+        self._cache_operation_pic(msg, pos)
 
     async def double_click(self, pos, delay=1, cheat=True):
         pos_copy = pos[:]

@@ -75,6 +75,7 @@ class GamerBase(object):
             try:
                 await self.goto_main_ui()
             except FindTimeout:
+                self.logger.warning("goto main failed, so close game then login.")
                 await self._close_game()
                 await self._login_game()
             else:
