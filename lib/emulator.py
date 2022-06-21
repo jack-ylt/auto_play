@@ -27,12 +27,11 @@ class Emulator(object):
                     yield self._in_which_window(pos)
         except FindTimeout:
             await self. _start_emulator()
-            await asyncio.sleep(20)
+            await self.player.monitor('emulator_started', timeout=120, threshold=0.9)
             pos_list = await self.player.find_all_pos('ye_sheng')
             win_list = list(map(self._in_which_window, pos_list))
 
             seen = []
-            await self.player.monitor('emulator_started', timeout=120, threshold=0.9)
             while True:
                 pos_list = await self.player.find_all_pos('emulator_started', threshold=0.9)
                 if pos_list:
@@ -42,10 +41,10 @@ class Emulator(object):
                             seen.append(win)
                             yield self._in_which_window(pos)
 
-                if len(win_list) == len(seen):
+                if len(seen) >= len(win_list):
                     break
 
-                await asyncio.sleep(1)
+                await asyncio.sleep(2)
                 
                 
 

@@ -72,13 +72,18 @@ class GamerBase(object):
         if await self._at_emulator_main():
             await self._login_game()
         else:
-            await self.goto_main_ui()
-            game_curr = await self._get_curr_game()
-            if game_curr == self.role.game:
-                await self._switch_account()
-            else:
+            try:
+                await self.goto_main_ui()
+            except FindTimeout:
                 await self._close_game()
                 await self._login_game()
+            else:
+                game_curr = await self._get_curr_game()
+                if game_curr == self.role.game:
+                    await self._switch_account()
+                else:
+                    await self._close_game()
+                    await self._login_game()
 
     async def _at_emulator_main(self):
         try:
@@ -111,7 +116,7 @@ class GamerBase(object):
         # await self.player.find_then_click(['close6', 'close7'])
         await self.player.find_then_click('quan_bu_qing_chu', cheat=False)
 
-        await self.player.monitor(self.role.game)
+        await self.player.monitor('emulator_started')
 
     async def _get_curr_game(self):
         game_dict = {
@@ -208,7 +213,7 @@ class GamerMrxzMht(GamerBase):
 
     async def _enter_account_info(self):
         await self.player.find_then_click('qie_huan_zhang_hao_mht', raise_exception=False, timeout=2, interval=0.3)
-        await self.player.find_then_click('qi_ta_zhang_hao_mht')
+        await self.player.find_then_click('qi_ta_zhang_hao_mht', raise_exception=False, timeout=2)
         await self.player.find_then_click('mi_hou_tao')
 
         await self.player.monitor('mi_hou_tao_s')

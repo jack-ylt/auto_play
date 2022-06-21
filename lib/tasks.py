@@ -398,7 +398,7 @@ class HaoYou(Task):
 
         max_try = 2
         count = 0
-        
+
         while True:
             monitor_list = ['fast_forward1', 'go_last', 'card']
             count += 1
@@ -510,24 +510,33 @@ class SheQvZhuLi(Task):
         return True
 
     async def _play_guess_ring(self, max_num=4):
-        for _ in range(max_num):
+        await self.player.find_then_click('ring')
+        await self._click_cup()
+
+        for _ in range(max_num - 1):
             # 有些平台，在新设备登陆，又需要重新勾选“跳过动画”
-            name = await self.player.find_then_click(['tiao_guo_dong_hua', 'ring', 'next_game'])
+            name = await self.player.find_then_click(['tiao_guo_dong_hua', 'next_game'])
             if name == 'tiao_guo_dong_hua':
-                await self.player.find_then_click(['tiao_guo_dong_hua', 'ring', 'next_game'])
+                await self.player.find_then_click('next_game')
 
-            await asyncio.sleep(3)
+            await asyncio.sleep(2)
+            name, _ = await self.player.monitor(['cup', 'close', 'next_game'])
+            if name == 'cup':
+                await self._click_cup()
+            elif name == 'close':
+                await self.player.find_then_click('close')
+            else:
+                return
 
-            for _ in range(5):
-                name, pos = await self.player.monitor(['cup', 'close', 'next_game'], timeout=1)
-                if name == 'cup':
-                    await self.player.click(pos)
-                    await asyncio.sleep(2)
-                elif name == 'next_game':
-                    break
-                else:
-                    await self.player.click(pos)
-                    return
+    async def _click_cup(self):
+        # cup 点一次不一定管用，尤其是有动画的情况下
+        for _ in range(5):
+            name, pos = await self.player.monitor(['cup', 'next_game'])
+            if name == 'cup':
+                await self.player.click(pos)
+                await asyncio.sleep(2)
+            else:
+                return
 
     async def _upgrade_Assistant(self):
         await self.player.click((800, 255))    # 一键领取所有爱心
@@ -628,9 +637,11 @@ class TiaoZhanFuben(Task):
 
     async def _sao_dang(self):
         self._increate_count('count')
-        await self.player.find_then_click('next_game1')
-        await self.player.find_then_click(OK_BUTTONS)
-        self._increate_count('count')
+        # 有可能本来就只有一场扫荡
+        name = await self.player.find_then_click(['next_game1'] + OK_BUTTONS)
+        if name == 'next_game1':
+            await self.player.find_then_click(OK_BUTTONS)
+            self._increate_count('count')
 
     async def _tiao_zhan(self):
         await self.player.find_then_click('start_fight')
@@ -1834,9 +1845,9 @@ class YingXiongYuanZheng(Task):
         await self.player.go_back()
 
         try:
-             await self.player.monitor('sha_bai_left', timeout=2)
+            await self.player.monitor('sha_bai_left', timeout=2)
         except FindTimeout:
-            return 
+            return
 
         await self.player.find_then_click('production_workshop')
         await self.player.monitor('one_click_collection1')

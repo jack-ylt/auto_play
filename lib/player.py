@@ -137,6 +137,9 @@ class Player(object):
         self.last_click = None
         return name, pos
 
+    async def is_exist(self, name, threshold):
+        return await self.eye.is_exist(name, area=self.window.bbox, threshold=threshold)
+
     async def find_all_pos(self, names, threshold=0.8):
         """return pos_list, all rease timeout_error"""
         if not isinstance(names, list):
@@ -391,13 +394,13 @@ class Player(object):
             text = pyperclip.paste()
         return text
 
-    async def wait_disappear(self, name, timeout=10):
+    async def wait_disappear(self, name, check_count=10):
         """wait, until the name disappear"""
-        for _ in range(5):
+        for _ in range(check_count):
             try:
                 await self.monitor(name, timeout=1)
                 await asyncio.sleep(1)
             except FindTimeout:
                 return True
-        self.logger.warning("wait 5 times, the [name} still not disapper.")
+        self.logger.warning(f"wait {check_count} times, the {name} still not disapper.")
         return False
