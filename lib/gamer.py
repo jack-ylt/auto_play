@@ -97,9 +97,12 @@ class GamerBase(object):
         raise NotImplementedError()
 
     async def _launch_game(self):
-        _, pos = await self.player.monitor(self.role.game, timeout=1, interval=0.3)
+        _, pos = await self.player.monitor(self.role.game, timeout=2, interval=0.3)
         # await asyncio.sleep(3)    # 这边等3s，导致主控那边重复found同一个窗口，导致left_down没有启动到
         await self.player.double_click(pos)
+        # 如果双击没反应，就再试一次
+        if not await self.player.wait_disappear(self.role.game):
+            await self.player.double_click(pos)
 
         await asyncio.sleep(30)
         await self.player.monitor(['close_btn', 'close_btn5', 'start_game'], timeout=90)
