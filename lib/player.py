@@ -48,7 +48,7 @@ class Player(object):
         msg = re.sub(r'[^a-zA-Z0-9-_]', ' ', msg)
         msg = re.sub(r'\s+', ' ', msg)
         now = datetime.now().strftime('%H-%M-%S-%f')[:-3]
-        time_str = now.replace('-', ':')[:-4]
+        time_str = now.replace('-', ':')[:-5]    # 截掉个位秒以后的值，避免取不到日志
         name = now + ' ' + msg + ext
 
         img = self.eye.get_lates_screen(area=self.window.bbox, new=new)
@@ -84,10 +84,15 @@ class Player(object):
         dst_log = os.path.join(dir_path, 'log.log')
         self.extract_log_text(src_log, time_str, dst_log)
 
+        lst = []
         while not self.log_queue.empty():
             time_str, name, img = self.log_queue.get()
+            lst.append((time_str, name, img))
             pic_path = os.path.join(dir_path, name)
             self.eye.save_picture(img, pic_path)
+
+        for i in lst:
+            self.log_queue.put(i)
 
         # 保存一下最新的屏幕截图
         img = self.eye.get_lates_screen(area=self.window.bbox, new=True)
@@ -137,8 +142,8 @@ class Player(object):
         self.last_click = None
         return name, pos
 
-    async def is_exist(self, name, threshold):
-        return await self.eye.is_exist(name, area=self.window.bbox, threshold=threshold)
+    def is_exist(self, name, threshold):
+        return self.eye.is_exist(name, area=self.window.bbox, threshold=threshold)
 
     async def find_all_pos(self, names, threshold=0.8):
         """return pos_list, all rease timeout_error"""
@@ -306,6 +311,7 @@ class Player(object):
         self.logger.debug(msg)
 
         async with self.g_lock:
+            # copy
             pyperclip.copy(info)
 
             pos = self.window.real_pos(pos)
@@ -314,15 +320,15 @@ class Player(object):
             await self.hand.tap_key('backspace')
             await asyncio.sleep(0.05)
 
-            await self._do_paste()
+            # paste
+            await self.hand.press_key('ctrl')
+            await asyncio.sleep(0.05)    # 避免粘贴失败
+            await self.hand.tap_key('v')
+            await asyncio.sleep(0.05)    # 避免粘贴失败
+            await self.hand.release_key('ctrl')
             await asyncio.sleep(0.1)
 
         self._cache_operation_pic(msg)
-
-    async def _do_paste(self):
-        await self.hand.press_key('ctrl')
-        await self.hand.tap_key('v')
-        await self.hand.release_key('ctrl')
 
     async def multi_click(self, pos_list, delay=1, cheat=True):
         new_pos_list = []
@@ -409,3 +415,14 @@ class Player(object):
                 return True
         self.logger.warning(f"wait {check_count} times, the {name} still not disapper.")
         return False
+
+    async def click_untile_disappear(self, name, max_count=5):
+        await self.find_then_click(name)
+        for _ in range(max_count - 1):
+            await asyncio.sleep(1)
+            try:
+                await self.find_then_click(name, timeout=1)
+            except FindTimeout:
+                return True
+        return False
+

@@ -54,12 +54,12 @@ async def play(goal, player, role, g_queue):
 
     try:
         await game_obj.login()
-        await g_queue.put(('running', player.window, role))
     except FindTimeout:
         await g_queue.put(('error', player.window, role))
         msg = 'login failed.'
         player.logger.warning(msg)
         player.save_operation_pics(msg)
+        await game_obj.close_game()
         return
 
     counter = PlayCounter(role.game + '_' + role.user)
@@ -76,7 +76,7 @@ async def play(goal, player, role, g_queue):
             player.logger.error(msg + '\n' + str(e))
             player.save_operation_pics(msg)
 
-            # 会不到主界面，可能卡住了，需要重启
+            # 回不到主界面，可能卡住了，需要重启
             error_count += 1
             if restart_count < 2:
                 restart_count += 1
@@ -93,13 +93,15 @@ async def play(goal, player, role, g_queue):
             player.logger.error(str(e))
             player.save_operation_pics(str(e))
 
+            # 失败了，就过段时间再尝试一次
+            # 还失败，就算了
             if cls_name not in failed_set:
                 failed_set.add(cls_name)
                 task_list.append(cls_name)
 
             error_count += 1
             # 连续两次任务失败，可能游戏出错了，需要重启
-            if error_count >= 3:
+            if error_count >= 2:
                 if restart_count < 2:
                     restart_count += 1
                     await game_obj.restart()

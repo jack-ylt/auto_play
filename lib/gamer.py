@@ -61,8 +61,8 @@ class GamerBase(object):
 
     async def restart(self):
         """游戏异常就重启游戏"""
-        self.logger.info("restart game")
-        await self._close_game()
+        self.logger.warning("restart game")
+        await self.close_game()
         await self._login_game(change_account=False)
 
     async def login(self):
@@ -75,16 +75,20 @@ class GamerBase(object):
             try:
                 await self.goto_main_ui()
             except FindTimeout:
-                self.logger.warning("goto main failed, so close game then login.")
-                await self._close_game()
+                self.logger.warning(
+                    "goto main failed, so close game then login.")
+                await self.close_game()
                 await self._login_game()
             else:
                 game_curr = await self._get_curr_game()
                 if game_curr == self.role.game:
                     await self._switch_account()
                 else:
-                    await self._close_game()
+                    await self.close_game()
                     await self._login_game()
+
+        # 偶尔傻白会出来
+        await self._handle_shabai()
 
     async def _at_emulator_main(self):
         try:
@@ -115,11 +119,9 @@ class GamerBase(object):
             if name == 'start_game':
                 break
 
-    async def _close_game(self):
+    async def close_game(self):
         await self.player.find_then_click('recent_tasks', cheat=False)
-        # await self.player.find_then_click(['close6', 'close7'])
         await self.player.find_then_click('quan_bu_qing_chu', cheat=False)
-
         await self.player.monitor('emulator_started')
 
     async def _get_curr_game(self):
@@ -129,7 +131,7 @@ class GamerBase(object):
             'mo_ri_xue_zhan_changxiang_title': 'mo_ri_xue_zhan_changxiang',
             'mo_shi_jun_tun_title': 'mo_shi_jun_tun',
         }
-        await self.player.find_then_click('recent_tasks', cheat=False )
+        await self.player.find_then_click('recent_tasks', cheat=False)
         name, _ = await self.player.monitor(list(game_dict))
         await asyncio.sleep(1)
         await self.player.find_then_click('recent_tasks', cheat=False)
@@ -151,13 +153,50 @@ class GamerBase(object):
         raise NotImplementedError()
 
     async def _close_ad(self, timeout=2):
-        cloes_btns = ['close_btn1', 'close_btn2', 'close_btn3', 'close9', 'close_btn4']
+        cloes_btns = ['close_btn1', 'close_btn2',
+                      'close_btn3', 'close9', 'close_btn4']
         for _ in range(3):
             try:
                 _, pos = await self.player.monitor(cloes_btns, timeout=timeout)
                 await self.player.click(pos)
             except FindTimeout:
                 break
+
+    async def _handle_shabai(self):
+        try:
+            await self.player.find_then_click('sha_bai_left', timeout=1)
+            self.logger.warning('shabai appear, need handle it.')
+        except FindTimeout:
+            return
+
+        for _ in range(5):
+            try:
+                await self.player.find_then_click(['hand1', 'sha_bai_left', 'sha_bai_right'], timeout=3, verify=False)
+            except FindTimeout:
+                break
+
+        await self.player.find_then_click('back_to_main')
+
+    async def _input_user_and_pwd(self, pos_user, pos_pwd, pic_user_empty, pic_pwd_empty):
+        # 粘贴可能失败，所以多尝试几次
+        max_try = 3
+
+        await asyncio.sleep(1)
+        
+        for _ in range(max_try):
+            await self.player.information_input(pos_user, self.role.user)
+            await self.player.information_input(pos_pwd, self.role.passwd)
+
+            await asyncio.sleep(1)
+            try:
+                await self.player.monitor([pic_user_empty, pic_pwd_empty], timeout=1)
+            except FindTimeout:
+                return
+
+            self.logger.debug("input user and passwd failed, try again")
+
+        self.logger.warning("input user and passwd failed, and reach the max try.")
+
 
 
 class GamerMrxzJy(GamerBase):
@@ -186,11 +225,10 @@ class GamerMrxzJy(GamerBase):
         await self.player.find_then_click('qi_ta_zhang_hao')
         await self.player.find_then_click('mi_ma_deng_lu')
 
-        await asyncio.sleep(1)
-        pos_user = (430, 254)
-        await self.player.information_input(pos_user, self.role.user)
-        pos_passwd = (430, 308)
-        await self.player.information_input(pos_passwd, self.role.passwd)
+        await self.player.monitor('deng_lu')
+
+        await self._input_user_and_pwd(
+            (430, 254), (430, 308), 'user_empty_9you', 'pwd_empty_9you')
 
         await self.player.find_then_click('deng_lu')
 
@@ -220,12 +258,10 @@ class GamerMrxzMht(GamerBase):
         await self.player.find_then_click('qi_ta_zhang_hao_mht', raise_exception=False, timeout=2)
         await self.player.find_then_click('mi_hou_tao')
 
-        await self.player.monitor('mi_hou_tao_s')
-        await asyncio.sleep(1)
-        pos_user = (400, 220)
-        await self.player.information_input(pos_user, self.role.user)
-        pos_passwd = (400, 280)
-        await self.player.information_input(pos_passwd, self.role.passwd)
+        await self.player.monitor('deng_lu_mht')
+
+        await self._input_user_and_pwd(
+            (400, 220), (400, 280), 'user_empty_mht', 'pwd_empty_mht')
 
         await self.player.find_then_click('deng_lu_mht')
 
@@ -247,11 +283,8 @@ class GamerMrxzCx(GamerBase):
     async def _enter_account_info(self):
         await self.player.monitor('kui_su_deng_lu')
 
-        await asyncio.sleep(1)
-        pos_user = (380, 215)
-        await self.player.information_input(pos_user, self.role.user)
-        pos_passwd = (380, 265)
-        await self.player.information_input(pos_passwd, self.role.passwd)
+        await self._input_user_and_pwd(
+            (380, 215), (380, 265), 'user_empty_cx', 'pwd_empty_cx')
 
         await self.player.find_then_click('kui_su_deng_lu')
 
@@ -284,10 +317,7 @@ class GamerMsjt(GamerBase):
     async def _enter_account_info(self):
         await self.player.monitor('login_btn')
 
-        await asyncio.sleep(1)
-        pos_user = (370, 235)
-        await self.player.information_input(pos_user, self.role.user)
-        pos_passwd = (370, 290)
-        await self.player.information_input(pos_passwd, self.role.passwd)
+        await self._input_user_and_pwd(
+            (370, 235), (370, 290), 'user_empty_9wan', 'pwd_empty_9wan')
 
         await self.player.find_then_click('login_btn')

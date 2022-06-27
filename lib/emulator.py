@@ -78,6 +78,7 @@ class Emulator(object):
         except FindTimeout:
             await self.player.find_then_click('select_all', threshold=0.9)
 
+        await asyncio.sleep(2)    # 点太快，可能有窗口启动不了
         await self.player.find_then_click('start_emulator', threshold=0.9)
 
     async def _find_emulator(self):

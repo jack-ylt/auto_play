@@ -197,7 +197,7 @@ class Eye(object):
             # self.logger.debug(msg)
             raise FindTimeout(msg)
 
-    async def is_exist(self, name,  area=None, threshold=0.8):
+    def is_exist(self, name,  area=None, threshold=0.8):
         img_bg = self._screenshot(area=area)
         img_target = self._get_img(name)
         pos_list, max_val = self._find_img_pos(

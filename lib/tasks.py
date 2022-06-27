@@ -63,7 +63,7 @@ class Task(object):
         self.cfg = role_setting
         self.counter = counter
 
-    def test(self):
+    def _test(self):
         raise NotImplementedError()
 
     def run(self):
@@ -177,12 +177,12 @@ class Task(object):
 
         await self.player.multi_click(pos_list)
 
-    def _get_count(self, key, cls_name=None):
+    def _get_count(self, key='count', cls_name=None):
         if cls_name is None:
             cls_name = self.__class__.__name__
         return self.counter.get(cls_name, key)
 
-    def _increate_count(self, key, val=1, cls_name=None):
+    def _increate_count(self, key='count', val=1, cls_name=None):
         if cls_name is None:
             cls_name = self.__class__.__name__
         new_val = self._get_count(key) + val
@@ -203,8 +203,11 @@ class XianShiJie(Task):
     def __init__(self, player, role_setting, counter):
         super().__init__(player, role_setting, counter)
 
-    async def test(self):
-        return self.cfg['level_battle']['enable']
+    def verify(self):
+        """验证任务是否已经完成"""
+        if not self._get_cfg('enable'):
+            return True
+        return self._get_count('count') >= 3
 
     async def run(self):
         await self._enter()
@@ -333,11 +336,14 @@ class YouJian(Task):
     def __init__(self, player, role_setting, counter):
         super().__init__(player, role_setting, counter)
 
-    def test(self):
+    def verify(self):
+        return True
+
+    def _test(self):
         return self.cfg['YouJian']['enable']
 
     async def run(self):
-        if not self.test():
+        if not self._test():
             return
 
         await self.player.find_then_click('mail')
@@ -356,11 +362,17 @@ class HaoYou(Task):
     def __init__(self, player, role_setting, counter):
         super().__init__(player, role_setting, counter)
 
+    def verify(self):
+        if not self._get_cfg('enable'):
+            return True
+        return self._get_count('count') >= 1
+
     async def run(self):
         if not self._test():
             return
 
         await self.player.find_then_click('friends')
+        await self.player.monitor('vs')    # 确保完全进入界面
         await self.player.find_then_click('receive_and_send')
 
         # 刷好友的boos
@@ -379,6 +391,8 @@ class HaoYou(Task):
                 break
             if not await self._fight_friend_boss():
                 break
+
+        self._increate_count('count', 1)
 
     def _test(self):
         return self.cfg['HaoYou']['enable']
@@ -405,8 +419,7 @@ class HaoYou(Task):
             for _ in range(5):
                 name, pos = await self.player.monitor(monitor_list, timeout=120)
                 if name == "card":
-                    await self.player.click(pos)
-                    await self.player.wait_disappear('card')
+                    await self.player.click_untile_disappear('card')
                     await self.player.click(pos)
                     break
                 else:
@@ -450,6 +463,11 @@ class SheQvZhuLi(Task):
     def __init__(self, player, role_setting, counter):
         super().__init__(player, role_setting, counter)
 
+    def verify(self):
+        if not self._get_cfg('enable'):
+            return True
+        return self._get_count('count') >= 1
+
     async def run(self):
         if not self._test():
             return
@@ -473,6 +491,8 @@ class SheQvZhuLi(Task):
         await self._upgrade_Assistant()
         # TODO 如果没有升级，就不用送礼物
         await self._send_gifts()
+
+        self._increate_count('count', 1)
 
     def _test(self):
         return self.cfg['SheQvZhuLi']['enable']
@@ -599,6 +619,11 @@ class TiaoZhanFuben(Task):
     def __init__(self, player, role_setting, counter):
         super().__init__(player, role_setting, counter)
 
+    def verify(self):
+        if not self._get_cfg('enable'):
+            return True
+        return self._get_count('count') >= 6
+
     async def run(self):
         if not self._test():
             return
@@ -670,6 +695,11 @@ class GongHui(Task):
     def __init__(self, player, role_setting, counter):
         super().__init__(player, role_setting, counter)
 
+    def verify(self):
+        if not self._get_cfg('enable'):
+            return True
+        return self._get_count('count') >= 1
+
     async def run(self):
         if not self._test():
             return
@@ -681,9 +711,9 @@ class GongHui(Task):
 
         await self._gong_hui_qian_dao()
 
-        name, pos = await self.player.monitor(['tui_jian_gong_hui', 'gong_hui_ling_di'])
-        if name == 'tui_jian_gong_hui':
-            return
+        # name, pos = await self.player.monitor(['tui_jian_gong_hui', 'gong_hui_ling_di'])
+        # if name == 'tui_jian_gong_hui':
+        #     return
 
         await self.player.find_then_click('gong_hui_ling_di')
 
@@ -692,6 +722,8 @@ class GongHui(Task):
             await self.player.go_back_to('guild_factory')
 
         await self._gong_hui_gong_chang()
+
+        self._increate_count('count', 1)
 
     def _test(self):
         return self.cfg['GongHui']['enable']
@@ -786,6 +818,11 @@ class MeiRiQianDao(Task):
     def __init__(self, player, role_setting, counter):
         super().__init__(player, role_setting, counter)
 
+    def verify(self):
+        if not self._get_cfg('enable'):
+            return True
+        return self._get_count('count') >= 1
+
     async def run(self):
         if not self._test():
             return
@@ -793,6 +830,8 @@ class MeiRiQianDao(Task):
         await self.player.find_then_click('jing_cai_huo_dong')
         for _ in range(3):
             await self.player.find_then_click('qian_dao')
+
+        self._increate_count('count', 1)
 
     def _test(self):
         return self.cfg['MeiRiQianDao']['enable']
@@ -812,6 +851,11 @@ class JueDiKongJian(Task):
             'hui_mie': 5,
         }
 
+    def verify(self):
+        if not self._get_cfg('enable'):
+            return True
+        return self._get_count('count') >= 1
+
     async def run(self):
         if not self._test():
             return
@@ -823,6 +867,7 @@ class JueDiKongJian(Task):
         try:
             await self.player.monitor('challenge5')
         except FindTimeout:
+            self._increate_count()    # 用于verify, 表示完成了
             return
 
         await self._choose_camp()
@@ -831,16 +876,17 @@ class JueDiKongJian(Task):
         await self.player.monitor('ying_xiong_lie_biao')
         try:
             # 一关都没通过，就没有扫荡
-            await self.player.find_then_click('mop_up3', timeout=1)
+            await self.player.find_then_click('mop_up3', timeout=2)
             # 扫荡完了，就不会弹出扫荡窗口
             await self.player.find_then_click(['max'], timeout=3, cheat=False)
+            self._increate_count()
         except FindTimeout:
             return
 
         await self.player.find_then_click(OK_BUTTONS)
 
     def _test(self):
-        return self.cfg['JueDiKongJian']['enable']
+        return self._get_cfg('enable') and self._get_count('count') < 1
 
     async def _choose_camp(self):
         left = (90, 240)
@@ -867,6 +913,11 @@ class ShengCunJiaYuan(Task):
     def __init__(self, player, role_setting, counter):
         super().__init__(player, role_setting, counter)
 
+    def verify(self):
+        if not self._get_cfg('enable'):
+            return True
+        return self._get_count() >= 1
+
     async def run(self):
         if not self._test():
             return
@@ -882,6 +933,8 @@ class ShengCunJiaYuan(Task):
 
         await self.player.monitor('switch_map')
         await self._collect_all_boxes()
+
+        self._increate_count()
 
     def _test(self):
         return self._get_cfg('enable')
@@ -1370,8 +1423,7 @@ class JingJiChang(Task):
         while True:
             name, pos = await self.player.monitor(name_list, threshold=0.9, timeout=240)
             if name == 'card':
-                await self.player.click(pos)
-                await self.player.wait_disappear('card')
+                await self.player.click_untile_disappear('card')
                 await self.player.click(pos)
                 break
             else:
@@ -1414,21 +1466,24 @@ class GuanJunShiLian(Task):
         await self._enter()
 
         # 第一次进入，需要设置上阵英雄
-        await self._set_battle_lineup()
+        if not await self._set_battle_lineup():
+            return
 
         win, lose = 0, 0
-        while (win * 2 + lose) < self._target_score:
+        while (win * 2 + lose) < self._target_score - self._get_count():
             await self._choose_opponent()
             if await self._fight_win():
                 win += 1
+                self._increate_count(val=2)
             else:
                 lose += 1
+                self._increate_count(val=1)
                 self._move_next = True
 
         self.logger.info(f"GuanJunShiLian: win: {win}, lose: {lose}")
 
     def _test(self):
-        return self.cfg['GuanJunShiLian']['enable'] and is_sunday() and is_afternoon()
+        return self.cfg['GuanJunShiLian']['enable'] and is_sunday() and is_afternoon() and self._get_count() < self._target_score
 
     async def _enter(self):
         await self._move_to_left_top()
@@ -1440,9 +1495,16 @@ class GuanJunShiLian(Task):
     async def _set_battle_lineup(self):
         try:
             await self.player.find_then_click(CLOSE_BUTTONS, timeout=1)
-            await self.player.find_then_click('save')
         except FindTimeout:
-            pass
+            return True
+
+        try:
+            await self.player.monitor('no_hero2', timeout=1)
+            self.logger.warning('英雄未上阵，无法进行冠军试炼')
+            return False
+        except FindTimeout:
+            await self.player.find_then_click('save')
+            return True
 
     async def _choose_opponent(self):
         pos_refresh = (660, 170)
@@ -1534,6 +1596,7 @@ class YongZheFuBen(Task):
         elif name == 'ok':
             await self.player.click(pos)
             await self.player.monitor('brave_coin')
+            await asyncio.sleep(2)    # 多等会，避免误判的
 
         _, (x, y) = await self.player.monitor('current_level', threshold=0.95)
         await self.player.click((x, y + 35), cheat=False)
@@ -1547,8 +1610,7 @@ class YongZheFuBen(Task):
         while True:
             name, pos = await self.player.monitor(['card', 'lose', 'go_last', 'fast_forward1'])
             if name == "card":
-                await self.player.click(pos)
-                await self.player.wait_disappear('card')
+                await self.player.click_untile_disappear('card')
                 await self.player.click(pos)
                 return True
             elif name in ['go_last', 'fast_forward1']:
@@ -1790,29 +1852,51 @@ class YingXiongYuanZheng(Task):
         if not self._test():
             return
 
+        for _ in range(3):
+            await self._enter()
+            
+            try:
+                await self._collect_oil()
+                # 每周三、日扫荡，防止油溢出
+                if self._get_cfg('sweep') and is_afternoon() and (is_wednesday() or is_sunday()):
+                    await self._saodan()
+                return
+            except FindTimeout:
+                try:
+                    await self.player.monitor(['hand1', 'sha_bai_left', 'sha_bai_right'], timeout=1)
+                except FindTimeout:
+                    raise
+                else:
+                    await self._handle_shabai()
+
+    def _test(self):
+        return self.cfg['YingXiongYuanZheng']['enable']
+
+    async def _enter(self):
         await self._move_to_right_top()
         await self.player.find_then_click('hero_expedition')
         await self.player.monitor('production_workshop')
 
-        try:
-            name = await self.player.find_then_click(['sha_bai_left', 'sha_bai_right'], timeout=2, verify=False)
-            if name == 'sha_bai_left':
-                await self._handle_first_login()
-            else:
-                await self.player.click((20, 63))
-                self.logger.info(
-                    "hero_expedition need at least one 14 star hero.")
-                return
-        except FindTimeout:
-            pass
-
-        await self._collect_oil()
-        # 每周三、日扫荡，防止油溢出
-        if self._get_cfg('sweep') and is_afternoon() and (is_wednesday() or is_sunday()):
-            await self._saodan()
-
-    def _test(self):
-        return self.cfg['YingXiongYuanZheng']['enable']
+    async def _handle_shabai(self):
+        self.logger.warning('handle shabai')
+        pos_back = (38, 63)
+        for _ in range(15):
+            try:
+                await self.player.find_then_click(['hand1', 'sha_bai_left', 'sha_bai_right'], timeout=2, verify=False)
+                await asyncio.sleep(2)
+            except FindTimeout:
+                await self.player.go_back()
+                try:
+                    name, _ = await self.player.monitor(['hand1', 'sha_bai_left', 'sha_bai_right', 'setting'], timeout=2)
+                    if name == 'setting':
+                        # 可能多点了次esc，导致系统提示“是否退出游戏”
+                        # TODO 最好让gamer来处理
+                        await self.player.find_then_click(CLOSE_BUTTONS + ['zai_wan_yi_hui'], timeout=1, raise_exception=False)
+                        return
+                    else:
+                        continue
+                except FindTimeout:
+                    await self.player.click(pos_back)
 
     # TODO 不同的平台可能不同，不应该耦合在一起，需要分别处理
     # 让gamer来处理吧
@@ -1860,7 +1944,9 @@ class YingXiongYuanZheng(Task):
 
     async def _saodan(self):
         await self.player.find_then_click('yuan_zheng_fu_ben')
-        await self.player.find_then_click('sao_dang')
+        # 每个大关卡，扫荡有过场动画，可能需要多点几次
+        await self.player.click_untile_disappear('sao_dang')
+        # await self.player.find_then_click('sao_dang')
         await self.player.find_then_click('max1')
         await self.player.find_then_click('sao_dang1')
 
