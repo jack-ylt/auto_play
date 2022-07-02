@@ -45,8 +45,8 @@ logger.addHandler(ch)
 
 
 async def test_eye(name=None, threshold=0.8, verify=True):
-    # bbox = (0, 0, 1000, 540)
-    bbox = None
+    bbox = (0, 0, 1920, 1080)
+    # bbox = None
 
     if name is None:
         name = ['boss', 'boss1', 'boss2']
@@ -134,7 +134,7 @@ async def find_emulator():
         # ...
 
 if __name__ == '__main__':
-    names = ['hand1',]
+    names = ['duo_kai_guang_li', 'close_btn5']
     asyncio.run(test_eye(names, threshold=0.8, verify=False))
 
     # asyncio.run(test_tasks('SheQvZhuLi'))

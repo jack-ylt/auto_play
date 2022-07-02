@@ -68,8 +68,9 @@ class Roles():
     def __init__(self):
         self._running_roles = []
         self._done_roles = []
-        self._idle_roles = [Role(g, u) for (g, u) in read_game_user()]
-        self.total_roles = len(self._idle_roles)
+        self.all_roles = [Role(g, u) for (g, u) in read_game_user()]
+        self.total_roles = len(self.all_roles)
+        self._idle_roles = list(self.all_roles)
 
         if not self._idle_roles:
             raise Exception("Error: 游戏账号未配置！请先参考文档配置游戏账号。")

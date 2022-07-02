@@ -1880,9 +1880,12 @@ class YingXiongYuanZheng(Task):
     async def _handle_shabai(self):
         self.logger.warning('handle shabai')
         pos_back = (38, 63)
-        for _ in range(15):
+        for _ in range(10):
             try:
-                await self.player.find_then_click(['hand1', 'sha_bai_left', 'sha_bai_right'], timeout=2, verify=False)
+                name = await self.player.find_then_click(['no_14star_hero', 'hand1', 'sha_bai_left', 'sha_bai_right'], timeout=2, verify=False)
+                if name == 'no_14star_hero':
+                    # 这种情况esc没用的
+                    return await self.player.click(pos_back)
                 await asyncio.sleep(2)
             except FindTimeout:
                 await self.player.go_back()
@@ -1968,12 +1971,17 @@ class RenWu(Task):
     async def run(self):
         if not self._test():
             return
+
         await self.player.find_then_click('task')
         await self.player.find_then_click('receive_all')
-        self._increate_count('count')
+
+        try:
+            await self.player.monitor('qian_wang', threshold=0.9, timeout=1)
+        except FindTimeout:
+            self._increate_count('count')
 
     def _test(self):
-        return self.cfg['RenWu']['enable']
+        return self.cfg['RenWu']['enable'] and self._get_count() < 1
 
 
 class MiGong(Task):

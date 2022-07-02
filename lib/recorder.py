@@ -36,7 +36,10 @@ TODAY = datetime.now().strftime(r'%Y-%m-%d')
 
 class PlayCounter(object):
     def __init__(self, name):
-        self._file = os.path.join('logs', name + '.json')
+        _dir = 'record'
+        if not os.path.exists(_dir):
+            os.mkdir(_dir)
+        self._file = os.path.join(_dir, name + '.json')
         if name == 'debug':
             self._init_data()
         else:

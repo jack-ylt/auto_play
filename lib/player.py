@@ -10,7 +10,8 @@ import os
 from datetime import datetime
 import random
 import re
-from lib.helper import make_logger, change_language
+from lib.helper import change_language
+from lib.loggers import make_logger
 # from lib.read_cfg import read_role_cfg
 # from lib.recorder import PlayCounter
 

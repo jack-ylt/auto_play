@@ -17,11 +17,14 @@ import keyboard
 
 from lib import emulator
 from lib.auto_play import play
-from lib.helper import main_dir, make_logger
+from lib.globals import EmulatorNotFound
+from lib.helper import main_dir
+from lib.loggers import make_logger, clean_old_logs
 from lib.player import Player
 from lib.read_cfg import read_game_user
 from lib.role import Role, Roles
 from lib.windows import Window
+from lib.recorder import PlayCounter
 from collections import defaultdict
 
 os.chdir(main_dir)
@@ -52,15 +55,21 @@ async def main(goal):
     g_queue = asyncio.Queue()
     roles = Roles()
 
+    logger.info("clean old logs")
+    clean_old_logs()
+
     player = Player(g_lock=g_lock, window=Window('full'), logger=logger)
     emu = emulator.Emulator(player)
 
-    async for window in emu.start_all_emulator():
-        a_role = roles.get_idle_role()
-        if a_role:
-            create_play_task(a_role, g_lock, g_sem, window, g_queue)
-        else:
-            break
+    try:
+        async for window in emu.start_all_emulator():
+            a_role = roles.get_idle_role()
+            if a_role:
+                create_play_task(a_role, g_lock, g_sem, window, g_queue)
+            else:
+                break
+    except EmulatorNotFound:
+        return stop_play("未找到夜神模拟器，请先安装夜神模拟器")
 
     if goal == 'daily_play':
         while True:
@@ -73,21 +82,54 @@ async def main(goal):
                 if roles.is_all_roles_done():
                     playsound('./sounds/end.mp3')
                     end_t = time.time()
-                    cost_hour = int((end_t - start_t) / 60)
-                    logger.info(f'Done, 为您节省时间约{cost_hour}分钟。')
+                    cost_minute = int((end_t - start_t) / 60)
+                    logger.info(f'Done, 为您节省时间约{cost_minute}分钟。')
                     break
 
                 # a_role = roles.get_idle_role(game=role.game) or roles.get_idle_role()
                 a_role = roles.get_idle_role()
                 if a_role:
                     create_play_task(a_role, g_lock, g_sem, window, g_queue)
+            elif status == 'config error':
+                return stop_play(f"配置错误，请先修正配置")
+            elif status == 'game not found':
+                return stop_play(f"未找到{role.game}，请在每个模拟器窗口都安装好游戏")
             else:
                 # 比如验证码出来了，所以就换个账号登陆
                 logger.warning(f'{role} run error on {window.name}')
                 a_role = roles.get_idle_role()
                 if a_role:
                     create_play_task(a_role, g_lock, g_sem, window, g_queue)
-                roles.set_role_status(role, 'idle')
+
+                # 失败了，就不必重试了
+                # roles.set_role_status(role, 'idle')
+
+        report_play_result(roles)
+
+
+def report_play_result(roles):
+    done_roles = []
+    undone_roles = []
+
+    for role in roles.all_roles:
+        counter = PlayCounter(role.game + '_' + role.user)
+        count = counter.get('RenWu', 'count')
+        if count > 0:
+            done_roles.append(role)
+        else:
+            undone_roles.append(role)
+
+    print(f"""
+总体游戏账号数量：     {len(roles.all_roles)}
+完成了每日任务的数量： {len(done_roles)}
+未完成数量：           {len(undone_roles)}
+""")
+
+    if len(undone_roles) > 0:
+        print("未完成的账号：")
+        for role in undone_roles:
+            print(role)
+        print("\n建议早晚各运行一次，以便完成每日任务，并最大化收取资源。")
 
 
 def create_play_task(role, g_lock, g_sem, window, g_queue):
@@ -97,8 +139,8 @@ def create_play_task(role, g_lock, g_sem, window, g_queue):
     logger.info(f'{role} running on {window.name}')
 
 
-def stop_play():
-    logger.info("User canceled, so exit.")
+def stop_play(msg):
+    logger.info(msg)
     if loop.is_running():
         loop.stop()
 
@@ -115,7 +157,8 @@ if __name__ == "__main__":
     loop = asyncio.get_event_loop()
     loop.create_task(main(goal))
 
-    keyboard.add_hotkey('space', stop_play)
+    keyboard.add_hotkey('space', stop_play, args=(
+        "User canceled, so stop playing.", ))
 
     try:
         loop.run_forever()

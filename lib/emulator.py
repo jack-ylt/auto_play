@@ -7,6 +7,7 @@ from lib.player import FindTimeout
 from lib.windows import Window
 import time
 import os
+from lib.globals import EmulatorNotFound, EmulatorStartupTimeout
 
 
 class Emulator(object):
@@ -27,7 +28,7 @@ class Emulator(object):
                     yield self._in_which_window(pos)
         except FindTimeout:
             await self. _start_emulator()
-            await self.player.monitor('emulator_started', timeout=120, threshold=0.9)
+            await self.player.monitor('emulator_started', timeout=60, threshold=0.9)
             pos_list = await self.player.find_all_pos('ye_sheng')
             win_list = list(map(self._in_which_window, pos_list))
 
@@ -68,9 +69,9 @@ class Emulator(object):
             if exe_file:
                 os.startfile(exe_file)
             else:
-                raise Exception("未找到夜神模拟器，请先安装夜神模拟器")
+                raise EmulatorNotFound("未找到夜神模拟器，请先安装夜神模拟器")
 
-        await self.player.find_then_click('duo_kai_guang_li')
+        await self.player.find_then_click(['duo_kai_guang_li', 'duo_kai_guang_li_1'])
         await self.player.find_then_click('select_all', threshold=0.9)
 
         try:
