@@ -7,7 +7,7 @@
 """
 
 import asyncio
-from lib.globals import GameNotFound, UnsupportGame, LoginTimeout, RestartTooMany
+from lib.global_vals import GameNotFound, UnsupportGame, LoginTimeout, RestartTooMany
 from lib.player import FindTimeout
 from lib.ui_data import OK_BUTTONS, CLOSE_BUTTONS
 
@@ -153,10 +153,8 @@ class GamerBase(object):
             'mo_shi_jun_tun_title': 'mo_shi_jun_tun',
         }
         await self.player.find_then_click('recent_tasks', cheat=False)
-        try:
-            name, _ = await self.player.monitor(list(game_dict))
-        except FindTimeout:
-            raise UnsupportGame
+        # 可能遇到不支持的游戏平台，那就timeout吧，关闭，打开新游戏
+        name, _ = await self.player.monitor(list(game_dict))
         await asyncio.sleep(1)
         await self.player.find_then_click('recent_tasks', cheat=False)
         return game_dict[name]

@@ -1,4 +1,8 @@
 {
     "python.pythonPath": "C:\\Users\\liuxi\\AppData\\Local\\Programs\\Python\\Python39\\python.exe",
-    "python.linting.enabled": true
+    "python.linting.enabled": true,
+    "json.schemas": [
+    
+    ],
+    "workbench.settings.openDefaultSettings": false
 }

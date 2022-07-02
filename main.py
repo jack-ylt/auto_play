@@ -17,9 +17,9 @@ import keyboard
 
 from lib import emulator
 from lib.auto_play import play
-from lib.globals import EmulatorNotFound
+from lib.global_vals import EmulatorNotFound
 from lib.helper import main_dir
-from lib.loggers import make_logger, clean_old_logs
+from lib.mylogs import make_logger, clean_old_logs
 from lib.player import Player
 from lib.read_cfg import read_game_user
 from lib.role import Role, Roles

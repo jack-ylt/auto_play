@@ -16,7 +16,7 @@ import time
 # from ui_data import SCREEN_DICT
 # from player import Player, FindTimeout
 
-from lib.globals import GameNotFound, UnsupportGame, LoginTimeout, RestartTooMany, ConfigError
+from lib.global_vals import GameNotFound, UnsupportGame, LoginTimeout, RestartTooMany, UserConfigError
 
 
 shen_yuan_tasks = ('ShenYuanMoKu', )
@@ -58,7 +58,7 @@ async def play(goal, player, role, g_queue):
 
     try:
         await func(*args)
-    except ConfigError:
+    except UserConfigError:
         g_queue.put(('config error', player.window, role))
     except GameNotFound:
         g_queue.put(('game not found', player.window, role))
@@ -82,7 +82,7 @@ async def daily_play(player, role):
         await role.load_all_attributes()
     except Exception as err:
         player.logger.eror(str(err))
-        raise ConfigError
+        raise UserConfigError
 
     gamer = Gamer(player, role)
 

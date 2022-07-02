@@ -17,5 +17,5 @@ class LoginTimeout(Exception):
 class RestartTooMany(Exception):
     pass
 
-class ConfigError(Exception):
+class UserConfigError(Exception):
     pass

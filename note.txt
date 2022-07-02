@@ -4,6 +4,7 @@ btm 密码 qQ198...
 git status
 git add .
 git commit -m
+git push
 
 git push origin master
 git push origin multi_client
@@ -880,4 +881,6 @@ json文件，用户也不看，放文件夹里面吧
 主界面的傻白有时候处理不了
 
 各种错误，却没有重启
+
+
 

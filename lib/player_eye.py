@@ -6,7 +6,7 @@
 ##############################################################################
 
 import sys
-import cv2
+from cv2 import cv2
 import re
 import numpy as np
 from PIL import ImageGrab, Image

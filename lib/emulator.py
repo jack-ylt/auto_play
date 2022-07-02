@@ -7,7 +7,7 @@ from lib.player import FindTimeout
 from lib.windows import Window
 import time
 import os
-from lib.globals import EmulatorNotFound, EmulatorStartupTimeout
+from lib.global_vals import EmulatorNotFound, EmulatorStartupTimeout
 
 
 class Emulator(object):
