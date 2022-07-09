@@ -952,10 +952,11 @@ class ShengCunJiaYuan(Task):
 
         await self.player.find_then_click('fight_btn')
 
+        await self._collect_all_boxes()    # fight 有可能失败，比如点到基地
+
         if self._get_cfg('fight_boss'):
             await self._fight_home_boos()
 
-        await self.player.monitor('switch_map')
         await self._collect_all_boxes()
 
         self._increate_count()
@@ -972,8 +973,13 @@ class ShengCunJiaYuan(Task):
             pass
 
     async def _fight_home_boos(self):
-        max_fight = 4
+        kill_count = self._get_count()
+        max_fight = min(5, (9 - kill_count))    # 一天最多9次
         win_count = 0
+
+        if max_fight <= 0:
+            return
+
         total_floors = await self._get_total_floors()
 
         # 从高层往低层打，战力高的话，可能多得一些资源
@@ -984,6 +990,7 @@ class ShengCunJiaYuan(Task):
                 await self._goto_floor(i)
             for d in [None, 'left_top', 'left_down', 'right_down', 'right_top']:
                 await self.player.monitor('switch_map')
+                await asyncio.sleep(1)    # 怪物刷新出来有点慢
                 if d:
                     # 先在当前视野找boos，然后再上下左右去找
                     await self._swip_to(d)
@@ -993,6 +1000,7 @@ class ShengCunJiaYuan(Task):
                         self.logger.warning(f"Fight lose, in floor: {i}")
                         break
                     win_count += 1
+                    self._increate_count()    # 记录杀的boos个数
                     if win_count >= max_fight:
                         self.logger.debug(
                             f"stop fight, reach the max figh count: {max_fight}")
@@ -1002,6 +1010,7 @@ class ShengCunJiaYuan(Task):
                         return
 
     async def _collect_all_boxes(self):
+        await self.player.monitor('switch_map')
         try:
             await self.player.find_then_click('collect_all_box', timeout=1)
         except FindTimeout:
@@ -1013,15 +1022,14 @@ class ShengCunJiaYuan(Task):
             return    # 可能以及收集完了
 
     async def _get_total_floors(self):
-        await self.player.find_then_click('switch_map')
-        await asyncio.sleep(1)
+        await self._open_map()
 
         locked_field = 0
         await self._drag_floors('up')
         map_list = await self.player.find_all_pos('locked_field')
         locked_field += len(map_list)
         if locked_field == 0:
-            await self.player.find_then_click('switch_map')
+            await self._close_map()
             return 7
 
         await self._drag_floors('down')
@@ -1035,8 +1043,28 @@ class ShengCunJiaYuan(Task):
             floors = 7 - locked_field
 
         await self._drag_floors('up')
-        await self.player.find_then_click('switch_map')
+        await self._close_map()
         return floors
+
+    async def _open_map(self):
+        for _ in range(3):
+            await self.player.find_then_click('switch_map')
+            await asyncio.sleep(1)
+            try:
+                await self.player.monitor(['ye_wai_di_tu', 'ye_wai_di_tu1', 'map_lock'], timeout=1)
+                return
+            except FindTimeout:
+                continue
+
+    async def _close_map(self):
+        for _ in range(3):
+            await self.player.find_then_click('switch_map')
+            await asyncio.sleep(1)
+            try:
+                await self.player.monitor(['ye_wai_di_tu', 'ye_wai_di_tu1', 'map_lock'], timeout=1)
+                continue
+            except FindTimeout:
+                return
 
     async def _drag_floors(self, d):
         pos1 = (55, 300)
@@ -1058,8 +1086,7 @@ class ShengCunJiaYuan(Task):
             7: (50, 409)
         }
 
-        await self.player.find_then_click('switch_map')
-        await asyncio.sleep(1)
+        await self._open_map()
 
         if i <= 4:
             await self._drag_floors('down')
@@ -1067,7 +1094,8 @@ class ShengCunJiaYuan(Task):
             await self._drag_floors('up')
 
         await self.player.click(pos_map[i])
-        await self.player.find_then_click('switch_map')
+
+        await self._close_map()
 
     async def _swip_to(self, direction, stop=False):
         left_top = (150, 150)
@@ -1124,6 +1152,7 @@ class ShengCunJiaYuan(Task):
 
         for _ in range(max_try):
             await self.player.find_then_click(['start_fight', 'xia_yi_chang1'])
+            await asyncio.sleep(2)    # 界面切换需要时间 （xia_yi_chang1 和 message 是在同一个页面的）
             name, _ = await self.player.monitor(['message', 'fight_report'])
             if name == 'message':
                 await self.player.click(pos_go_last)
@@ -1731,7 +1760,7 @@ class RenWuLan(Task):
         await self.player.monitor(['unlock', 'lock'])
 
     async def _accept_all_tasks(self):
-        while True:
+        for _ in range(5):
             await self._accept_tasks()
             await self._swip_to_right()
 
@@ -1810,7 +1839,7 @@ class RenWuLan(Task):
             pass
 
         # 非vip也只领取5星及以下的任务（保持一致性）
-        while True:
+        for _ in range(5):
             list1 = await self.player.find_all_pos('finish_btn')
             list2 = await self.player.find_all_pos(self._tasks_to_finish)
             pos_list = self._merge_pos_list(list1, list2, dx=10)
