@@ -15,5 +15,6 @@ __pycache__
 # My configurations:
 db.ini
 account.cfg
+record
 *.json
 *stats

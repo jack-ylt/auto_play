@@ -19,3 +19,6 @@ class RestartTooMany(Exception):
 
 class UserConfigError(Exception):
     pass
+
+class NotInGameMain(Exception):
+    pass

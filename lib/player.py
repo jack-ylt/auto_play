@@ -385,7 +385,8 @@ class Player(object):
     #     await asyncio.sleep(delay)
     #     self._cache_operation_pic(msg)
 
-    async def scrool_with_ctrl(self, pos, vertical_num=-10):
+    async def scrool_with_ctrl(self, pos, vertical_num=-5):
+        self.logger.warning("Raise the horizon")
         async with self.g_lock:
             await self.hand.move(*pos)
             await self.hand.press_key('ctrl')

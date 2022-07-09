@@ -48,9 +48,10 @@ class Hand(object):
             x = pos[0] + random.randint(-2, 2)
             y = pos[1] + random.randint(-2, 2)
 
-        self.m.move(x, y)    # click偶尔失灵，试试这个
+        # click 有可能失灵 （大概万分之一）, 先release就能保证click有效了
+        self.m.release(x, y)
+        self.m.move(x, y)
         self.m.click(x, y)
-
 
     async def double_click(self, pos, cheat=True):
         """simulate a player to do a double left-click"""
@@ -90,8 +91,6 @@ class Hand(object):
             await asyncio.sleep(0.1)
         self.m.release(x2, y2)
         await asyncio.sleep(0.3)
-
-        
 
     async def scroll(self, vertical_num, delay=0.2):
         """垂直滚动"""

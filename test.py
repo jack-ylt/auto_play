@@ -4,7 +4,7 @@ from lib import tasks
 # from lib import helper
 from lib import ui_data
 from lib.gamer import Gamer
-from lib.player import Player
+from lib.player import FindTimeout, Player
 from lib import player_eye
 # from lib.read_cfg import read_account_cfg
 # from lib.start_game import start_emulator, game_started
@@ -133,15 +133,32 @@ async def find_emulator():
         print('timeout, cant find the file')
         # ...
 
-if __name__ == '__main__':
-    names = ['duo_kai_guang_li', 'close_btn5']
-    asyncio.run(test_eye(names, threshold=0.8, verify=False))
+async def test_mouse():
+    window = windows.Window('full')
+    player = Player(g_lock=asyncio.Lock(), window=window)
+    for i in range(5):
+        await player.find_then_click(['close', 'fight7'], timeout=2)
 
-    # asyncio.run(test_tasks('SheQvZhuLi'))
+        # player.hand.m.press(200, 10)
+        player.hand.m.release(200, 10)
+        await asyncio.sleep(2)
+
+        # if i % 3 == 0:
+        #     player.hand.m.press(450, 20)
+        #     player.hand.m.release(450, 20)
+
+
+if __name__ == '__main__':
+    names = ['tiao_zhan',]
+    # asyncio.run(test_eye(names, threshold=0.8, verify=False))
+
+    asyncio.run(test_tasks('GongHuiZhan'))
 
     # asyncio.run(test_emulator())
 
     # asyncio.run(test_role())
+
+    # asyncio.run(test_mouse())
 
     # t1 = time.time()
     # asyncio.run(find_emulator())
@@ -149,6 +166,7 @@ if __name__ == '__main__':
     # print(t2 - t1)
 
     # pass
+
 
 
 # TODO 每个任务都要记录完成情况，以便后续检查是否有任务没做到（比如说识别失败）

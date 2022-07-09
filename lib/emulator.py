@@ -25,22 +25,22 @@ class Emulator(object):
             pos_list = await self.player.find_all_pos(startup_complete_flag)
             if pos_list:
                 for pos in pos_list:
-                    yield self._in_which_window(pos)
+                    yield self.in_which_window(pos)
         except FindTimeout:
             await self. _start_emulator()
             await self.player.monitor('emulator_started', timeout=60, threshold=0.9)
             pos_list = await self.player.find_all_pos('ye_sheng')
-            win_list = list(map(self._in_which_window, pos_list))
+            win_list = list(map(self.in_which_window, pos_list))
 
             seen = []
             while True:
                 pos_list = await self.player.find_all_pos('emulator_started', threshold=0.9)
                 if pos_list:
                     for pos in pos_list:
-                        win = self._in_which_window(pos)
+                        win = self.in_which_window(pos)
                         if win not in seen:
                             seen.append(win)
-                            yield self._in_which_window(pos)
+                            yield self.in_which_window(pos)
 
                 if len(seen) >= len(win_list):
                     break
@@ -49,7 +49,7 @@ class Emulator(object):
                 
                 
 
-    def _in_which_window(self, pos):
+    def in_which_window(self, pos):
         for win in self.window_list:
             if win.in_window(pos):
                 return win

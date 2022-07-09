@@ -147,7 +147,6 @@ class Eye(object):
             bbox = None
 
         await asyncio.sleep(0.2)    # 都加点时间，看是否可以防止鼠标点击，游戏未响应
-        start_t = time.time()
 
         # 不用_screenshot，以免改变self.screen_img
         img = ImageGrab.grab(bbox=bbox)
@@ -157,7 +156,6 @@ class Eye(object):
         pos_list, max_val = self._find_img_pos(
                         img_bg, img_target, threshold=threshold)
         if pos_list:
-            end_t = time.time()
             return True
         else:
             self.logger.debug(f"_verify_monitor not pass: not found {name} near {pos}")
@@ -183,6 +181,9 @@ class Eye(object):
                             res = await self._verify_monitor(name, pos_list[0], threshold, base_area=area)
                             if res:
                                 return name, pos_list
+                            else:
+                                # 找到了，但位置不对，需要下一次截图
+                                break
                         else:
                             return name, pos_list
                 await asyncio.sleep(interval)
@@ -194,7 +195,7 @@ class Eye(object):
             return name, pos_list
         except asyncio.TimeoutError:
             msg = (f"monitor {names} timeout. ({timeout} s)")
-            # self.logger.debug(msg)
+            self.logger.debug(msg)
             raise FindTimeout(msg)
 
     def is_exist(self, name,  area=None, threshold=0.8):

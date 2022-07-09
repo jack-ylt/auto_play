@@ -14,6 +14,7 @@ from multiprocessing import freeze_support
 from playsound import playsound
 import time
 import keyboard
+from collections import defaultdict
 
 from lib import emulator
 from lib.auto_play import play
@@ -61,17 +62,18 @@ async def main(goal):
     player = Player(g_lock=g_lock, window=Window('full'), logger=logger)
     emu = emulator.Emulator(player)
 
-    try:
-        async for window in emu.start_all_emulator():
-            a_role = roles.get_idle_role()
-            if a_role:
-                create_play_task(a_role, g_lock, g_sem, window, g_queue)
-            else:
-                break
-    except EmulatorNotFound:
-        return stop_play("未找到夜神模拟器，请先安装夜神模拟器")
-
     if goal == 'daily_play':
+        try:
+            async for window in emu.start_all_emulator():
+                a_role = roles.get_idle_role()
+                if a_role:
+                    create_play_task(a_role, g_lock, g_sem, window, g_queue)
+                else:
+                    break
+        except EmulatorNotFound:
+            return stop_play("未找到夜神模拟器，请先安装夜神模拟器")
+
+        failed_rols = defaultdict(int)
         while True:
             status, window, role = await g_queue.get()
 
@@ -101,10 +103,36 @@ async def main(goal):
                 if a_role:
                     create_play_task(a_role, g_lock, g_sem, window, g_queue)
 
-                # 失败了，就不必重试了
-                # roles.set_role_status(role, 'idle')
+                # 失败太多次，就不必重试了（可能是用户改密码了，系统维护……）
+                failed_rols[str(role)] += 1
+                if failed_rols[str(role)] < 3:
+                    roles.set_role_status(role, 'idle')
+                else:
+                    roles.set_role_status(role, 'done')
 
         report_play_result(roles)
+
+    # 用户先自己开好游戏，然后程序来刷buff
+    elif goal == 'shen_yuan_mo_ku':
+        pos_list = await player.find_all_pos('setting')
+        if not pos_list:
+            return stop_play("请先开好游戏，让其停留在游戏主界面，然后再运行程序来刷深渊魔窟buff")
+
+        for pos in pos_list:
+            create_play_task(None, g_lock, g_sem,
+                             emu.in_which_window(pos), g_queue)
+
+        count = len(pos_list)
+        while count > 0:
+            status, window, role = await g_queue.get()
+            count -= 1
+            print('count', count)
+
+        playsound('./sounds/end.mp3')
+        end_t = time.time()
+        cost_minute = int((end_t - start_t) / 60)
+        logger.info(
+            f'Done, 为您节省时间约{cost_minute}分钟。\n如果对现有buff不满意，可以退回到游戏主界面，然后运行程序重刷。')
 
 
 def report_play_result(roles):
@@ -152,7 +180,6 @@ if __name__ == "__main__":
         goal = sys.argv[1]
     else:
         goal = 'daily_play'
-        # goal = 'shen_yuan_mo_ku'
 
     loop = asyncio.get_event_loop()
     loop.create_task(main(goal))

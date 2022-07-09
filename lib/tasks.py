@@ -18,7 +18,6 @@ from operator import itemgetter
 from pickle import NEXT_BUFFER
 
 
-
 from lib.helper import is_afternoon, is_monday, is_sunday, is_wednesday
 from lib.player import FindTimeout, Player
 from lib.ui_data import CLOSE_BUTTONS, GOOD_TASKS, OK_BUTTONS, SCREEN_DICT
@@ -396,6 +395,32 @@ class HaoYou(Task):
     def _test(self):
         return self.cfg['HaoYou']['enable']
 
+    # TODO 有可能好友boos被别人杀掉了
+    """重构
+
+    if not  enter fight
+        return
+
+    max_try = 2
+    count = 0
+
+    while true:
+        win = do fight
+        count += 1
+
+        if win
+            break
+
+        if count >= max_try:
+            break
+
+        if not go_next_fight
+            break
+
+    click ok and wait hao you lie biao (exit fight)
+    
+    """
+
     async def _fight_friend_boss(self):
         try:
             await self.player.find_then_click('fight3')
@@ -647,8 +672,8 @@ class TiaoZhanFuben(Task):
         return self.cfg['TiaoZhanFuben']['enable'] and self._get_count('count') < 6
 
     async def _click_bottom_button(self):
-        await self.player.monitor('dao_ji_shi')
-
+        await self.player.monitor(['mop_up', 'mop_up1', 'mop_up2', 'challenge3'])
+        await asyncio.sleep(1)    # 等待页面稳定
         sao_dang_list = await self.player.find_all_pos(['mop_up', 'mop_up1', 'mop_up2'])
         tiao_zhan_list = await self.player.find_all_pos('challenge3')
         pos = filter_bottom(tiao_zhan_list + sao_dang_list)
@@ -1167,16 +1192,18 @@ class YaoQingYingXion(Task):
         await self.player.find_then_click('2xing')
         await self.player.find_then_click('quick_put_in')
 
-        # 如果遣散栏为空，就遣散第一个英雄
+        # 如果遣散栏为空，就遣散3星英雄
         try:
             await self.player.monitor('empty_dismiss', timeout=1)
         except FindTimeout:
-            pass
+            await self.player.find_then_click('dismiss')
+            await self.player.find_then_click('receive1')
         else:
-            await self.player.click((507, 200))
-
-        await self.player.find_then_click('dismiss')
-        await self.player.find_then_click('receive1')
+            await self.player.find_then_click('3xing')
+            await self.player.find_then_click('quick_put_in')
+            await self.player.find_then_click('dismiss')
+            await self.player.find_then_click(OK_BUTTONS)
+            await self.player.find_then_click('receive1')
 
         # 回到啤酒邀请界面
         await self.player.go_back()
@@ -1680,7 +1707,7 @@ class RenWuLan(Task):
 
         try:
             await self.player.monitor('receivable_task', timeout=1)
-        except:
+        except FindTimeout:
             self.logger.info("Skip, there is no receivable task")
             return
 
@@ -1718,6 +1745,12 @@ class RenWuLan(Task):
                 break
             except FindTimeout:
                 pass
+
+            # 避免到主界面，还在死循环
+            try:
+                await self.player.monitor(['unlock', 'lock'], timeout=1)
+            except FindTimeout:
+                break
 
         # 到了右边，但可能还有receivable_task
         await self._accept_tasks()
@@ -1776,22 +1809,6 @@ class RenWuLan(Task):
         except FindTimeout:
             pass
 
-        # if not vip, finish via below method
-        # while True:
-        #     await self._swip_to_right(stop=False)
-        #     try:
-        #         await self.player.monitor('unlock_more', timeout=2, verify=False)
-        #         break
-        #     except FindTimeout:
-        #         pass
-
-        # while True:
-        #     try:
-        #         await self.player.find_then_click(['finish_btn'] + OK_BUTTONS, timeout=3)
-        #     except FindTimeout:
-        #         self.logger.info("All tasks had been finished.")
-        #         return
-
         # 非vip也只领取5星及以下的任务（保持一致性）
         while True:
             list1 = await self.player.find_all_pos('finish_btn')
@@ -1808,6 +1825,12 @@ class RenWuLan(Task):
                     break
                 except FindTimeout:
                     await self._swip_to_right()
+
+            # 避免到主界面，还在死循环
+            try:
+                await self.player.monitor(['unlock', 'lock'], timeout=1)
+            except FindTimeout:
+                break
 
 
 class VipShangDian(Task):
@@ -1853,7 +1876,7 @@ class YingXiongYuanZheng(Task):
 
         for _ in range(3):
             await self._enter()
-            
+
             try:
                 await self._collect_oil()
                 # 每周三、日扫荡，防止油溢出
@@ -1995,7 +2018,7 @@ class MiGong(Task):
 
         self._increate_count('count')
         try:
-            await self.player.find_then_click('maze4', timeout=1, cheat=False)
+            await self.player.find_then_click('maze4', timeout=2, cheat=False)
         except FindTimeout:
             self.logger.debug("There is no maze")
             return
@@ -2018,6 +2041,7 @@ class MiGong(Task):
 class ShenYuanMoKu(Task):
     """深渊魔窟"""
 
+    # 不需要用到 role和counter
     def __init__(self, player, role_setting, counter):
         super().__init__(player, role_setting, counter)
 
@@ -2038,7 +2062,8 @@ class ShenYuanMoKu(Task):
             await self._enter()
 
     def _test(self):
-        return self.cfg['ShenYuanMoKu']['enable']
+        # return self.cfg['ShenYuanMoKu']['enable']
+        return True
 
     async def _enter(self):
         try:
@@ -2130,3 +2155,150 @@ class MeiRiRenWu(Task):
         # 主要是免费啤酒无法确定是否有
         # -> 在任务task中处理？
         # count_gao_ji_yao_qing
+
+
+class LianSaiBaoXiang(Task):
+    """收集联赛宝箱"""
+
+    def __init__(self, player, role_setting, counter):
+        super().__init__(player, role_setting, counter)
+
+    async def run(self):
+        if not self._test():
+            return
+
+        try:
+            await self.player.find_then_click('lian_sai_bao_xiang', timeout=3)
+        except FindTimeout:
+            return
+
+        await self.player.find_then_click('lian_sai_bao_xiang_l')
+        await self.player.find_then_click(OK_BUTTONS)
+        await self.player.go_back()
+        self._increate_count()
+
+    def _test(self):
+        return self._get_cfg('enable') and self._get_count('count') < 1
+
+
+class GongHuiZhan(Task):
+    """打公会战宝箱"""
+
+    def __init__(self, player, role_setting, counter):
+        super().__init__(player, role_setting, counter)
+
+    async def run(self):
+        if not self._test():
+            return
+
+        if not await self._enter_ghz():
+            return
+
+        await self._pull_up_the_lens()
+
+        for pos in await self.player.find_all_pos(['bao_xiang_guai', 'bao_xiang_guai1']):
+            await self.player.monitor('zhu_jun_dui_wu')    # 确保不会点错
+            await self.player.click(pos, cheat=False)
+            res = await self._tiao_zhan()
+            if res == 'no_hero':
+                self._increate_count()
+                return
+
+        await self._move_bank_center()
+
+        for pos in await self.player.find_all_pos(['bao_xiang_guai', 'bao_xiang_guai1']):
+            await self.player.monitor('zhu_jun_dui_wu')
+            await self.player.click(pos, cheat=False)
+            res = await self._tiao_zhan()
+            if res == 'no_hero':
+                self._increate_count()
+                return
+
+    def _test(self):
+        return self._get_cfg('enable') and self._get_count('count') < 1
+
+    async def _enter_ghz(self):
+        try:
+            await self.player.find_then_click('ju_dian_ghz', timeout=1)
+        except FindTimeout:
+            return False
+
+        await self.player.find_then_click('enter1')
+        await asyncio.sleep(10)
+        await self.player.monitor(['jidi'] + CLOSE_BUTTONS)
+
+        # 进入后，可能有3种情况：
+        # - 保存整容
+        # - 通知
+        # - 直接看到基地
+        await asyncio.sleep(1)
+        name, pos = await self.player.monitor(['bao_cun', 'jidi'] + CLOSE_BUTTONS, timeout=1)
+        if name == 'bao_cun':
+            # 第一次进入，要保存阵容
+            await self.player.click(pos)
+            await self.player.find_then_click(OK_BUTTONS)
+            asyncio.sleep(10)
+            await self.player.monitor('jidi')
+        elif name in CLOSE_BUTTONS:
+            await self.player.click(pos)
+
+        return True
+
+    async def _pull_up_the_lens(self):
+        _, pos = await self.player.monitor('jidi')
+        for _ in range(5):
+            await self.player.scrool_with_ctrl(pos)
+            try:
+                await self.player.monitor('jidi_small', timeout=1)
+                await self.player.scrool_with_ctrl(pos)    # 多一次，更保险
+                return True
+            except FindTimeout:
+                continue
+        return False
+
+    async def _tiao_zhan(self):
+        """return lose, no_hero, or done"""
+        await self.player.monitor(['dead', 'tiao_zhan', 'tiao_zhan1'])
+
+        for pos in await self.player.find_all_pos(['tiao_zhan', 'tiao_zhan1']):
+            await self.player.monitor(['tiao_zhan', 'tiao_zhan1'])    # 确保不会点错
+            await self.player.click(pos)
+            res = await self._do_fight()
+            # 胜利就继续，否则退出
+            if res != 'win':
+                return res
+
+        await self._swip_up()
+
+        for pos in await self.player.find_all_pos(['tiao_zhan', 'tiao_zhan1']):
+            await self.player.monitor(['tiao_zhan', 'tiao_zhan1'])
+            await self.player.click(pos)
+            res = await self._do_fight()
+            if res != 'win':
+                return res
+
+        await self.player.find_then_click(CLOSE_BUTTONS)    # 确保关闭挑战界面
+        return 'done'
+
+    async def _do_fight(self):
+        await self.player.monitor('dui_wu_xiang_qing')
+        await self.player.find_then_click('check_box', timeout=1, raise_exception=False)
+        try:
+            await self.player.find_then_click('tiao_zhan_start', timeout=1)
+        except FindTimeout:
+            await self.player.find_then_click(CLOSE_BUTTONS)
+            return 'no_hero'
+        else:
+            name, _ = await self.player.monitor(['win', 'lose'])
+            await self.player.find_then_click(OK_BUTTONS)
+            return name
+
+    async def _swip_up(self):
+        top = (400, 150)
+        down = (400, 450)
+        await self.player.drag(down, top, speed=0.02, stop=True)
+
+    async def _move_bank_center(self):
+        center_pos = (430, 260)
+        _, bank_pos = await self.player.monitor('bank_small')
+        await self.player.drag(bank_pos, center_pos, speed=0.02, stop=True)
