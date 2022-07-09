@@ -47,8 +47,7 @@ class Emulator(object):
 
                 await asyncio.sleep(2)
                 
-                
-
+            
     def in_which_window(self, pos):
         for win in self.window_list:
             if win.in_window(pos):

@@ -193,6 +193,9 @@ if __name__ == "__main__":
         logger.info("User stoped, so exit.")
         if loop.is_running():
             loop.stop()
+    except Exception as e:
+        logger.error(str(e))
+        logger.error("出错了！请稍后重试。如果错误重复出现，可向作者反馈。")
 
     tasks = asyncio.all_tasks(loop=loop)
     group = asyncio.gather(*tasks, return_exceptions=True)

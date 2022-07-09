@@ -149,10 +149,10 @@ async def test_mouse():
 
 
 if __name__ == '__main__':
-    # names = ['ye_wai_di_tu', 'ye_wai_di_tu1', 'map_lock']
-    # asyncio.run(test_eye(names, threshold=0.8, verify=False))
+    names = ['bao_xiang_guai', 'bao_xiang_guai1', 'bao_xiang_guai2', 'bao_xiang_guai3']
+    asyncio.run(test_eye(names, threshold=0.85, verify=False))
 
-    asyncio.run(test_tasks('ShengCunJiaYuan'))
+    # asyncio.run(test_tasks('GongHuiZhan'))
 
     # asyncio.run(test_emulator())
 

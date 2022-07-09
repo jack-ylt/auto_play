@@ -298,7 +298,7 @@ class GamerMrxzCx(GamerBase):
         if change_account:
             await self._enter_account_info(role)
         else:
-            await self.player.monitor('kui_su_deng_lu')
+            await self.player.find_then_click('kui_su_deng_lu')
 
         await self._close_ad(timeout=5)
         await self.player.monitor('setting', timeout=15)

@@ -17,6 +17,8 @@ from datetime import datetime
 from operator import itemgetter
 from pickle import NEXT_BUFFER
 
+from cv2 import threshold
+
 
 from lib.helper import is_afternoon, is_monday, is_sunday, is_wednesday
 from lib.player import FindTimeout, Player
@@ -698,9 +700,10 @@ class TiaoZhanFuben(Task):
 
         if res == 'win':
             self._increate_count('count')
-            await self.player.find_then_click('xia_yi_chang')
-            await self._fight_challenge()
-            self._increate_count('count')
+            name = await self.player.find_then_click(['xia_yi_chang'] + OK_BUTTONS)
+            if name == 'xia_yi_chang':
+                await self._fight_challenge()
+                self._increate_count('count')
         else:
             self.logger.warning("Fight lose in TiaoZhanFuben")
 
@@ -1663,7 +1666,8 @@ class YongZheFuBen(Task):
         # 5次不一定够用，因为不要60级，无法go_last
         # for _ in range(5):
         while True:
-            name, pos = await self.player.monitor(['card', 'lose', 'go_last', 'fast_forward1'])
+            # 10s 有时候会timeout
+            name, pos = await self.player.monitor(['card', 'lose', 'go_last', 'fast_forward1'], timeout=20)
             if name == "card":
                 await self.player.click_untile_disappear('card')
                 await self.player.click(pos)
@@ -2225,7 +2229,8 @@ class GongHuiZhan(Task):
 
         await self._pull_up_the_lens()
 
-        for pos in await self.player.find_all_pos(['bao_xiang_guai', 'bao_xiang_guai1']):
+        bao_xiang_guai_list = ['bao_xiang_guai', 'bao_xiang_guai1', 'bao_xiang_guai2', 'bao_xiang_guai3']
+        for pos in await self.player.find_all_pos(bao_xiang_guai_list, threshold=0.85):
             await self.player.monitor('zhu_jun_dui_wu')    # 确保不会点错
             await self.player.click(pos, cheat=False)
             res = await self._tiao_zhan()
@@ -2235,7 +2240,7 @@ class GongHuiZhan(Task):
 
         await self._move_bank_center()
 
-        for pos in await self.player.find_all_pos(['bao_xiang_guai', 'bao_xiang_guai1']):
+        for pos in await self.player.find_all_pos(bao_xiang_guai_list, threshold=0.85):
             await self.player.monitor('zhu_jun_dui_wu')
             await self.player.click(pos, cheat=False)
             res = await self._tiao_zhan()
@@ -2266,11 +2271,12 @@ class GongHuiZhan(Task):
             # 第一次进入，要保存阵容
             await self.player.click(pos)
             await self.player.find_then_click(OK_BUTTONS)
-            asyncio.sleep(10)
+            await asyncio.sleep(10)
             await self.player.monitor('jidi')
         elif name in CLOSE_BUTTONS:
             await self.player.click(pos)
 
+        asyncio.sleep(1)
         return True
 
     async def _pull_up_the_lens(self):
@@ -2278,10 +2284,10 @@ class GongHuiZhan(Task):
         for _ in range(5):
             await self.player.scrool_with_ctrl(pos)
             try:
-                await self.player.monitor('jidi_small', timeout=1)
-                await self.player.scrool_with_ctrl(pos)    # 多一次，更保险
+                await self.player.monitor('jidi_small', timeout=1, threshold=0.9)
                 return True
             except FindTimeout:
+                await asyncio.sleep(1)
                 continue
         return False
 
@@ -2312,15 +2318,22 @@ class GongHuiZhan(Task):
     async def _do_fight(self):
         await self.player.monitor('dui_wu_xiang_qing')
         await self.player.find_then_click('check_box', timeout=1, raise_exception=False)
+
         try:
             await self.player.find_then_click('tiao_zhan_start', timeout=1)
         except FindTimeout:
             await self.player.find_then_click(CLOSE_BUTTONS)
             return 'no_hero'
-        else:
+
+        try:
             name, _ = await self.player.monitor(['win', 'lose'])
-            await self.player.find_then_click(OK_BUTTONS)
-            return name
+        except FindTimeout:
+            # 敌人可能已死亡
+            await self.player.find_then_click(CLOSE_BUTTONS)
+            return 'win'
+
+        await self.player.find_then_click(OK_BUTTONS)
+        return name
 
     async def _swip_up(self):
         top = (400, 150)
@@ -2330,4 +2343,4 @@ class GongHuiZhan(Task):
     async def _move_bank_center(self):
         center_pos = (430, 260)
         _, bank_pos = await self.player.monitor('bank_small')
-        await self.player.drag(bank_pos, center_pos, speed=0.02, stop=True)
+        await self.player.drag(bank_pos, center_pos, speed=0.05, stop=True)

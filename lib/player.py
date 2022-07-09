@@ -239,6 +239,7 @@ class Player(object):
             msg = f"{self.window.name}: scroll up {vertical_num}"
 
         async with self.g_lock:
+            await self._make_window_active()
             if pos:
                 await self.hand.move(*pos)
             await self.hand.scroll(vertical_num, delay)
@@ -268,21 +269,11 @@ class Player(object):
         await asyncio.sleep(delay)
         self._cache_operation_pic(msg)
 
-    def in_window(self, pos):
-        min_x, min_y = WINDOW_DICT[self.window.name]
-        max_x, max_y = min_x + WIDTH, min_y + HIGH
-        return min_x < pos[0] < max_x and min_y < pos[1] < max_y
-
     async def go_back(self):
-        pos_window_border = (400, 8)
         msg = f"{self.window.name}: go_back via esc"
         self.logger.debug(msg)
         async with self.g_lock:
-            mouse_pos = await self.hand.mouse_pos()
-            if not self.in_window(mouse_pos):
-                pos = self.window.real_pos(pos_window_border)
-                self.hand.click(pos, cheat=False)
-                await asyncio.sleep(0.1)
+            await self._make_window_active()
             await self.hand.tap_key('esc')
 
         await asyncio.sleep(1)    # 切换界面需要点时间
@@ -385,13 +376,28 @@ class Player(object):
     #     await asyncio.sleep(delay)
     #     self._cache_operation_pic(msg)
 
-    async def scrool_with_ctrl(self, pos, vertical_num=-5):
-        self.logger.warning("Raise the horizon")
+    async def _make_window_active(self):
+        """确保窗口处于激活状态
+        
+        主要：必须在 async with self.g_lock 中调用，才能确保效果
+        """
+        pos_window_border = (400, 8)
+        mouse_pos = await self.hand.mouse_pos()
+        if not self.window.in_window(mouse_pos):
+            self.logger.debug('make windows active, window: {self.window}, mouse: {mouse_pos}')
+            pos = self.window.real_pos(pos_window_border)
+            self.hand.click(pos, cheat=False)
+            await asyncio.sleep(0.1)
+
+    async def scrool_with_ctrl(self, pos, vertical_num=-30):
+        self.logger.debug("Raise the horizon")
         async with self.g_lock:
-            await self.hand.move(*pos)
+            await self._make_window_active()
+            await self.hand.move(*self.window.real_pos(pos))
             await self.hand.press_key('ctrl')
             await self.hand.scroll(vertical_num, 0.2)
             await self.hand.release_key('ctrl')
+            await asyncio.sleep(3)
 
         self._cache_operation_pic('_pull_up_the_lens')
 
