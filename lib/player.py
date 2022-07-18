@@ -175,20 +175,23 @@ class Player(object):
         return False
 
     async def click(self, pos, delay=1, cheat=True):
+
         if isinstance(pos, str):
             pos = POS_DICT[pos]
 
         pos = self.window.real_pos(pos)
-
+        
         async with self.g_lock:
-            self.hand.click(pos, cheat=cheat)
+            self.hand.click(pos, cheat=cheat) 
             await asyncio.sleep(0.1)
 
-        msg = f"{self.window.name}: click {pos}"
-        self.logger.debug(msg)
+            msg = f"{self.window.name}: click {pos}"
+            self.logger.debug(msg)
+            mouse_pos = self.hand.mouse_pos()
+            win_pos = self.window.win_pos(mouse_pos)
+            self._cache_operation_pic(msg, win_pos)
 
         await asyncio.sleep(delay / 2)
-        self._cache_operation_pic(msg, pos)
 
     def click2(self, pos, cheat=True):
         """不用协程，可以不用锁，让代码顺序执行"""
@@ -198,10 +201,12 @@ class Player(object):
 
         self.hand.click(pos, cheat=cheat)
         time.sleep(0.05)
-        
+
+        mouse_pos = self.hand.mouse_pos()
+        win_pos = self.window.win_pos(mouse_pos)
         msg = f"{self.window.name}: click {pos}"
         self.logger.debug(msg)
-        self._cache_operation_pic(msg, pos)
+        self._cache_operation_pic(msg, win_pos)
 
     async def double_click(self, pos, delay=1, cheat=True):
         pos_copy = pos[:]
@@ -216,9 +221,12 @@ class Player(object):
         self.logger.debug(msg)
         async with self.g_lock:
             await self.hand.double_click(pos, cheat=cheat)
+            mouse_pos = self.hand.mouse_pos()
+            win_pos = self.window.win_pos(mouse_pos)
+            self._cache_operation_pic(msg, win_pos)
 
         await asyncio.sleep(delay)
-        self._cache_operation_pic(msg, pos_copy)
+        
 
     async def drag(self, p1, p2, speed=0.05, stop=False):
         """drag from position 1 to position 2"""
@@ -228,8 +236,8 @@ class Player(object):
         p1, p2 = map(self.window.real_pos, [p1, p2])
         async with self.g_lock:
             await self.hand.drag(p1, p2, speed, stop)
-
-        self._cache_operation_pic(msg, [p1, p2])
+            pos1, pos2 = self.window.win_pos(p1), self.window.win_pos(p2)
+            self._cache_operation_pic(msg, [pos1, pos2])
 
     async def scroll(self, vertical_num, pos=None, delay=0.2):
         """滚动 家园的楼层地图的时候，容易误操作"""
@@ -275,9 +283,10 @@ class Player(object):
         async with self.g_lock:
             await self._make_window_active()
             await self.hand.tap_key('esc')
+            self._cache_operation_pic(msg)
 
         await asyncio.sleep(1)    # 切换界面需要点时间
-        self._cache_operation_pic(msg)
+        
 
     async def go_back_to(self, pic):
         msg = f"{self.window.name}: go back to {pic}"
@@ -308,15 +317,15 @@ class Player(object):
 
             pos = self.window.real_pos(pos)
             await self.hand.double_click(pos)
-            await asyncio.sleep(0.05)
+            await asyncio.sleep(0.1)
             await self.hand.tap_key('backspace')
-            await asyncio.sleep(0.05)
+            await asyncio.sleep(0.1)
 
             # paste
             await self.hand.press_key('ctrl')
-            await asyncio.sleep(0.05)    # 避免粘贴失败
+            await asyncio.sleep(0.1)    # 避免粘贴失败
             await self.hand.tap_key('v')
-            await asyncio.sleep(0.05)    # 避免粘贴失败
+            await asyncio.sleep(0.1)    # 避免粘贴失败
             await self.hand.release_key('ctrl')
             await asyncio.sleep(0.1)
 
@@ -378,13 +387,14 @@ class Player(object):
 
     async def _make_window_active(self):
         """确保窗口处于激活状态
-        
+
         主要：必须在 async with self.g_lock 中调用，才能确保效果
         """
         pos_window_border = (400, 8)
-        mouse_pos = await self.hand.mouse_pos()
+        mouse_pos = self.hand.mouse_pos()
         if not self.window.in_window(mouse_pos):
-            self.logger.debug('make windows active, window: {self.window}, mouse: {mouse_pos}')
+            self.logger.debug(
+                'make windows active, window: {self.window}, mouse: {mouse_pos}')
             pos = self.window.real_pos(pos_window_border)
             self.hand.click(pos, cheat=False)
             await asyncio.sleep(0.1)
@@ -413,7 +423,7 @@ class Player(object):
             text = pyperclip.paste()
         return text
 
-    async def wait_disappear(self, name, check_count=10):
+    async def wait_disappear(self, name, check_count=5):
         """wait, until the name disappear"""
         for _ in range(check_count):
             try:
@@ -421,7 +431,8 @@ class Player(object):
                 await asyncio.sleep(1)
             except FindTimeout:
                 return True
-        self.logger.warning(f"wait {check_count} times, the {name} still not disapper.")
+        self.logger.warning(
+            f"wait {check_count} times, the {name} still not disapper.")
         return False
 
     async def click_untile_disappear(self, name, max_count=5):
@@ -433,4 +444,3 @@ class Player(object):
             except FindTimeout:
                 return True
         return False
-

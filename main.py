@@ -18,7 +18,7 @@ from collections import defaultdict
 
 from lib import emulator
 from lib.auto_play import play
-from lib.global_vals import EmulatorNotFound
+from lib.global_vals import EmulatorNotFound, EmulatorSetError
 from lib.helper import main_dir
 from lib.mylogs import make_logger, clean_old_logs
 from lib.player import Player
@@ -72,6 +72,9 @@ async def main(goal):
                     break
         except EmulatorNotFound:
             return stop_play("未找到夜神模拟器，请先安装夜神模拟器")
+        except EmulatorSetError as e:
+            logger.error(str(e))
+            return stop_play("启动模拟器异常，请稍后重试。")
 
         failed_rols = defaultdict(int)
         while True:
@@ -207,3 +210,6 @@ if __name__ == "__main__":
             print("CancelledError, stop")
             loop.stop()
     loop.close()
+
+    # 按任意键继续
+    os.system('pause')

@@ -7,8 +7,13 @@ from lib.player import FindTimeout
 from lib.windows import Window
 import time
 import os
-from lib.global_vals import EmulatorNotFound, EmulatorStartupTimeout
+from lib.global_vals import EmulatorNotFound, EmulatorStartupTimeout, EmulatorSetError
+import math
 
+def _is_same_pos(p1, p2, offset=3):
+    x, y = p1
+    x1, y1 = p2
+    return math.fabs(x - x1) < offset and math.fabs(y - y1) < offset
 
 class Emulator(object):
     def __init__(self, player):
@@ -21,20 +26,36 @@ class Emulator(object):
         """
         try:
             # emulator alread started
-            startup_complete_flag, _ = await self.player.monitor(['emulator_ok', 'emulator_ok1', 'recent_tasks'], timeout=1, threshold=0.92)
+            startup_complete_flag, _ = await self.player.monitor(['recent_tasks', 'emulator_ok', 'emulator_ok1'], timeout=1, threshold=0.92)
             pos_list = await self.player.find_all_pos(startup_complete_flag)
-            if pos_list:
-                for pos in pos_list:
-                    yield self.in_which_window(pos)
+            if not await self._is_size_and_pos_ok():
+                msg = "emulator positon or size not ok"
+                self.player.save_operation_pics(msg)
+                raise EmulatorSetError(msg)
+
+            for pos in pos_list:
+                yield self.in_which_window(pos)
         except FindTimeout:
-            await self. _start_emulator()
-            await self.player.monitor('emulator_started', timeout=60, threshold=0.9)
+            await self._start_emulator()
+
+            try:
+                await self.player.monitor('liu_lan_qi', timeout=60, threshold=0.9)
+            except FindTimeout:
+                msg = "start emulator timeout"
+                self.player.save_operation_pics(msg)
+                raise EmulatorSetError(msg)
+
+            if not await self._is_size_and_pos_ok():
+                msg = "emulator positon or size not ok"
+                self.player.save_operation_pics(msg)
+                raise EmulatorSetError(msg)
+
             pos_list = await self.player.find_all_pos('ye_sheng')
             win_list = list(map(self.in_which_window, pos_list))
 
             seen = []
             while True:
-                pos_list = await self.player.find_all_pos('emulator_started', threshold=0.9)
+                pos_list = await self.player.find_all_pos('liu_lan_qi', threshold=0.9)
                 if pos_list:
                     for pos in pos_list:
                         win = self.in_which_window(pos)
@@ -47,6 +68,31 @@ class Emulator(object):
 
                 await asyncio.sleep(2)
                 
+    async def _is_size_and_pos_ok(self):
+        """检查模拟器各个窗口的大小、位置是否正确"""
+        recent_tasks_pos = [(886, 500), (886, 1020), (1792, 500)]
+        pos_list1 = await self.player.find_all_pos('recent_tasks')
+        for p1 in pos_list1:
+            for p2 in recent_tasks_pos:
+                if _is_same_pos(p1, p2, offset=8):
+                    break
+            else:
+                return False
+        
+        set_icon_pos = [(754, 16), (754, 536), (1660, 16)]
+        pos_list2 = await self.player.find_all_pos('set_icon')
+        for p1 in pos_list2:
+            for p2 in set_icon_pos:
+                if _is_same_pos(p1, p2, offset=8):
+                    break
+            else:
+                return False
+
+        # if len(pos_list1) != len(pos_list2):
+        #     return False
+
+        return True
+
             
     def in_which_window(self, pos):
         for win in self.window_list:

@@ -29,7 +29,9 @@
 import os
 import json
 from datetime import datetime
+from lib.mylogs import make_logger
 
+logger = make_logger('full')
 
 TODAY = datetime.now().strftime(r'%Y-%m-%d')
 
@@ -47,8 +49,14 @@ class PlayCounter(object):
 
     def _load_data(self):
         if os.path.exists(self._file):
-            with open(self._file, 'r') as f:
-                self._data = json.load(f)
+            try:
+                with open(self._file, 'r') as f:
+                    self._data = json.load(f)
+            except json.decoder.JSONDecodeError as e:
+                logger.error(f'load {self._file} failed: {str(e)}')
+                os.remove(self._file)
+                return self._init_data()
+
             if self._data['date'] == TODAY:
                 self._data['run_count'] += 1
                 return
@@ -66,6 +74,9 @@ class PlayCounter(object):
             return int(self._data[cls_name][key])
         except KeyError:
             return 0
+
+    def get_run_count(self):
+        return self._data['run_count']
 
     def set(self, cls_name, key, val):
         if cls_name not in self._data:

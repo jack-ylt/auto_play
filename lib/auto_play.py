@@ -44,9 +44,9 @@ daily_play_tasks = (
     'VipShangDian',
     'YingXiongYuanZheng',
     'MiGong',
-    'RenWu',
     'LianSaiBaoXiang',
     'GongHuiZhan',
+    'RenWu',
     
 )
 
@@ -139,7 +139,7 @@ async def daily_play(player, role):
             error_count = max(error_count - 1, 0)
         except FindTimeout as e:
             error_count += 1
-            player.logger.error(str(e))
+            player.logger.error(f"run {cls_name} faled: {str(e)}")
             player.save_operation_pics(str(e))
 
             # 失败了，就过段时间再尝试一次, 还失败，就算了

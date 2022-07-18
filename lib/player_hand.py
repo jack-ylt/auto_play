@@ -12,7 +12,7 @@ from pykeyboard import PyKeyboard
 import asyncio
 import math
 from time import sleep
-
+import pyautogui
 import logging
 
 
@@ -48,10 +48,14 @@ class Hand(object):
             x = pos[0] + random.randint(-2, 2)
             y = pos[1] + random.randint(-2, 2)
 
-        # click 有可能失灵 （大概万分之一）, 先release就能保证click有效了
-        self.m.release(x, y)
-        self.m.move(x, y)
-        self.m.click(x, y)
+        # # click 有可能失灵 （大概万分之一）, 先release就能保证click有效了
+        # self.m.release(x, y)
+        # self.m.move(x, y)
+        # self.m.click(x, y)
+
+        pyautogui.moveTo(x, y, duration=0.1, tween=pyautogui.easeInOutQuad)
+        pyautogui.click(x, y)
+
 
     async def double_click(self, pos, cheat=True):
         """simulate a player to do a double left-click"""
@@ -68,10 +72,10 @@ class Hand(object):
 
     async def drag(self, p1, p2, speed=0.05, stop=False):
         """drag from position 1 to position 2"""
-        x1 = p1[0] + random.randint(-12, 12)
-        y1 = p1[1] + random.randint(-8, 8)
-        x2 = p2[0] + random.randint(-12, 12)
-        y2 = p2[1] + random.randint(-8, 8)
+        x1 = p1[0] + random.randint(-5, 5)
+        y1 = p1[1] + random.randint(-3, 3)
+        x2 = p2[0] + random.randint(-5, 5)
+        y2 = p2[1] + random.randint(-3, 3)
         step = 10
 
         self.m.move(x1, y1)
@@ -143,5 +147,5 @@ class Hand(object):
         if delay:
             await self.delay(delay)
 
-    async def mouse_pos(self):
+    def mouse_pos(self):
         return self.m.position()

@@ -12,6 +12,13 @@ from lib.player import FindTimeout
 from lib.ui_data import OK_BUTTONS, CLOSE_BUTTONS
 
 
+GAME_ICONS = {
+    'mo_shi_jun_tun': 'mo_shi_jun_tun',
+    'mo_ri_xue_zhan_jiuyou': 'mo_ri_xue_zhan_jiuyou',
+    'mo_ri_xue_zhan_mihoutao': ['mo_ri_xue_zhan_mihoutao', 'mo_ri_xue_zhan_mihoutao_1'],
+    'mo_ri_xue_zhan_changxiang': 'mo_ri_xue_zhan_changxiang',
+}
+
 # 每种游戏，创建一个类。使用代理模式
 
 class Gamer(object):
@@ -21,13 +28,13 @@ class Gamer(object):
         self._real_gamer = None
 
     def _get_real_gamer(self, role):
-        gamer_dict = {
+        name_to_gamer = {
             'mo_ri_xue_zhan_jiuyou': GamerMrxzJy,
             'mo_ri_xue_zhan_mihoutao': GamerMrxzMht,
             'mo_ri_xue_zhan_changxiang': GamerMrxzCx,
             'mo_shi_jun_tun': GamerMsjt,
         }
-        return gamer_dict[role.game](self.player)
+        return name_to_gamer[role.game](self.player)
 
     async def login(self, role):
         self._real_gamer = self._get_real_gamer(role)
@@ -42,6 +49,9 @@ class Gamer(object):
 
     async def close_game(self):
         await self._base_gamer.close_game()
+
+    async def _close_main_ad(self):
+        await self._base_gamer._close_main_ad()
 
 
 class GamerBase(object):
@@ -63,8 +73,8 @@ class GamerBase(object):
             else:
                 break
 
-        await self._close_ad(timeout=2)
-        await self.player.monitor('setting', timeout=1)
+        # await self._close_ad(timeout=2)
+        await self._close_main_ad()
 
     async def restart(self, role):
         """游戏异常就重启游戏"""
@@ -94,7 +104,7 @@ class GamerBase(object):
 
     async def _at_emulator_main(self):
         try:
-            await self.player.monitor('emulator_started', timeout=1)
+            await self.player.monitor('liu_lan_qi', timeout=1)
             return True
         except FindTimeout:
             return False
@@ -110,15 +120,20 @@ class GamerBase(object):
         raise NotImplementedError()
 
     async def _launch_game(self, role):
+        game_icons = GAME_ICONS[role.game]
+
         try:
-            _, pos = await self.player.monitor(role.game)
+            _, pos = await self.player.monitor(game_icons)
         except FindTimeout:
             raise GameNotFound
-        # await asyncio.sleep(3)    # 这边等3s，导致主控那边重复found同一个窗口，导致left_down没有启动到
-        await self.player.double_click(pos)
+        await asyncio.sleep(3)
+
+        _, pos = await self.player.monitor(game_icons)
+        await self.player.click(pos)
         # 如果双击没反应，就再试一次
-        if not await self.player.wait_disappear(role.game):
-            await self.player.double_click(pos)
+        if not await self.player.wait_disappear(game_icons):
+            _, pos = await self.player.monitor(game_icons)
+            await self.player.click(pos)
 
         await asyncio.sleep(30)
         await self.player.monitor(['close_btn', 'close_btn5', 'start_game'], timeout=90)
@@ -134,28 +149,29 @@ class GamerBase(object):
     async def close_game(self):
         await self.player.find_then_click('recent_tasks', cheat=False)
         # 有可能游戏闪退了
-        name, pos = await self.player.monitor(['emulator_started', 'quan_bu_qing_chu', 'empty_apps'])
+        name, pos = await self.player.monitor(['liu_lan_qi', 'quan_bu_qing_chu', 'empty_apps'])
         if name == 'quan_bu_qing_chu':
             await self.player.click(pos, cheat=False)
         elif name == 'empty_apps':
             await self.player.find_then_click('recent_tasks', cheat=False)
         else:
             return
-        await self.player.monitor('emulator_started')
+        await self.player.monitor('liu_lan_qi')
 
     async def _get_curr_game(self):
-        game_dict = {
+        title_to_game = {
             'mo_ri_xue_zhan_jiuyou_title': 'mo_ri_xue_zhan_jiuyou',
             'mo_ri_xue_zhan_mihoutao_title': 'mo_ri_xue_zhan_mihoutao',
+            'mo_ri_xue_zhan_mihoutao_title_1': 'mo_ri_xue_zhan_mihoutao',
             'mo_ri_xue_zhan_changxiang_title': 'mo_ri_xue_zhan_changxiang',
             'mo_shi_jun_tun_title': 'mo_shi_jun_tun',
         }
         await self.player.find_then_click('recent_tasks', cheat=False)
         # 可能遇到不支持的游戏平台，那就timeout吧，关闭，打开新游戏
-        name, _ = await self.player.monitor(list(game_dict))
+        name, _ = await self.player.monitor(list(title_to_game))
         await asyncio.sleep(1)
         await self.player.find_then_click('recent_tasks', cheat=False)
-        return game_dict[name]
+        return title_to_game[name]
 
     async def _switch_account(self, role):
         await self._logout()
@@ -163,7 +179,7 @@ class GamerBase(object):
         await self._enter_account_info(role)
         await self._close_ad(timeout=5)
         await self.player.monitor('setting', timeout=15)
-        await self._close_ad(timeout=5)
+        await self._close_main_ad()
 
     async def _logout(self):
         await self.player.find_then_click('setting')
@@ -182,6 +198,23 @@ class GamerBase(object):
                 await asyncio.sleep(1)
             except FindTimeout:
                 break
+
+    async def _close_main_ad(self):
+        """关闭游戏主界面弹出的广告"""
+
+        names = ['survival_home', 'invite_hero', 'level_battle', 'lucky_draw', 'armory']
+        for _ in range(3):
+            try:
+                await self.player.find_then_click(CLOSE_BUTTONS + OK_BUTTONS, timeout=1)
+            except FindTimeout:
+                pos_list = await self.player.find_all_pos(names)
+                if len(pos_list) >= 2:    # 没广告遮挡，最少能看到两个
+                    break
+                await self.player.go_back()
+
+            await asyncio.sleep(1)
+        else:
+            raise FindTimeout()
 
     async def _handle_shabai(self):
         try:
@@ -239,7 +272,7 @@ class GamerMrxzJy(GamerBase):
 
         await self._close_ad(timeout=5)
         await self.player.monitor('setting', timeout=15)
-        await self._close_ad(timeout=5)
+        await self._close_main_ad()
 
     async def _enter_account_info(self, role):
         # interval 小一点，以防来不及
@@ -250,7 +283,7 @@ class GamerMrxzJy(GamerBase):
         await self.player.monitor('deng_lu')
 
         await self._input_user_and_pwd(
-            role, (430, 254), (430, 308), 'user_empty_9you', 'pwd_empty_9you')
+            role, (380, 254), (380, 308), 'user_empty_9you', 'pwd_empty_9you')
 
         await self.player.find_then_click('deng_lu')
 
@@ -274,7 +307,7 @@ class GamerMrxzMht(GamerBase):
 
         await self._close_ad(timeout=5)
         await self.player.monitor('setting', timeout=15)
-        await self._close_ad(timeout=5)
+        await self._close_main_ad()
 
     async def _enter_account_info(self, role):
         await self.player.find_then_click('qie_huan_zhang_hao_mht', raise_exception=False, timeout=2, interval=0.3)
@@ -284,7 +317,7 @@ class GamerMrxzMht(GamerBase):
         await self.player.monitor('deng_lu_mht')
 
         await self._input_user_and_pwd(
-            role, (400, 220), (400, 280), 'user_empty_mht', 'pwd_empty_mht')
+            role, (380, 220), (380, 280), 'user_empty_mht', 'pwd_empty_mht')
 
         await self.player.find_then_click('deng_lu_mht')
 
@@ -302,7 +335,7 @@ class GamerMrxzCx(GamerBase):
 
         await self._close_ad(timeout=5)
         await self.player.monitor('setting', timeout=15)
-        await self._close_ad(timeout=5)
+        await self._close_main_ad()
 
     async def _enter_account_info(self, role):
         await self.player.monitor('kui_su_deng_lu')
@@ -334,7 +367,7 @@ class GamerMsjt(GamerBase):
 
         await self._close_ad(timeout=5)
         await self.player.monitor('setting', timeout=15)
-        await self._close_ad(timeout=5)
+        await self._close_main_ad()
 
         if need_switch_account:
             await self._switch_account(role)

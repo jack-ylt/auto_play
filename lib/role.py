@@ -5,6 +5,7 @@ from lib.windows import Window
 import asyncio
 import configparser
 from lib.read_cfg import read_game_user
+from lib.recorder import PlayCounter
 
 # TODO setting 先继承default，然后再载入自定义的
 # 官方提供 小号、高氪金 的配置扩展
@@ -70,7 +71,12 @@ class Roles():
         self._done_roles = []
         self.all_roles = [Role(g, u) for (g, u) in read_game_user()]
         self.total_roles = len(self.all_roles)
-        self._idle_roles = list(self.all_roles)
+
+        for role in self.all_roles:
+            counter = PlayCounter(role.game + '_' + role.user)
+            role._run_count = counter.get_run_count()
+
+        self._idle_roles = sorted(self.all_roles, key=lambda x: x._run_count)
 
         if not self._idle_roles:
             raise Exception("Error: 游戏账号未配置！请先参考文档配置游戏账号。")

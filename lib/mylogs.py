@@ -55,7 +55,7 @@ def clean_old_logs(keep_day=3):
         if create_date < expired_date:
             _rm_dir_and_file(fpath)
         else:
-            if create_date == yesterday and os.path.isfile(fpath):
+            if (create_date == yesterday) and (not name.startswith('20')):
                 _move_to_yesdir(name, log_dir, dirname=yesterday)
 
 
@@ -79,5 +79,5 @@ def _move_to_yesdir(name, log_dir, dirname):
         os.mkdir(yesdir)
 
     old_file = os.path.join(log_dir, name)
-    new_file = os.path.join(log_dir, yesdir, name)
+    new_file = os.path.join(yesdir, name)
     shutil.move(old_file, new_file)

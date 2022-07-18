@@ -22,3 +22,6 @@ class UserConfigError(Exception):
 
 class NotInGameMain(Exception):
     pass
+
+class EmulatorSetError(Exception):
+    pass

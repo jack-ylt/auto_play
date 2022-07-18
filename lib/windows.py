@@ -45,3 +45,10 @@ class Window(object):
         # dx, dy = self.START_POS[self.name]
         dx, dy, _, _ = self.bbox
         return (x + dx, y + dy)
+
+    def win_pos(self, pos):
+        """computer screen pos -> current window pos"""
+        x, y = pos
+        # dx, dy = self.START_POS[self.name]
+        dx, dy, _, _ = self.bbox
+        return (x - dx, y - dy)

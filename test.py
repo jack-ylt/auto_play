@@ -81,7 +81,7 @@ async def test_emulator():
     await e.start_emulator()
 
 async def test_gamer(func):
-    window = windows.Window('full')
+    window = windows.Window('left_top')
     player = Player(g_lock=asyncio.Lock(), window=window)
 
     g = Gamer(player)
@@ -149,16 +149,20 @@ async def test_mouse():
 
 
 if __name__ == '__main__':
-    names = ['bao_xiang_guai', 'bao_xiang_guai1', 'bao_xiang_guai2', 'bao_xiang_guai3']
-    asyncio.run(test_eye(names, threshold=0.85, verify=False))
+    # names = ['guai1', 'guai2', 'guai3', 'guai4', 'guai5', 'guai6', 'guai7']
+    # names = ['bao_xiang_guai', 'bao_xiang_guai1', 'bao_xiang_guai2', 'bao_xiang_guai3']
+    # names = ['fu_biao', ]
+    # asyncio.run(test_eye(names, threshold=0.85, verify=False))
 
-    # asyncio.run(test_tasks('GongHuiZhan'))
+    asyncio.run(test_tasks('XianShiJie'))
 
     # asyncio.run(test_emulator())
 
     # asyncio.run(test_role())
 
     # asyncio.run(test_mouse())
+
+    # asyncio.run(test_gamer('_close_main_ad'))
 
     # t1 = time.time()
     # asyncio.run(find_emulator())

@@ -89,8 +89,8 @@ class Task(object):
 
     async def _move_to_left_top(self):
         self.logger.debug('_move_to_left_top')
-        p1 = (150, 200)
-        p2 = (650, 400)
+        p1 = (200, 250)
+        p2 = (600, 350)
         for i in range(3):
             await self.player.drag(p1, p2, speed=0.02)
             try:
@@ -101,8 +101,8 @@ class Task(object):
 
     async def _move_to_right_top(self):
         self.logger.debug('_move_to_right_top')
-        p1 = (600, 200)
-        p2 = (100, 400)
+        p1 = (550, 250)
+        p2 = (150, 350)
         for i in range(3):
             await self.player.drag(p1, p2, speed=0.02)
             try:
@@ -120,8 +120,8 @@ class Task(object):
 
     async def _move_to_left_down(self):
         self.logger.debug('_move_to_left_down')
-        p1 = (100, 400)
-        p2 = (600, 100)
+        p1 = (150, 350)
+        p2 = (550, 150)
 
         for i in range(3):
             await self.player.drag(p1, p2, speed=0.02)
@@ -133,8 +133,8 @@ class Task(object):
 
     async def _move_to_right_down(self):
         self.logger.debug('_move_to_right_down')
-        p1 = (700, 400)
-        p2 = (100, 150)
+        p1 = (650, 350)
+        p2 = (150, 200)
         for i in range(3):
             await self.player.drag(p1, p2, speed=0.02)
             try:
@@ -162,6 +162,7 @@ class Task(object):
         return merge_list
 
     async def _equip_team(self):
+        await self.player.monitor('start_fight')    # 确保界面刷出来
         try:
             await self.player.monitor('empty_box', timeout=1)
         except FindTimeout:
@@ -222,18 +223,18 @@ class XianShiJie(Task):
             self._increate_count('count', 1)
 
         # 现在有自动推图功能了
-        # while True:
-        #     try:
-        #         await self._goto_next_fight()
-        #     except PlayException:
-        #         await self.player.click(self._back_btn)
-        #         return
+        while True:
+            try:
+                await self._goto_next_fight()
+            except PlayException:
+                await self.player.click(self._back_btn)
+                return
 
-        #     res = await self._fight()
-        #     if res == 'lose':
-        #         await self.player.monitor('ranking_icon')
-        #         await self.player.click(self._back_btn)
-        #         return
+            res = await self._fight()
+            if res == 'lose':
+                await self.player.monitor('ranking_icon')
+                await self.player.click(self._back_btn)
+                return
 
     async def _test(self):
         return self.cfg['XianShiJie']['enable']
@@ -292,7 +293,7 @@ class XianShiJie(Task):
     async def _nextlevel_to_fight(self, pos):
         """go from next_level to fight"""
         await self.player.click(pos)
-        name, pos = await self.player.monitor(['search', 'level_map', 'level_low', 'reach_max_level'])
+        name, pos = await self.player.monitor(['search', 'fan_hui', 'level_low', 'reach_max_level'])
         if name == 'level_low' or name == 'reach_max_level':
             await self.player.click(pos)
             msg = "Reach the max level, so exit level battle"
@@ -300,15 +301,57 @@ class XianShiJie(Task):
         elif name == 'search':
             await self.player.click(pos)
         else:
-            await asyncio.sleep(5)
-            pos_list = await self.player.find_all_pos(['point', 'point3'], threshold=0.9)
-            pos = filter_rightmost(pos_list)
-            # 往右偏移一点，刚好能点击进入到下一个大关卡
-            await self.player.click((pos[0] + 50, pos[1]))
-            await self.player.find_then_click('ok1')
+            _, pos = await self.player.monitor('fu_biao')
+            if pos[0] > 700 and pos[1] < 150:
+                # 前往下一个大关卡
+                await self._goto_next_map()
+            else:
+                # 前往下一个小关卡
+                await self._goto_next_area()
 
         await asyncio.sleep(3)
         await self.player.find_then_click(['fight'])
+
+    # TODO: 所有都完成了如何处理？
+    async def _goto_next_map(self):
+        x_list = [200, 275, 355, 430, 510, 586, 660]
+        y = 65
+        for x in x_list:
+            await self.player.click((x, y))
+            await asyncio.sleep(2)
+            pos_list = await self.player.find_all_pos(['point', 'point3'], threshold=0.9)
+            # 正常是一个point都没有的，3个是作为buffer
+            if len(pos_list) < 3:
+                break
+        
+        # 每个大关卡的第一个区域坐标
+        await self.player.click((200, 250))
+        await self.player.find_then_click('ok1')
+
+    async def _goto_next_area(self):
+        await asyncio.sleep(5)
+        pos_list = await self.player.find_all_pos(['point', 'point3'], threshold=0.9)
+        pos = self._guess_next_pos(pos_list)
+        await self.player.click(pos)
+        await self.player.find_then_click('ok1')
+
+    def _guess_next_pos(self, pos_list):
+        pos_list = sorted(pos_list)
+        if len(pos_list) <= 4:
+            pos = max(pos_list)
+            return (pos[0] + 50, pos[1])
+
+        x_list = [i[0] for i in pos_list[-4:]]
+        y_list = [i[1] for i in pos_list[-4:]]
+        dx = max(x_list) - min(x_list)
+        dy = max(y_list) - min(y_list)
+        if dx > dy:
+            pos = max(pos_list)
+            return (pos[0] + 50, pos[1])
+        else:
+            new_list = pos_list[-7:]
+            pos = sorted(new_list, key=lambda x: x[1])[0]
+            return (pos[0], pos[1] - 50)
 
     async def _passed_to_fight(self):
         """go from already_passed to fight"""
@@ -521,7 +564,7 @@ class SheQvZhuLi(Task):
         self._increate_count('count', 1)
 
     def _test(self):
-        return self.cfg['SheQvZhuLi']['enable']
+        return self._get_cfg('enable') and self._get_count() <= 1
 
     async def _have_free_guess(self):
         try:
@@ -594,17 +637,22 @@ class SheQvZhuLi(Task):
 
         await self.player.monitor('gift')
 
-        try:
-            # TODO 0.98 也不行，还是可能会误判
-            await self.player.monitor('level_full', threshold=0.92, timeout=2)
-        except FindTimeout:
-            return
+        # try:
+        #     # TODO 0.98 也不行，还是可能会误判
+        #     await self.player.monitor('level_full', threshold=0.92, timeout=2)
+        # except FindTimeout:
+        #     return
 
-        await self.player.click((820, 75))    # 升级
-        await self.player.find_then_click(OK_BUTTONS, timeout=2, raise_exception=False)
+        for _ in range(10):
+            await self.player.click((820, 75))    # 升级
+            try:
+                await self.player.find_then_click(OK_BUTTONS, timeout=2)
+            except FindTimeout:
+                break
 
     async def _send_gifts(self):
         await self.player.find_then_click('gift')
+        await self.player.monitor('send', verify=True)    # 避免turntable find误判
 
         pos_select_gift = (70, 450)
         pos_send_gift = (810, 450)
@@ -612,7 +660,7 @@ class SheQvZhuLi(Task):
         # 转转盘
         while True:
             try:
-                await self.player.find_then_click('turntable', timeout=1)
+                await self.player.find_then_click('turntable', timeout=2)
             except FindTimeout:
                 break
             await self.player.click(pos_send_gift)
@@ -621,7 +669,7 @@ class SheQvZhuLi(Task):
             await asyncio.sleep(5)
 
             # 等待转盘明确结束
-            while True:
+            for _ in range(5):
                 try:
                     await self.player.monitor('start_turntable', timeout=1, verify=False)
                 except FindTimeout:
@@ -988,9 +1036,7 @@ class ShengCunJiaYuan(Task):
         # 从高层往低层打，战力高的话，可能多得一些资源
         # 战力低得话，可能就要浪费一些粮食了
         for i in range(total_floors, 3, -1):
-            if i != total_floors:
-                # 一进来就直接在第total_floors层了
-                await self._goto_floor(i)
+            await self._goto_floor(i)    # 注：不一定每次进来就直接第7层，所以还是需要_goto_floor
             for d in [None, 'left_top', 'left_down', 'right_down', 'right_top']:
                 await self.player.monitor('switch_map')
                 await asyncio.sleep(1)    # 怪物刷新出来有点慢
@@ -1445,6 +1491,10 @@ class JingJiChang(Task):
         # 避免速度太快，把确定误识别战斗
         await self.player.monitor('fight_ico')
         await self.player.find_then_click('fight7')
+
+        # 经常 monitor fight8 超时，所以多试一次
+        await asyncio.sleep(2)
+        await self.player.find_then_click('fight7', timeout=1, raise_exception=False)
 
         for _ in range(page):
             self.player.find_then_click('refresh5')
@@ -2139,11 +2189,18 @@ class ShenYuanMoKu(Task):
         # if 'bao_ji_20' not in seen:
         #     return False
         if 'su_zhan_su_jue' in seen:
+            # TODO 移到上面体验会更好
+            # TODO 备用技能可配置
+            for _ in range(2):
+                await self._swip_up()
             return True
         return False
 
     async def _swip_down(self):
         await self.player.drag((630, 430), (630, 50), speed=0.02, stop=True)
+
+    async def _swip_up(self):
+        await self.player.drag((630, 150), (630, 430), speed=0.01, stop=False)
 
     async def _exit(self):
         pos_list = await self.player.find_all_pos(CLOSE_BUTTONS)
@@ -2229,24 +2286,35 @@ class GongHuiZhan(Task):
 
         await self._pull_up_the_lens()
 
-        bao_xiang_guai_list = ['bao_xiang_guai', 'bao_xiang_guai1', 'bao_xiang_guai2', 'bao_xiang_guai3']
-        for pos in await self.player.find_all_pos(bao_xiang_guai_list, threshold=0.85):
-            await self.player.monitor('zhu_jun_dui_wu')    # 确保不会点错
-            await self.player.click(pos, cheat=False)
-            res = await self._tiao_zhan()
-            if res == 'no_hero':
-                self._increate_count()
-                return
+        # bao_xiang_guai_list = ['bao_xiang_guai', 'bao_xiang_guai1', 'bao_xiang_guai2', 'bao_xiang_guai3']
+        bao_xiang_guai_list = ['guai1', 'guai2', 'guai3', 'guai4', 'guai5', 'guai6', 'guai7']
 
-        await self._move_bank_center()
-
-        for pos in await self.player.find_all_pos(bao_xiang_guai_list, threshold=0.85):
+        for _ in range(10):
             await self.player.monitor('zhu_jun_dui_wu')
-            await self.player.click(pos, cheat=False)
-            res = await self._tiao_zhan()
-            if res == 'no_hero':
-                self._increate_count()
-                return
+            try:
+                await self.player.find_then_click(bao_xiang_guai_list, threshold=0.85, timeout=2, cheat=False)
+            except FindTimeout:
+                break
+            else:
+                res = await self._tiao_zhan()
+                if res == 'no_hero':
+                    self._increate_count()
+                    return
+
+        # TODO 银行可能没有在画面中
+        # await self._move_bank_center()
+
+        # for _ in range(10):
+        #     await self.player.monitor('zhu_jun_dui_wu')
+        #     try:
+        #         await self.player.find_then_click(bao_xiang_guai_list, threshold=0.85, timeout=2, cheat=False)
+        #     except FindTimeout:
+        #         break
+        #     else:
+        #         res = await self._tiao_zhan()
+        #         if res == 'no_hero':
+        #             self._increate_count()
+        #             return
 
     def _test(self):
         return self._get_cfg('enable') and self._get_count('count') < 1
@@ -2257,22 +2325,45 @@ class GongHuiZhan(Task):
         except FindTimeout:
             return False
 
-        await self.player.find_then_click('enter1')
-        await asyncio.sleep(10)
-        await self.player.monitor(['jidi'] + CLOSE_BUTTONS)
+        await self.player.monitor('huang_shui_jing')
 
-        # 进入后，可能有3种情况：
+        try:
+            # 休整期、结算期，没必要进去
+            await self.player.monitor(['xiu_zheng', 'jie_suan_qi'], timeout=1)
+            return False
+        except FindTimeout:
+            pass
+
+        try:
+            await self.player.find_then_click('enter1', timeout=1)
+        except FindTimeout:
+            # 没有enter1，可能是还在报名期
+            return False
+
+        await asyncio.sleep(5)
+        await self.player.monitor(['jidi'] + CLOSE_BUTTONS, timeout=20)
+
+        # 进入后，可能有4种情况：
+        # - 设置阵容
         # - 保存整容
         # - 通知
         # - 直接看到基地
+
+        # TODO 利兹可能会出来 （概率应该很低）
         await asyncio.sleep(1)
-        name, pos = await self.player.monitor(['bao_cun', 'jidi'] + CLOSE_BUTTONS, timeout=1)
+        name, pos = await self.player.monitor(['bao_cun', 'jidi', 'she_zhi_zhen_rong'] + CLOSE_BUTTONS, timeout=1)
         if name == 'bao_cun':
             # 第一次进入，要保存阵容
             await self.player.click(pos)
             await self.player.find_then_click(OK_BUTTONS)
-            await asyncio.sleep(10)
-            await self.player.monitor('jidi')
+            await asyncio.sleep(5)
+            await self.player.monitor('jidi', timeout=20)
+        elif name == 'she_zhi_zhen_rong':
+            await self.player.click(pos)
+            await self.player.find_then_click('bao_cun')
+            await self.player.find_then_click(OK_BUTTONS)
+            await asyncio.sleep(5)
+            await self.player.monitor('jidi', timeout=20)
         elif name in CLOSE_BUTTONS:
             await self.player.click(pos)
 
@@ -2296,9 +2387,14 @@ class GongHuiZhan(Task):
         await self.player.monitor(['dead', 'tiao_zhan', 'tiao_zhan1'])
 
         for pos in await self.player.find_all_pos(['tiao_zhan', 'tiao_zhan1']):
-            await self.player.monitor(['tiao_zhan', 'tiao_zhan1'])    # 确保不会点错
-            await self.player.click(pos)
-            res = await self._do_fight()
+            try:
+                await self.player.monitor(['tiao_zhan', 'tiao_zhan1'])    # 确保不会点错
+                await self.player.click(pos)
+                res = await self._do_fight()
+            except FindTimeout:
+                # 怪物可能是被别人抢了
+                return 'done'
+
             # 胜利就继续，否则退出
             if res != 'win':
                 return res
@@ -2306,9 +2402,15 @@ class GongHuiZhan(Task):
         await self._swip_up()
 
         for pos in await self.player.find_all_pos(['tiao_zhan', 'tiao_zhan1']):
-            await self.player.monitor(['tiao_zhan', 'tiao_zhan1'])
-            await self.player.click(pos)
-            res = await self._do_fight()
+            try:
+                await self.player.monitor(['tiao_zhan', 'tiao_zhan1'])    # 确保不会点错
+                await self.player.click(pos)
+                res = await self._do_fight()
+            except FindTimeout:
+                # 怪物可能是被别人抢了
+                return 'done'
+
+            # 胜利就继续，否则退出
             if res != 'win':
                 return res
 
