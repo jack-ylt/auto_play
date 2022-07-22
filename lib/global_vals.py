@@ -25,3 +25,6 @@ class NotInGameMain(Exception):
 
 class EmulatorSetError(Exception):
     pass
+
+class MouseFailure(Exception):
+    pass

@@ -18,7 +18,7 @@ from collections import defaultdict
 
 from lib import emulator
 from lib.auto_play import play
-from lib.global_vals import EmulatorNotFound, EmulatorSetError
+from lib.global_vals import EmulatorNotFound, EmulatorSetError, UserConfigError
 from lib.helper import main_dir
 from lib.mylogs import make_logger, clean_old_logs
 from lib.player import Player
@@ -54,7 +54,12 @@ async def main(goal):
     g_lock = asyncio.Lock()
     g_sem = asyncio.Semaphore(1)
     g_queue = asyncio.Queue()
-    roles = Roles()
+
+    try:
+        roles = Roles()
+    except UserConfigError as e:
+        return stop_play(str(e))
+
 
     logger.info("clean old logs")
     clean_old_logs()
@@ -97,6 +102,10 @@ async def main(goal):
                     create_play_task(a_role, g_lock, g_sem, window, g_queue)
             elif status == 'config error':
                 return stop_play(f"配置错误，请先修正配置")
+            elif status == 'mouse failure':
+                return stop_play(f"糟糕，鼠标貌似失灵了，请稍后重试")
+            elif status == 'unexpected error':
+                return stop_play(f"未知错误，请稍后重试")
             elif status == 'game not found':
                 return stop_play(f"未找到{role.game}，请在每个模拟器窗口都安装好游戏")
             else:

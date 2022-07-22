@@ -80,7 +80,7 @@ async def test_emulator():
     e = emulator.Emulator(player)
     await e.start_emulator()
 
-async def test_gamer(func):
+async def test_gamer(func=None):
     window = windows.Window('left_top')
     player = Player(g_lock=asyncio.Lock(), window=window)
 
@@ -154,7 +154,7 @@ if __name__ == '__main__':
     # names = ['fu_biao', ]
     # asyncio.run(test_eye(names, threshold=0.85, verify=False))
 
-    asyncio.run(test_tasks('XianShiJie'))
+    asyncio.run(test_tasks('ZhouNianQing'))
 
     # asyncio.run(test_emulator())
 

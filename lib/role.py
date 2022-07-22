@@ -6,6 +6,7 @@ import asyncio
 import configparser
 from lib.read_cfg import read_game_user
 from lib.recorder import PlayCounter
+from lib.global_vals import UserConfigError
 
 # TODO setting 先继承default，然后再载入自定义的
 # 官方提供 小号、高氪金 的配置扩展
@@ -79,7 +80,7 @@ class Roles():
         self._idle_roles = sorted(self.all_roles, key=lambda x: x._run_count)
 
         if not self._idle_roles:
-            raise Exception("Error: 游戏账号未配置！请先参考文档配置游戏账号。")
+            raise UserConfigError("Error: 游戏账号未配置！请先参考文档配置游戏账号。")
 
     def get_idle_role(self, game=None):
         idle_role = None

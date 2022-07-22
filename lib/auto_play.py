@@ -16,12 +16,13 @@ import time
 # from ui_data import SCREEN_DICT
 # from player import Player, FindTimeout
 
-from lib.global_vals import GameNotFound, UnsupportGame, LoginTimeout, RestartTooMany, UserConfigError, NotInGameMain
+from lib.global_vals import GameNotFound, UnsupportGame, LoginTimeout, RestartTooMany, UserConfigError, NotInGameMain, MouseFailure
 
 
 shen_yuan_tasks = ('ShenYuanMoKu', )
 
 daily_play_tasks = (
+    'ZhouNianQing',
     'MeiRiRenWu',
     'XianShiJie',
     'YouJian',
@@ -47,7 +48,7 @@ daily_play_tasks = (
     'LianSaiBaoXiang',
     'GongHuiZhan',
     'RenWu',
-    
+
 )
 
 
@@ -70,8 +71,10 @@ async def play(goal, player, role, g_queue):
             await g_queue.put(('login timeout', player.window, role))
         except RestartTooMany:
             await g_queue.put(('restart to many times', player.window, role))
+        except MouseFailure:
+            await g_queue.put(('mouse failure', player.window, role))
         except Exception as e:
-            player.logger.error(f"unexpected error: {str(e)}")
+            player.logger.exception("unexpected error")
             player.save_operation_pics('unexpected error')
             await g_queue.put(('unexpected error', player.window, role))
         else:
@@ -94,7 +97,7 @@ async def play(goal, player, role, g_queue):
             obj = getattr(tasks, cls_name)(player, None, None)
             await obj.run()
         except Exception as e:
-            player.logger.error(f"unexpected error: {str(e)}")
+            player.logger.exception("unexpected error")
             player.save_operation_pics('unexpected error')
             await g_queue.put(('unexpected error', player.window, role))
         else:
@@ -111,7 +114,7 @@ async def daily_play(player, role):
         await role.load_all_attributes()
     except Exception as err:
         player.logger.eror(str(err))
-        raise UserConfigError
+        raise UserConfigError()
 
     gamer = Gamer(player)
 
@@ -135,8 +138,12 @@ async def daily_play(player, role):
         player.logger.info("Start to run: " + cls_name)
         obj = getattr(tasks, cls_name)(player, role.play_setting, counter)
         try:
-            await obj.run()
-            error_count = max(error_count - 1, 0)
+            if obj.test():
+                await obj.run()
+                error_count = max(error_count - 1, 0)
+                player.logger.info("End to run: " + cls_name)
+            else:
+                player.logger.info("Skip to run: " + cls_name)
         except FindTimeout as e:
             error_count += 1
             player.logger.error(f"run {cls_name} faled: {str(e)}")
@@ -175,6 +182,9 @@ class AutoRecover():
     async def recover(self, role):
         if self.restart_count < 2:
             self.restart_count += 1
-            await self.gamer.restart(role)
+            try:
+                await self.gamer.restart(role)
+            except FindTimeout:
+                raise MouseFailure()
         else:
             raise RestartTooMany

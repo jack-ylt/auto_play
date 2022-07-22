@@ -78,7 +78,7 @@ class GamerBase(object):
 
     async def restart(self, role):
         """游戏异常就重启游戏"""
-        self.logger.warning("restart game")
+        self.logger.error("restart game")
         await self.close_game()
         await self._login_game(role, change_account=False)
 
@@ -112,6 +112,7 @@ class GamerBase(object):
     async def _at_game_main(self):
         try:
             await self.player.monitor('setting', timeout=1)
+            await self._close_main_ad()    # 关闭可能的广告
             return True
         except FindTimeout:
             return False

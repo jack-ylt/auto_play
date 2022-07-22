@@ -185,9 +185,9 @@ class Player(object):
             self.hand.click(pos, cheat=cheat) 
             await asyncio.sleep(0.1)
 
-            msg = f"{self.window.name}: click {pos}"
-            self.logger.debug(msg)
             mouse_pos = self.hand.mouse_pos()
+            msg = f"{self.window.name}: click {mouse_pos}"
+            self.logger.debug(msg)
             win_pos = self.window.win_pos(mouse_pos)
             self._cache_operation_pic(msg, win_pos)
 
@@ -317,7 +317,7 @@ class Player(object):
 
             pos = self.window.real_pos(pos)
             await self.hand.double_click(pos)
-            await asyncio.sleep(0.1)
+            await asyncio.sleep(0.3)
             await self.hand.tap_key('backspace')
             await asyncio.sleep(0.1)
 
@@ -327,7 +327,7 @@ class Player(object):
             await self.hand.tap_key('v')
             await asyncio.sleep(0.1)    # 避免粘贴失败
             await self.hand.release_key('ctrl')
-            await asyncio.sleep(0.1)
+            await asyncio.sleep(0.3)
 
         self._cache_operation_pic(msg)
 
@@ -394,7 +394,7 @@ class Player(object):
         mouse_pos = self.hand.mouse_pos()
         if not self.window.in_window(mouse_pos):
             self.logger.debug(
-                'make windows active, window: {self.window}, mouse: {mouse_pos}')
+                f'make windows active, window: {self.window}, mouse: {mouse_pos}')
             pos = self.window.real_pos(pos_window_border)
             self.hand.click(pos, cheat=False)
             await asyncio.sleep(0.1)
