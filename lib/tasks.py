@@ -2463,7 +2463,7 @@ class ZhouNianQing(Task):
 
         await self.player.find_then_click('4zhou_nian', timeout=3)
         await self.player.monitor(['dian_zan', 'qian_dao_hao_li'])
-        await asyncio.sleep(0.5)    # 界面可能先看到签到好礼，再马上跳转到点赞
+        await asyncio.sleep(2)    # 界面可能先看到签到好礼，再马上跳转到点赞
 
         name, pos = await self.player.monitor(['dian_zan', 'qian_dao_hao_li'])
         if name == 'dian_zan':

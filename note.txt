@@ -942,19 +942,19 @@ log要按角色分，这样才方便定位分析
 
 刚登陆的时候，有setting，但有广告    done
 
+登陆，切换账号，可能来不及
 
-末日小精灵v1.3.6
+logs 中的图片文件，名字不要太长，否则 clean logs 无法删除它
 
-更新内容：
-1. 新增了深渊魔窟刷buff功能
-2. 新增公会战自动打箱子
-3. 优化了对以下异常情况的处理，增强了程序可靠性：
-(任务失败会稍后重试，失败太多或卡住会重启游戏）
-- 系统默认是中文输入法，可能导致无法输入用户名密码
-- 登入时出现验证码
-- 游戏中，傻白突然跳出来指指点点
-- 某些按钮突然点不动了
-- 游戏突然闪退
 
-链接：https://pan.baidu.com/s/192NEGE7QQIGWqQSTwWvJjg?pwd=3w2g 
-提取码：3w2g 
+async with self.g_lock:
+    self.hand.click(pos, cheat=False)
+    name, pos_list = await self.eye.monitor(
+
+
+todo list
+2020-07-23
+    完成图片识别缓存
+    
+    
+    
