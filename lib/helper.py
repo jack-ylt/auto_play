@@ -96,3 +96,16 @@ def change_language(lang="EN"):
     )
     if not result:
         return True
+
+def singleton(cls):
+    """单例模式"""
+    _instance = {}
+
+    def _singleton(*args, **kwargs):
+        if cls not in _instance:
+            _instance[cls] = cls(*args, **kwargs)
+        return _instance[cls]
+
+    return _singleton
+
+

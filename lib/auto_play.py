@@ -103,6 +103,7 @@ async def play(goal, player, role, g_queue):
         else:
             await g_queue.put(('done', player.window, role))
         finally:
+
             end_t = time.time()
             cost_second = int(end_t - start_t)
             player.logger.info(

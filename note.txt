@@ -912,7 +912,13 @@ log要按角色分，这样才方便定位分析
 
 久游登入的时候，可能有广告，特殊关闭按钮    done
 
-鼠标点击失灵，还是没有解决
+★ 鼠标点击失灵，还是没有解决
+-> 预兆：鼠标移动不了了，让它去点击a，实际上它还是停在b不动
+-> 所以，可以在click函数中做一个verify
+
+有时候真的是点一次没用，需要再点一次
+
+
 
 同一个游戏平台，可能有多种图标，如何处理？
 -> 弄个游戏名到游戏图标的映射    done
@@ -955,6 +961,37 @@ async with self.g_lock:
 todo list
 2020-07-23
     完成图片识别缓存
+        area_new = get_area(area)
+            c = min( int(timeout / interval), 5) 确保在timeout之前，至少有一次是full的
+            
+            i = 0
+            timout 10 
+                if i % c < c - 1
+                    small (从字典中取）
+                    small = bbox.merge(small, area) （矩形针对bbox的偏移）
+                else
+                    full
+
+        if fund
+            if area_new = area:
+                update_area_cache(naes, img, pos)
+                bbox = bbox_old.merge(xxx) (矩形的并集）union_rectangle
+    
+        对于一定有的：
+            如果有缓存bbox，在缓存bbox中查找
+            找到了就return
+            没找到，就在full_bbox中查找，并更新缓存bbox
+        对于可能有、可能没有的呢：
+            
+            
+           
+            
+        超时又怎么弄呢？
+        
+        找到的时间，也可以记录下 min, max, avg
     
     
+    确保在timeout之前，至少有一次是full的
+
+842 
     

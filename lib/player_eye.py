@@ -35,6 +35,8 @@ logger = logging.getLogger(__name__)
 # main_dir = os.path.dirname(os.path.realpath(sys.executable))
 
 from lib.helper import main_dir
+from lib.cache import Cacher
+
 sys.path.insert(0, main_dir)
 pic_dir = os.path.join(main_dir, 'pics')
 
@@ -54,6 +56,8 @@ class Eye(object):
             self.logger = my_logger
         else:
             self.logger = logger
+        self._cacher = Cacher()
+        self._count = 0
 
     # def get_lates_screen(self):
     #     return self.screen_img
@@ -168,13 +172,32 @@ class Eye(object):
             names = [names]
             
         async def _monitor():
+            i = 0
+            # 确保在timeout之前，至少有一次是full的eara
+            # 缓存的位置不一定有
+            # 多个name的情况下，缓存区域大小，不一定比每一个img的大小都大
+            c = min( int(timeout / interval), 5)    
             while True:
-                img_bg = self._screenshot(area=area)
+                if i % c < c - 1:
+                    cache_area = self._cacher.get_cache_area(names, area)
+                    temp_area = cache_area or area
+                else:
+                    temp_area = area 
+                
+                if not self._area_check_ok(temp_area, names):
+                    temp_area = area
+
+                img_bg = self._screenshot(area=temp_area)
+
                 for name in names:
                     img_target = self._get_img(name)
                     pos_list, max_val = self._find_img_pos(
                         img_bg, img_target, threshold=threshold)
                     if pos_list:
+                        dx = temp_area[0] - area[0]
+                        dy = temp_area[1] - area[1]
+                        # 还原成实际的相对位置
+                        pos_list = [(x + dx, y + dy) for (x, y) in pos_list]
                         self.logger.debug(
                             f"Found {name} at {pos_list}, max_val: {max_val}")
                         if verify:
@@ -192,11 +215,46 @@ class Eye(object):
 
         try:
             name, pos_list = await asyncio.wait_for(_monitor(), timeout=timeout)
+            found_area = self._calc_found_area(name, pos_list[0], area)
+            self._cacher.update_cache_area(names, found_area, area)
+            self._count += 1
+            if self._count % 20 == 19:
+                self._cacher.save_data()
             return name, pos_list
         except asyncio.TimeoutError:
             msg = (f"monitor {names} timeout. ({timeout} s)")
             self.logger.debug(msg)
             raise FindTimeout(msg)
+
+    def _calc_found_area(self, name, pos, area, buffer=5):
+        img_target = self._get_img(name)
+        h, w = img_target.shape
+        x, y = pos
+        dx, dy, _, _ = area
+        bbox = (
+                int(dx + x - w / 2 - buffer),
+                int(dy + y - h / 2 - buffer),
+                int(dx + x + w / 2 + buffer),
+                int(dy + y + h / 2 + buffer)
+        )
+        return bbox
+
+    def _area_check_ok(self, temp_area, names):
+        """确保template.size > img.size"""
+        x0, y0, x1, y1 = temp_area
+        w_t = x1 - x0
+        h_t = y1 - y0
+        self.logger.debug(f"template size: ({w_t}, {h_t})")
+
+        for name in names:
+            img_target = self._get_img(name)
+            h, w = img_target.shape
+            self.logger.debug(f"{name} img size: ({w}, {h})")
+            if w_t < w or h_t < h:
+                self.logger.warn("tmplate.size is small then img.size")
+                return False
+
+        return True
 
     def is_exist(self, name,  area=None, threshold=0.8):
         img_bg = self._screenshot(area=area)
