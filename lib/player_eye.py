@@ -130,15 +130,10 @@ class Eye(object):
 
     async def _verify_monitor(self, name, pos, threshold, base_area):
         """验证图片位置是否还在原地"""
-        def _is_same_pos(p1, p2, offset=2):
-            x, y = p1
-            x1, y1 = p2
-            return math.fabs(x - x1) < offset and math.fabs(y - y1) < offset
-
         img_target = self._get_img(name)
         h, w = img_target.shape
         x, y = pos
-        buffer = 5
+        buffer = 3
 
         if base_area:
             bbox = [
@@ -150,7 +145,7 @@ class Eye(object):
         else:
             bbox = None
 
-        await asyncio.sleep(0.2)    # 都加点时间，看是否可以防止鼠标点击，游戏未响应
+        await asyncio.sleep(0.1)    # 都加点时间，看是否可以防止鼠标点击，游戏未响应
 
         # 不用_screenshot，以免改变self.screen_img
         img = ImageGrab.grab(bbox=bbox)
@@ -172,13 +167,15 @@ class Eye(object):
             names = [names]
             
         async def _monitor():
-            i = 0
+            
             # 确保在timeout之前，至少有一次是full的eara
             # 缓存的位置不一定有
             # 多个name的情况下，缓存区域大小，不一定比每一个img的大小都大
-            c = min( int(timeout / interval), 5)    
+            i = 0
+            c = min( int(timeout / interval), 4)    
             while True:
-                if i % c < c - 1:
+                i += 1
+                if i % c != 0:
                     cache_area = self._cacher.get_cache_area(names, area)
                     temp_area = cache_area or area
                 else:
@@ -244,13 +241,13 @@ class Eye(object):
         x0, y0, x1, y1 = temp_area
         w_t = x1 - x0
         h_t = y1 - y0
-        self.logger.debug(f"template size: ({w_t}, {h_t})")
-
+        
         for name in names:
             img_target = self._get_img(name)
             h, w = img_target.shape
-            self.logger.debug(f"{name} img size: ({w}, {h})")
             if w_t < w or h_t < h:
+                self.logger.debug(f"template size: ({w_t}, {h_t})")
+                self.logger.debug(f"{name} img size: ({w}, {h})")
                 self.logger.warn("tmplate.size is small then img.size")
                 return False
 
@@ -302,7 +299,7 @@ class Eye(object):
                     self.img_dict[name] = img
                     return img
         else:
-            msg = f"can't found {name}"
+            msg = f"can't found the {name}, in {pic_dir}"
             raise Exception(msg)
 
     def _read_pic(self, pic_path):

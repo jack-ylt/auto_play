@@ -284,7 +284,7 @@ class GamerMrxzJy(GamerBase):
         await self.player.monitor('deng_lu')
 
         await self._input_user_and_pwd(
-            role, (380, 254), (380, 308), 'user_empty_9you', 'pwd_empty_9you')
+            role, (380, 240), (380, 285), 'user_empty_9you', 'pwd_empty_9you')
 
         await self.player.find_then_click('deng_lu')
 

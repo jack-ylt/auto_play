@@ -128,7 +128,7 @@ class Player(object):
                 return True
         return False
 
-    async def monitor(self, names, timeout=10, threshold=0.8, filter_func=_get_first, verify=False, interval=1):
+    async def monitor(self, names, timeout=10, threshold=0.8, filter_func=_get_first, verify=False, interval=0.5):
         """return (name, pos), all rease timeout_error"""
         if not isinstance(names, list):
             names = [names]
@@ -183,13 +183,14 @@ class Player(object):
         
         async with self.g_lock:
             self.hand.click(pos, cheat=cheat) 
-            await asyncio.sleep(0.1)
 
             mouse_pos = self.hand.mouse_pos()
-            msg = f"{self.window.name}: click {mouse_pos}"
+            msg = f"{self.window.name}: click {pos}, real mouse pos: {mouse_pos}"
             self.logger.debug(msg)
             win_pos = self.window.win_pos(mouse_pos)
             self._cache_operation_pic(msg, win_pos)
+
+            await asyncio.sleep(0.1)
 
         await asyncio.sleep(delay / 2)
 
@@ -353,7 +354,7 @@ class Player(object):
         self._cache_operation_pic(msg, pos_list)
 
     # 防止误点击到运动目标，所以verify默认True，monitor通常用于监控目标是否出现，因此默认verify是False
-    async def find_then_click(self, name_list, pos=None, threshold=0.8, timeout=10, delay=1, raise_exception=True, cheat=True, verify=True, interval=1):
+    async def find_then_click(self, name_list, pos=None, threshold=0.8, timeout=10, delay=1, raise_exception=True, cheat=True, verify=True, interval=0.5):
         """find a image, then click it ant return its name
 
         if pos given, click the pos instead.

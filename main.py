@@ -188,6 +188,8 @@ def stop_play(msg):
 if __name__ == "__main__":
     freeze_support()
 
+    logger.info("Starting ...")
+
     if len(sys.argv) == 2:
         goal = sys.argv[1]
     else:

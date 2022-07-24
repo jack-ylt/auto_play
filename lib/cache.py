@@ -2,6 +2,7 @@
 
 import json
 import os
+import shutil
 
 from lib.helper import singleton
 from lib.mylogs import make_logger
@@ -17,6 +18,7 @@ class Cacher():
             os.mkdir(_dir)
 
         self._file = os.path.join(_dir, 'area_cache' + '.json')
+        self._file_back = os.path.join(_dir, 'area_cache_default' + '.json') 
         if os.path.exists(self._file):
             self._data = self._load_data()
         else:
@@ -26,11 +28,13 @@ class Cacher():
         try:
             with open(self._file, 'r') as f:
                 data = json.load(f)
-                return data
+            return data
         except json.decoder.JSONDecodeError as e:
-            logger.error(f'load {self._file} failed: {str(e)}')
-            os.remove(self._file)
-            return {}
+            logger.error(f'load {self._file} failed: {str(e)}. Use {self._file_back} instead')
+            shutil.copy(self._file_back, self._file)
+            with open(self._file_back) as f:
+                data = json.load(f)
+            return data
 
     def get_cache_area(self, names, base_area):
         key = str(names)
