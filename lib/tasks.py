@@ -323,7 +323,7 @@ class XianShiJie(Task):
         for x in x_list:
             await self.player.click((x, y))
             await asyncio.sleep(2)
-            pos_list = await self.player.find_all_pos(['point', 'point3'], threshold=0.9)
+            pos_list = await self.player.find_all_pos(['point', 'point2', 'point3', 'point4'], threshold=0.88)
             # 正常是一个point都没有的，3个是作为buffer
             if len(pos_list) < 3:
                 break
@@ -335,7 +335,7 @@ class XianShiJie(Task):
     async def _goto_next_area(self):
         await asyncio.sleep(5)
         self.logger.debug('goto next area')
-        pos_list = await self.player.find_all_pos(['point', 'point3'], threshold=0.9)
+        pos_list = await self.player.find_all_pos(['point', 'point2', 'point3', 'point4'], threshold=0.88)
         pos = await self._guess_next_pos(pos_list)
         await self.player.click(pos)
         await self.player.find_then_click('ok1')

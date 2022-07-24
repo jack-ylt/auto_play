@@ -362,22 +362,34 @@ class Eye(object):
 
 
 async def test(names, bbox=None, threshold=0.8, max_try=1, verify=True):
+    if isinstance(names, str):
+        names = [names]
+
     eye = Eye()
     t1 = time.time()
 
     all_res = []
 
-    for i in range(max_try):
+    for _ in range(max_try):
         res = await eye.find_all_pos(names, area=bbox, threshold=threshold, verify=verify)
         all_res.extend(res)
 
     all_res = eye._de_duplication(all_res)
     print(all_res)
+            
+    img_rgb = ImageGrab.grab(bbox=bbox)
+    img_rgb = np.array(img_rgb)
+    img_target = eye._get_img(names[0])
+    h, w = img_target.shape
+    for pt in all_res:
+        cv2.rectangle(img_rgb, (pt[0] - int(w/2), pt[1] - int(h/2)), (pt[0] + int(w/2), pt[1] + int(h/2)), (0,0,255), 2)
+    
+    cv2.imwrite('res.png',img_rgb)
+    img = Image.open('res.png')
+    img.show()
+
 
     t2 = time.time()
-
-    # eye.save_picture_log("hwllo world")
-
     print("cost time: {:.2f}".format(t2 - t1))
 
 
