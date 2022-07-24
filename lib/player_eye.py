@@ -5,6 +5,8 @@
 #
 ##############################################################################
 
+from lib.cache import Cacher
+from lib.helper import main_dir
 import sys
 from cv2 import cv2
 import re
@@ -34,8 +36,6 @@ logger = logging.getLogger(__name__)
 # 打成单文件，只有这个打包前后路径是一致的
 # main_dir = os.path.dirname(os.path.realpath(sys.executable))
 
-from lib.helper import main_dir
-from lib.cache import Cacher
 
 sys.path.insert(0, main_dir)
 pic_dir = os.path.join(main_dir, 'pics')
@@ -69,7 +69,7 @@ class Eye(object):
             return img_np
         else:
             return self.screen_img
-        
+
     def save_picture_log(self, msg="", ext=".jpg"):
         img = self.get_lates_screen()
         now = datetime.now().strftime('%Y-%m-%d_%H-%M-%S-%f')[:-3]
@@ -153,36 +153,41 @@ class Eye(object):
         img_bg = cv2.cvtColor(img_np, cv2.COLOR_BGR2GRAY)
 
         pos_list, max_val = self._find_img_pos(
-                        img_bg, img_target, threshold=threshold)
+            img_bg, img_target, threshold=threshold)
         if pos_list:
             return True
         else:
-            self.logger.debug(f"_verify_monitor not pass: not found {name} near {pos}")
+            self.logger.debug(
+                f"_verify_monitor not pass: not found {name} near {pos}")
             return False
 
-
-    async def monitor(self, names, area=None, timeout=10, threshold=0.8, verify=True, interval=1):
+    async def monitor(self, names, area=None, timeout=10, threshold=0.8, verify=True, interval=0.5):
         """return (name, pos_list), or rease timeout_error"""
         if not isinstance(names, list):
             names = [names]
-            
+
         async def _monitor():
-            
+
             # 确保在timeout之前，至少有一次是full的eara
             # 缓存的位置不一定有
             # 多个name的情况下，缓存区域大小，不一定比每一个img的大小都大
             i = 0
-            c = min( int(timeout / interval), 4)    
+            c = min(int(timeout / interval), 4)
             while True:
                 i += 1
                 if i % c != 0:
                     cache_area = self._cacher.get_cache_area(names, area)
                     temp_area = cache_area or area
                 else:
-                    temp_area = area 
-                
+                    temp_area = area
+                    # 全量匹配耗时较长，所以
+                    i += 1
+                    await asyncio.sleep(interval)
+
                 if not self._area_check_ok(temp_area, names):
                     temp_area = area
+                    i += 1
+                    await asyncio.sleep(interval)
 
                 img_bg = self._screenshot(area=temp_area)
 
@@ -229,10 +234,10 @@ class Eye(object):
         x, y = pos
         dx, dy, _, _ = area
         bbox = (
-                int(dx + x - w / 2 - buffer),
-                int(dy + y - h / 2 - buffer),
-                int(dx + x + w / 2 + buffer),
-                int(dy + y + h / 2 + buffer)
+            int(dx + x - w / 2 - buffer),
+            int(dy + y - h / 2 - buffer),
+            int(dx + x + w / 2 + buffer),
+            int(dy + y + h / 2 + buffer)
         )
         return bbox
 
@@ -241,7 +246,7 @@ class Eye(object):
         x0, y0, x1, y1 = temp_area
         w_t = x1 - x0
         h_t = y1 - y0
-        
+
         for name in names:
             img_target = self._get_img(name)
             h, w = img_target.shape
@@ -263,7 +268,6 @@ class Eye(object):
                 f"{name} is exist at {pos_list}, max_val: {max_val}")
             return True
         return False
-
 
     def _screenshot(self, area=None, name=None):
         """grab the screen img"""
@@ -289,7 +293,7 @@ class Eye(object):
         """return img obj according to its name"""
         if name in self.img_dict:
             return self.img_dict[name]
-        
+
         for root, dirs, files in os.walk(pic_dir):
             for f in files:
                 f_name = os.path.splitext(f)[0]
@@ -376,21 +380,18 @@ async def test(names, bbox=None, threshold=0.8, max_try=1, verify=True):
 
     all_res = eye._de_duplication(all_res)
     print(all_res)
-            
+
     img_rgb = ImageGrab.grab(bbox=bbox)
     img_rgb = np.array(img_rgb)
     img_target = eye._get_img(names[0])
     h, w = img_target.shape
     for pt in all_res:
-        cv2.rectangle(img_rgb, (pt[0] - int(w/2), pt[1] - int(h/2)), (pt[0] + int(w/2), pt[1] + int(h/2)), (0,0,255), 2)
-    
-    cv2.imwrite('res.png',img_rgb)
+        cv2.rectangle(img_rgb, (pt[0] - int(w/2), pt[1] - int(h/2)),
+                      (pt[0] + int(w/2), pt[1] + int(h/2)), (0, 0, 255), 2)
+
+    cv2.imwrite('res.png', img_rgb)
     img = Image.open('res.png')
     img.show()
 
-
     t2 = time.time()
     print("cost time: {:.2f}".format(t2 - t1))
-
-
-

@@ -103,7 +103,7 @@ async def main(goal):
             elif status == 'config error':
                 return stop_play(f"配置错误，请先修正配置")
             elif status == 'mouse failure':
-                return stop_play(f"糟糕，鼠标貌似失灵了，请稍后重试")
+                return stop_play(f"糟糕，鼠标貌似失灵了，需要手动激活下鼠标，然后重试")
             elif status == 'unexpected error':
                 return stop_play(f"未知错误，请稍后重试")
             elif status == 'game not found':

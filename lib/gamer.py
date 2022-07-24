@@ -278,13 +278,13 @@ class GamerMrxzJy(GamerBase):
     async def _enter_account_info(self, role):
         # interval 小一点，以防来不及
         await self.player.find_then_click('qie_huan_zhang_hao', raise_exception=False, timeout=2, interval=0.3)
-        await self.player.find_then_click('qi_ta_zhang_hao')
+        await self.player.find_then_click('qi_ta_zhang_hao', raise_exception=False, timeout=2)
         await self.player.find_then_click('mi_ma_deng_lu')
 
         await self.player.monitor('deng_lu')
 
         await self._input_user_and_pwd(
-            role, (380, 240), (380, 285), 'user_empty_9you', 'pwd_empty_9you')
+            role, (400, 240), (400, 285), 'user_empty_9you', 'pwd_empty_9you')
 
         await self.player.find_then_click('deng_lu')
 
