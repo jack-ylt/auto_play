@@ -479,6 +479,14 @@ class HaoYou(Task):
             self.logger.debug(f"Skip, lack of physical strength.")
             return False
 
+        try:
+            await self.player.monitor('empty_box', timeout=1)
+            self.logger.debug(f"Skip, user haven't set the fighting team")
+            await self.player.find_then_click(CLOSE_BUTTONS)
+            return False
+        except FindTimeout:
+            pass
+
         max_try = 2
         count = 0
 
@@ -825,7 +833,7 @@ class GongHui(Task):
         except FindTimeout:
             return
 
-        # 小号通常不会设置对不，也最好不要打公会战
+        # 小号通常不会设置队伍，也最好不要打公会战
         try:
             await self.player.monitor('empty_box', timeout=1)
             return
