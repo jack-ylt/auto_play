@@ -14,6 +14,9 @@ import math
 from time import sleep
 import pyautogui
 import logging
+from lib.global_vals import MouseFailure
+
+logger = logging.getLogger(__name__)
 
 
 def distance(p1, p2):
@@ -34,6 +37,12 @@ class Hand(object):
         'ctrl': k.control_key,
     }
 
+    def __init__(self, my_logger=None):
+        if my_logger:
+            self.logger = my_logger
+        else:
+            self.logger = logger
+
     async def delay(self, n):
         """delay n seconds, with a random +- err error."""
         random_err = (-n + 2*n*random.random()) * self.err
@@ -49,13 +58,22 @@ class Hand(object):
             y = pos[1] + random.randint(-2, 2)
 
         # # click 有可能失灵 （大概万分之一）, 先release就能保证click有效了
-        # self.m.release(x, y)
-        # self.m.move(x, y)
-        # self.m.click(x, y)
 
         pyautogui.moveTo(x, y, duration=0.1, tween=pyautogui.easeInOutQuad)
         pyautogui.click(x, y)
 
+        mouse_pos = self.mouse_pos()
+        if mouse_pos != (x, y):
+            self.logger.warning(
+                f"The mouse is failure: click pos: {(x, y)}, mouse pos: {mouse_pos}")
+            self.m.release(x, y)
+            self.m.move(x, y)
+            self.m.click(x, y)
+
+            if mouse_pos != (x, y):
+                self.logger.warning(
+                    f"The mouse still failure: click pos: {(x, y)}, mouse pos: {mouse_pos}")
+                raise MouseFailure()
 
     async def double_click(self, pos, cheat=True):
         """simulate a player to do a double left-click"""

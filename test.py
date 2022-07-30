@@ -154,7 +154,7 @@ if __name__ == '__main__':
     # names = ['you_she_you_de']
     # asyncio.run(test_eye(names, threshold=0.8, verify=False))
 
-    asyncio.run(test_tasks('VipShangDian'))
+    asyncio.run(test_tasks('GongHuiZhan'))
 
     # asyncio.run(test_emulator())
 

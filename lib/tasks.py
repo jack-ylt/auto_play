@@ -351,8 +351,14 @@ class XianShiJie(Task):
             pos = sorted(new_list, key=lambda x: x[1])[0]
             return (pos[0], pos[1] - 50)
         else:
-            pos = max(pos_list)
-            return (pos[0] + 50, pos[1])
+            pos_1 = pos_list[-1]
+            pos_2 = pos_list[-2]
+            if pos_1[1] - pos_2[1] < -15:
+                return (pos[0] + 50, pos[1] - 25)
+            elif pos_1[1] - pos_2[1] > -15:
+                return (pos[0] + 50, pos[1] + 25)
+            else:
+                return (pos[0] + 50, pos[1])
 
     async def _passed_to_fight(self):
         """go from already_passed to fight"""
@@ -2379,6 +2385,12 @@ class GongHuiZhan(Task):
             await self.player.find_then_click(OK_BUTTONS)
             await asyncio.sleep(5)
             await self.player.monitor('jidi', timeout=20)
+
+            # tuo guan
+            await self.player.find_then_click('zhu_jun_dui_wu')
+            await self.player.find_then_click('yi_jian_tuo_guan')
+            await self.player.find_then_click(OK_BUTTONS)
+            await self.player.find_then_click(CLOSE_BUTTONS)
         elif name in CLOSE_BUTTONS:
             await self.player.click(pos)
 

@@ -960,7 +960,15 @@ async with self.g_lock:
 
 todo list
 2020-07-23
-    完成图片识别缓存
-    ->  返回的pos，要是实际窗口的相对pos，否则shen_yuan_mo_ku 有问题
+    完成图片识别缓存    
+    ->  按name，来作为key是否更好。
+    先截图整个，然后再cut小图来匹配
     
+    -> 对于find_all，也用缓存
+    可能的位置 > 10 个：
+        全图匹配
+    else：
+        cut小图来匹配
     
+没有加入公会的，怎么办？
+
