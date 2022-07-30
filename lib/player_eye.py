@@ -180,14 +180,9 @@ class Eye(object):
                     temp_area = cache_area or area
                 else:
                     temp_area = area
-                    # 全量匹配耗时较长，所以
-                    i += 1
-                    await asyncio.sleep(interval)
 
                 if not self._area_check_ok(temp_area, names):
                     temp_area = area
-                    i += 1
-                    await asyncio.sleep(interval)
 
                 img_bg = self._screenshot(area=temp_area)
 
@@ -211,7 +206,12 @@ class Eye(object):
                                 break
                         else:
                             return name, pos_list
-                await asyncio.sleep(interval)
+                if temp_area == area:
+                    # 全量匹配耗时较长，所以
+                    i += 1
+                    await asyncio.sleep(interval * 2)
+                else:
+                    await asyncio.sleep(interval)
 
         self.logger.debug(f'start monitor: {names}')
 
@@ -380,18 +380,22 @@ async def test(names, bbox=None, threshold=0.8, max_try=1, verify=True):
 
     all_res = eye._de_duplication(all_res)
     print(all_res)
-
-    img_rgb = ImageGrab.grab(bbox=bbox)
-    img_rgb = np.array(img_rgb)
-    img_target = eye._get_img(names[0])
-    h, w = img_target.shape
-    for pt in all_res:
-        cv2.rectangle(img_rgb, (pt[0] - int(w/2), pt[1] - int(h/2)),
-                      (pt[0] + int(w/2), pt[1] + int(h/2)), (0, 0, 255), 2)
-
-    cv2.imwrite('res.png', img_rgb)
-    img = Image.open('res.png')
-    img.show()
-
+    
     t2 = time.time()
     print("cost time: {:.2f}".format(t2 - t1))
+
+    if all_res:
+        # show match img
+        img_rgb = ImageGrab.grab(bbox=bbox)
+        img_rgb = np.array(img_rgb)
+        img_target = eye._get_img(names[0])
+        h, w = img_target.shape
+        for pt in all_res:
+            cv2.rectangle(img_rgb, (pt[0] - int(w/2), pt[1] - int(h/2)),
+                        (pt[0] + int(w/2), pt[1] + int(h/2)), (0, 0, 255), 2)
+
+        cv2.imwrite('res.png', img_rgb)
+        img = Image.open('res.png')
+        img.show()
+
+

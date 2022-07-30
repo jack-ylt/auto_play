@@ -961,37 +961,6 @@ async with self.g_lock:
 todo list
 2020-07-23
     完成图片识别缓存
-        area_new = get_area(area)
-            c = min( int(timeout / interval), 5) 确保在timeout之前，至少有一次是full的
-            
-            i = 0
-            timout 10 
-                if i % c < c - 1
-                    small (从字典中取）
-                    small = bbox.merge(small, area) （矩形针对bbox的偏移）
-                else
-                    full
-
-        if fund
-            if area_new = area:
-                update_area_cache(naes, img, pos)
-                bbox = bbox_old.merge(xxx) (矩形的并集）union_rectangle
+    ->  返回的pos，要是实际窗口的相对pos，否则shen_yuan_mo_ku 有问题
     
-        对于一定有的：
-            如果有缓存bbox，在缓存bbox中查找
-            找到了就return
-            没找到，就在full_bbox中查找，并更新缓存bbox
-        对于可能有、可能没有的呢：
-            
-            
-           
-            
-        超时又怎么弄呢？
-        
-        找到的时间，也可以记录下 min, max, avg
-    
-    
-    确保在timeout之前，至少有一次是full的
-
-842 
     

@@ -135,13 +135,14 @@ class Task(object):
         self.logger.debug('_move_to_right_down')
         p1 = (650, 350)
         p2 = (150, 200)
-        for i in range(3):
+        for i in range(5):
             await self.player.drag(p1, p2, speed=0.02)
             try:
                 await self.player.monitor('bottom_right', timeout=1)
                 return
             except FindTimeout:
                 pass
+        raise FindTimeout()
 
     def _merge_pos_list(self, btn_list, icon_list, dx=1000, dy=1000):
         def _is_close(p1, p2):
@@ -1937,7 +1938,7 @@ class VipShangDian(Task):
 
         pos_vip = (28, 135)
         await self.player.click(pos_vip, cheat=False)
-        await self.player.monitor('vip_shop')
+        await self.player.monitor(['vip_shop', 'vip_shop1'])
         try:
             await self.player.find_then_click('receive_small', timeout=1)
         except FindTimeout:
@@ -2206,7 +2207,7 @@ class ShenYuanMoKu(Task):
         return False
 
     async def _swip_down(self):
-        await self.player.drag((630, 430), (630, 50), speed=0.02, stop=True)
+        await self.player.drag((630, 430), (630, 80), speed=0.02, stop=True)
 
     async def _swip_up(self):
         await self.player.drag((630, 150), (630, 430), speed=0.01, stop=False)
@@ -2370,8 +2371,11 @@ class GongHuiZhan(Task):
             await asyncio.sleep(5)
             await self.player.monitor('jidi', timeout=20)
         elif name == 'she_zhi_zhen_rong':
-            await self.player.click(pos)
-            await self.player.find_then_click('bao_cun')
+            try:
+                await self.player.find_then_click('bao_cun', timeout=1)
+            except FindTimeout:
+                await self.player.click(pos)
+                await self.player.find_then_click('bao_cun')
             await self.player.find_then_click(OK_BUTTONS)
             await asyncio.sleep(5)
             await self.player.monitor('jidi', timeout=20)

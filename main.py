@@ -55,12 +55,6 @@ async def main(goal):
     g_sem = asyncio.Semaphore(1)
     g_queue = asyncio.Queue()
 
-    try:
-        roles = Roles()
-    except UserConfigError as e:
-        return stop_play(str(e))
-
-
     logger.info("clean old logs")
     clean_old_logs()
 
@@ -68,6 +62,11 @@ async def main(goal):
     emu = emulator.Emulator(player)
 
     if goal == 'daily_play':
+        try:
+            roles = Roles()
+        except UserConfigError as e:
+            return stop_play(str(e))
+
         try:
             async for window in emu.start_all_emulator():
                 a_role = roles.get_idle_role()
