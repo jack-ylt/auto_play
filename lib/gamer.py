@@ -80,7 +80,12 @@ class GamerBase(object):
         """游戏异常就重启游戏"""
         self.logger.error("restart game")
         await self.close_game()
-        await self._login_game(role, change_account=False)
+        try:
+            await self._login_game(role, change_account=False)
+        except FindTimeout:
+            await self.close_game()
+            # 模拟器偶尔会卡住
+            await self._login_game(role, change_account=False)
 
     async def login(self, role):
         """使用role登录游戏"""
@@ -130,11 +135,12 @@ class GamerBase(object):
         await asyncio.sleep(3)
 
         _, pos = await self.player.monitor(game_icons)
-        await self.player.click(pos)
+        # 单击也可以，当双击更稳定
+        await self.player.double_click(pos)
         # 如果双击没反应，就再试一次
         if not await self.player.wait_disappear(game_icons):
             _, pos = await self.player.monitor(game_icons)
-            await self.player.click(pos)
+            await self.player.double_click(pos)
 
         await asyncio.sleep(30)
         await self.player.monitor(['close_btn', 'close_btn5', 'start_game'], timeout=90)

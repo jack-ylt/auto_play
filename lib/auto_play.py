@@ -183,9 +183,10 @@ class AutoRecover():
     async def recover(self, role):
         if self.restart_count < 2:
             self.restart_count += 1
-            try:
-                await self.gamer.restart(role)
-            except FindTimeout:
-                raise MouseFailure()
+            await self.gamer.restart(role)
+            # try:
+            #     await self.gamer.restart(role)
+            # except FindTimeout:
+            #     raise MouseFailure()
         else:
             raise RestartTooMany

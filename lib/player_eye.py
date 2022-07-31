@@ -271,6 +271,8 @@ class Eye(object):
 
     def _screenshot(self, area=None, name=None):
         """grab the screen img"""
+        # start_t = time.time()
+
         img = ImageGrab.grab(bbox=area)
 
         # Convert PIL.Image to bgr_img
@@ -286,6 +288,10 @@ class Eye(object):
             rgb_img.save(name)
 
         img_gray = cv2.cvtColor(img_np, cv2.COLOR_BGR2GRAY)
+
+        # time_cost = time.time() - start_t
+        # self.logger.debug(f"screenshot cost: {time_cost} s")
+
         return img_gray
         # return rgb_img
 

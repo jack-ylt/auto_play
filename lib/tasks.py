@@ -351,7 +351,7 @@ class XianShiJie(Task):
             pos = sorted(new_list, key=lambda x: x[1])[0]
             return (pos[0], pos[1] - 50)
         else:
-            pos_1 = pos_list[-1]
+            pos = pos_1 = pos_list[-1]
             pos_2 = pos_list[-2]
             if pos_1[1] - pos_2[1] < -15:
                 return (pos[0] + 50, pos[1] - 25)
@@ -1594,7 +1594,8 @@ class GuanJunShiLian(Task):
             return
 
         win, lose = 0, 0
-        while (win * 2 + lose) < self._target_score - self._get_count():
+        need_score = self._target_score - self._get_count()
+        while (win * 2 + lose) < need_score:
             await self._choose_opponent()
             if await self._fight_win():
                 win += 1
@@ -2307,7 +2308,7 @@ class GongHuiZhan(Task):
         bao_xiang_guai_list = list1 + list2
 
         for _ in range(10):
-            await self.player.find_then_click(CLOSE_BUTTONS, timeout=1, raise_exception=False)
+            await self.player.find_then_click(CLOSE_BUTTONS, timeout=3, raise_exception=False)
             await self.player.monitor('zhu_jun_dui_wu')
             try:
                 await self.player.find_then_click(bao_xiang_guai_list, threshold=0.85, timeout=2, cheat=False)
