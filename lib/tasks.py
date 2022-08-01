@@ -411,6 +411,7 @@ class HaoYou(Task):
 
     def __init__(self, player, role_setting, counter):
         super().__init__(player, role_setting, counter)
+        self._fight_boos = self._get_cfg('fight_boos')
 
     def verify(self):
         if not self._get_cfg('enable'):
@@ -426,19 +427,24 @@ class HaoYou(Task):
         await self.player.find_then_click('receive_and_send')
 
         # 刷好友的boos
-        while True:
-            try:
-                await self.player.find_then_click('friend_boss', timeout=1)
-            except FindTimeout:
-                break
-            if not await self._fight_friend_boss():
-                break
+        if self._fight_boos:
+            while True:
+                try:
+                    await self.player.find_then_click('friend_boss', timeout=1)
+                except FindTimeout:
+                    break
+                if not await self._fight_friend_boss():
+                    break
 
         # 刷自己的boos
         await self.player.find_then_click('friends_help')
         while True:
             if not await self._found_boos():
                 break
+            if not self._fight_boos:
+                break
+
+            await self.player.find_then_click('fight2')
             if not await self._fight_friend_boss():
                 break
 
@@ -537,8 +543,12 @@ class HaoYou(Task):
             self.logger.debug("Can't search, search time not reached.")
             return False
 
-        name = await self.player.find_then_click(['fight2', 'ok', 'ok9'])
-        return name == "fight2"
+        name, pos = await self.player.monitor(['fight2', 'ok', 'ok9'])
+        if name == "fight2":
+            return True
+        else:
+            await self.player.click(pos)
+            return False
 
 
 class SheQvZhuLi(Task):
@@ -2341,6 +2351,7 @@ class GongHuiZhan(Task):
     async def _enter_ghz(self):
         try:
             await self.player.find_then_click('ju_dian_ghz', timeout=1)
+            await self.player.monitor('huang_shui_jing')    # 可能没加公会
         except FindTimeout:
             return False
 

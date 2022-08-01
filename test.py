@@ -154,7 +154,7 @@ if __name__ == '__main__':
     # names = ['you_she_you_de']
     # asyncio.run(test_eye(names, threshold=0.8, verify=False))
 
-    asyncio.run(test_tasks('GongHuiZhan'))
+    # asyncio.run(test_tasks('HaoYou'))
 
     # asyncio.run(test_emulator())
 
@@ -162,7 +162,7 @@ if __name__ == '__main__':
 
     # asyncio.run(test_mouse())
 
-    # asyncio.run(test_gamer('_close_main_ad'))
+    asyncio.run(test_gamer('_close_main_ad'))
 
     # t1 = time.time()
     # asyncio.run(find_emulator())
