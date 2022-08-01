@@ -83,11 +83,15 @@ class GamerBase(object):
         
         for _ in range(5):
             try:
-                await self.player.monitor('setting', timeout=2)
+                name, pos = await self.player.monitor(['close', 'setting'], timeout=2)
             except FindTimeout:
                 await self.player.go_back()    # ESC 可能失效 (游戏未响应)
             else:
-                break
+                if name == 'setting':
+                    break
+                else:
+                    # 猕猴桃平台，在主界面按esc，会慢慢黑屏
+                    await self.player.click(pos)
 
         # await self._close_ad(timeout=2)
         await self._close_main_ad()

@@ -151,7 +151,7 @@ async def test_mouse():
 if __name__ == '__main__':
     # names = ['guai1', 'guai2', 'guai3', 'guai4', 'guai5', 'guai6', 'guai7']
     # names = ['bao_xiang_guai', 'bao_xiang_guai1', 'bao_xiang_guai2', 'bao_xiang_guai3']
-    # names = ['ok']
+    # names = ui_data.CLOSE_BUTTONS
     # asyncio.run(test_eye(names, threshold=0.8, verify=False))
 
     # asyncio.run(test_tasks('HaoYou'))
