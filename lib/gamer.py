@@ -65,6 +65,22 @@ class GamerBase(object):
         如果esc不行，则业务要自己回主界面
         """
         self.logger.debug('goto game main ui')
+
+        # 有些情况下，esc无法退出
+        try:
+            name, pos = await self.player.monitor(['cup', 'card', 'ok'], timeout=1)
+        except FindTimeout:
+            pass
+        else:
+            if name == 'card':
+                await self.player.click(pos)
+                await asyncio.sleep(2)
+                await self.player.click(pos)
+                await self.player.find_then_click('ok')
+            else:
+                await self.player.click(pos)
+                await asyncio.sleep(3)
+        
         for _ in range(5):
             try:
                 await self.player.monitor('setting', timeout=2)
