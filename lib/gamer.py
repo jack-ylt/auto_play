@@ -175,14 +175,12 @@ class GamerBase(object):
 
     async def close_game(self):
         await self.player.find_then_click('recent_tasks', cheat=False)
-        # 有可能游戏闪退了
-        name, pos = await self.player.monitor(['liu_lan_qi', 'quan_bu_qing_chu', 'empty_apps'])
-        if name == 'quan_bu_qing_chu':
+        name, pos = await self.player.monitor(['quan_bu_qing_chu', 'empty_apps'])
+        if name == 'quan_bu_qing_chu':  # 1 或 2 个app
             await self.player.click(pos, cheat=False)
-        elif name == 'empty_apps':
+        elif name == 'empty_apps':    # 0 个app
             await self.player.find_then_click('recent_tasks', cheat=False)
-        else:
-            return
+
         await self.player.monitor('liu_lan_qi')
 
     async def _get_curr_game(self):
