@@ -2458,7 +2458,9 @@ class GongHuiZhan(Task):
 
     async def _do_fight(self):
         await self.player.monitor('dui_wu_xiang_qing')
-        await self.player.find_then_click('check_box', timeout=1, raise_exception=False)
+        name, pos = await self.player.monitor(['checked_box', 'check_box'])
+        if name == 'check_box':
+            await self.player.click(pos)
 
         try:
             await self.player.find_then_click('tiao_zhan_start', timeout=1)

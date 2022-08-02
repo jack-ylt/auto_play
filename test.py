@@ -44,9 +44,10 @@ ch.setFormatter(formatter)
 logger.addHandler(ch)
 
 
-async def test_eye(name=None, threshold=0.8, verify=True):
-    bbox = (0, 0, 905, 519)
-    # bbox = None
+async def test_eye(name=None, threshold=0.8, verify=True, bbox=None):
+    if not bbox:
+        bbox = (0, 0, 905, 519)
+        # bbox = None
 
     if name is None:
         name = ['boss', 'boss1', 'boss2']
@@ -151,8 +152,8 @@ async def test_mouse():
 if __name__ == '__main__':
     # names = ['guai1', 'guai2', 'guai3', 'guai4', 'guai5', 'guai6', 'guai7']
     # names = ['bao_xiang_guai', 'bao_xiang_guai1', 'bao_xiang_guai2', 'bao_xiang_guai3']
-    # names = ui_data.CLOSE_BUTTONS
-    # asyncio.run(test_eye(names, threshold=0.8, verify=False))
+    names = ['emulator_icon1']
+    asyncio.run(test_eye(names, threshold=0.8, verify=False, bbox = (0, 0, 1920, 1080)))
 
     # asyncio.run(test_tasks('HaoYou'))
 
@@ -162,7 +163,7 @@ if __name__ == '__main__':
 
     # asyncio.run(test_mouse())
 
-    asyncio.run(test_gamer('goto_main_ui'))
+    # asyncio.run(test_gamer('goto_main_ui'))
 
     # t1 = time.time()
     # asyncio.run(find_emulator())
