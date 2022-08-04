@@ -83,7 +83,7 @@ async def play(goal, player, role, g_queue):
             end_t = time.time()
             cost_second = int(end_t - start_t)
             player.logger.info(
-                f'Run {goal} for {role} on {player.window} end. Cost {cost_second}s。')
+                f'Run {goal} for {role} on {player.window} end. Cost {cost_second}s.')
 
     elif goal == 'shen_yuan_mo_ku':
         start_t = time.time()
@@ -96,7 +96,7 @@ async def play(goal, player, role, g_queue):
             player.logger.info("Start to run: " + cls_name)
             obj = getattr(tasks, cls_name)(player, None, None)
             await obj.run()
-        except Exception as e:
+        except Exception:
             player.logger.exception("unexpected error")
             player.save_operation_pics('unexpected error')
             await g_queue.put(('unexpected error', player.window, role))
@@ -107,7 +107,7 @@ async def play(goal, player, role, g_queue):
             end_t = time.time()
             cost_second = int(end_t - start_t)
             player.logger.info(
-                f'Run {goal} on {player.window} end. Cost {cost_second}s。')
+                f'Run {goal} on {player.window} end. Cost {cost_second}s.')
 
 
 async def daily_play(player, role):

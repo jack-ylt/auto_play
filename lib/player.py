@@ -41,7 +41,7 @@ class Player(object):
             self.logger = logger
 
         self.eye = player_eye.Eye(self.logger)
-        self.hand = player_hand.Hand()
+        self.hand = player_hand.Hand(self.logger)
         self.log_queue = queue.Queue(20)
         self.last_click = None
 
@@ -50,8 +50,7 @@ class Player(object):
         msg = re.sub(r'\s+', ' ', msg)
         now = datetime.now().strftime('%H-%M-%S-%f')[:-3]
         time_str = now.replace('-', ':')[:-5]    # 截掉个位秒以后的值，避免取不到日志
-        name = now + ' ' + msg + ext
-
+        name = now + ' ' + msg[:50] + ext
         img = self.eye.get_lates_screen(area=self.window.bbox, new=new)
         if pos:
             if isinstance(pos, tuple):
@@ -70,7 +69,7 @@ class Player(object):
         now = datetime.now().strftime('%Y-%m-%d_%H-%M-%S-%f')[:-3]
         msg = re.sub(r'[^a-zA-Z0-9-_]', ' ', msg)
         msg = re.sub(r'\s+', ' ', msg)
-        dir_name = msg + ' ' + now
+        dir_name = str(self.window) + msg[:50] + ' ' + now
         # dir_path = os.path.join('./timeout_pics', dir_name)
         dir_path = os.path.join('logs', dir_name)
         os.makedirs(dir_path)
@@ -185,7 +184,7 @@ class Player(object):
             self.hand.click(pos, cheat=cheat) 
 
             mouse_pos = self.hand.mouse_pos()
-            msg = f"{self.window.name}: click {pos}, real mouse pos: {mouse_pos}"
+            msg = f"click {pos}, real mouse pos: {mouse_pos}"
             self.logger.debug(msg)
             win_pos = self.window.win_pos(mouse_pos)
             self._cache_operation_pic(msg, win_pos)
@@ -205,7 +204,7 @@ class Player(object):
 
         mouse_pos = self.hand.mouse_pos()
         win_pos = self.window.win_pos(mouse_pos)
-        msg = f"{self.window.name}: click {pos}"
+        msg = f"click {pos}"
         self.logger.debug(msg)
         self._cache_operation_pic(msg, win_pos)
 

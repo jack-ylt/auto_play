@@ -64,14 +64,14 @@ class Hand(object):
 
         mouse_pos = self.mouse_pos()
         if mouse_pos != (x, y):
-            self.logger.warning(
+            self.logger.error(
                 f"The mouse is failure: click pos: {(x, y)}, mouse pos: {mouse_pos}")
             self.m.release(x, y)
             self.m.move(x, y)
             self.m.click(x, y)
 
             if mouse_pos != (x, y):
-                self.logger.warning(
+                self.logger.error(
                     f"The mouse still failure: click pos: {(x, y)}, mouse pos: {mouse_pos}")
                 raise MouseFailure()
 

@@ -977,6 +977,10 @@ todo list
 
 傻白处理逻辑需要优化
 
+要考虑反应慢的情况，加个click_and_waite_disappear
+尤其是多个标志图标都在同一个屏幕的情况
+
+log 中某些pic名字太长，导致删除报错
 
 
 
