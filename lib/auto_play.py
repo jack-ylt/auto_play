@@ -73,7 +73,8 @@ async def play(goal, player, role, g_queue):
             await g_queue.put(('restart to many times', player.window, role))
         except MouseFailure:
             await g_queue.put(('mouse failure', player.window, role))
-        except Exception as e:
+            player.save_operation_pics('mouse failure')
+        except Exception:
             player.logger.exception("unexpected error")
             player.save_operation_pics('unexpected error')
             await g_queue.put(('unexpected error', player.window, role))
@@ -126,7 +127,7 @@ async def daily_play(player, role):
         player.logger.warning(msg)
         player.save_operation_pics(msg)
         # await game_obj.close_game()
-        raise LoginTimeout
+        raise LoginTimeout()
 
     counter = PlayCounter(role.game + '_' + role.user)
     task_list = list(daily_play_tasks)
@@ -145,7 +146,7 @@ async def daily_play(player, role):
                 player.logger.info("End to run: " + cls_name)
             else:
                 player.logger.info("Skip to run: " + cls_name)
-        except FindTimeout as e:
+        except FindTimeout:
             error_count += 1
             player.logger.error(f"run {cls_name} faled: {str(e)}")
             player.save_operation_pics(str(e))
@@ -157,7 +158,10 @@ async def daily_play(player, role):
 
             # 连续两次任务失败，可能游戏出错了，需要重启
             if error_count >= 2:
-                await auto.recover(role)
+                try:
+                    await auto.recover(role)
+                except FindTimeout:
+                    raise LoginTimeout()
         finally:
             counter.save_data()
 
@@ -189,4 +193,4 @@ class AutoRecover():
             # except FindTimeout:
             #     raise MouseFailure()
         else:
-            raise RestartTooMany
+            raise RestartTooMany()

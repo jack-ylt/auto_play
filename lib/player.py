@@ -181,13 +181,14 @@ class Player(object):
         pos = self.window.real_pos(pos)
         
         async with self.g_lock:
-            self.hand.click(pos, cheat=cheat) 
-
-            mouse_pos = self.hand.mouse_pos()
-            msg = f"click {pos}, real mouse pos: {mouse_pos}"
-            self.logger.debug(msg)
-            win_pos = self.window.win_pos(mouse_pos)
-            self._cache_operation_pic(msg, win_pos)
+            try:
+                self.hand.click(pos, cheat=cheat) 
+            finally:
+                mouse_pos = self.hand.mouse_pos()
+                msg = f"click {pos}, real mouse pos: {mouse_pos}"
+                self.logger.debug(msg)
+                win_pos = self.window.win_pos(mouse_pos)
+                self._cache_operation_pic(msg, win_pos)
 
             await asyncio.sleep(0.1)
 

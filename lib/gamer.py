@@ -151,7 +151,7 @@ class GamerBase(object):
         try:
             _, pos = await self.player.monitor(game_icons)
         except FindTimeout:
-            raise GameNotFound
+            raise GameNotFound()
         await asyncio.sleep(3)
 
         _, pos = await self.player.monitor(game_icons)
