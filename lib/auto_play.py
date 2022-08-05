@@ -22,7 +22,6 @@ from lib.global_vals import GameNotFound, UnsupportGame, LoginTimeout, RestartTo
 shen_yuan_tasks = ('ShenYuanMoKu', )
 
 daily_play_tasks = (
-    'ZhouNianQing',
     'MeiRiRenWu',
     'XianShiJie',
     'YouJian',
