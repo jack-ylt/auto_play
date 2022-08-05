@@ -2489,32 +2489,32 @@ class GongHuiZhan(Task):
         await self.player.drag(bank_pos, center_pos, speed=0.05, stop=True)
 
 
-class ZhouNianQing(Task):
-    """4周年庆，自动签到"""
+# class ZhouNianQing(Task):
+#     """4周年庆，自动签到"""
 
-    def __init__(self, player, role_setting, counter):
-        super().__init__(player, role_setting, counter)
+#     def __init__(self, player, role_setting, counter):
+#         super().__init__(player, role_setting, counter)
 
-    async def run(self):
-        if not self.test():
-            return
+#     async def run(self):
+#         if not self.test():
+#             return
 
-        await self.player.find_then_click('4zhou_nian', timeout=3)
-        await self.player.monitor(['dian_zan', 'qian_dao_hao_li'])
-        await asyncio.sleep(2)    # 界面可能先看到签到好礼，再马上跳转到点赞
+#         await self.player.find_then_click('4zhou_nian', timeout=3)
+#         await self.player.monitor(['dian_zan', 'qian_dao_hao_li'])
+#         await asyncio.sleep(2)    # 界面可能先看到签到好礼，再马上跳转到点赞
 
-        name, pos = await self.player.monitor(['dian_zan', 'qian_dao_hao_li'])
-        if name == 'dian_zan':
-            await self.player.click(pos)
-            await self.player.go_back()
-            await self.player.monitor('setting')
-            await self.player.find_then_click('4zhou_nian', timeout=3)
+#         name, pos = await self.player.monitor(['dian_zan', 'qian_dao_hao_li'])
+#         if name == 'dian_zan':
+#             await self.player.click(pos)
+#             await self.player.go_back()
+#             await self.player.monitor('setting')
+#             await self.player.find_then_click('4zhou_nian', timeout=3)
 
-        await self.player.find_then_click('qian_dao_hao_li')
-        await self.player.find_then_click('zhou_nian_qian_dao')
+#         await self.player.find_then_click('qian_dao_hao_li')
+#         await self.player.find_then_click('zhou_nian_qian_dao')
         
-        self._increate_count()
+#         self._increate_count()
 
 
-    def test(self):
-        return self._get_cfg('enable') and self._get_count('count') < 1
+#     def test(self):
+#         return self._get_cfg('enable') and self._get_count('count') < 1

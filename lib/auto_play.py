@@ -146,10 +146,10 @@ async def daily_play(player, role):
                 player.logger.info("End to run: " + cls_name)
             else:
                 player.logger.info("Skip to run: " + cls_name)
-        except FindTimeout:
+        except FindTimeout as err:
             error_count += 1
-            player.logger.error(f"run {cls_name} faled: {str(e)}")
-            player.save_operation_pics(str(e))
+            player.logger.error(f"run {cls_name} faled: {str(err)}")
+            player.save_operation_pics(str(err))
 
             # 失败了，就过段时间再尝试一次, 还失败，就算了
             if cls_name not in failed_set:
@@ -167,10 +167,10 @@ async def daily_play(player, role):
 
         try:
             await gamer.goto_main_ui()
-        except FindTimeout as e:
+        except FindTimeout as err:
             error_count += 1
             msg = "go to main interface failed"
-            player.logger.error(msg + '\n' + str(e))
+            player.logger.error(msg + '\n' + str(err))
             player.save_operation_pics(msg)
 
             # 回不到主界面，可能卡住了，需要重启
