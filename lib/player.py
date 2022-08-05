@@ -69,7 +69,7 @@ class Player(object):
         now = datetime.now().strftime('%Y-%m-%d_%H-%M-%S-%f')[:-3]
         msg = re.sub(r'[^a-zA-Z0-9-_]', ' ', msg)
         msg = re.sub(r'\s+', ' ', msg)
-        dir_name = str(self.window) + msg[:50] + ' ' + now
+        dir_name = str(self.window.name) + ' ' + msg[:50] + ' ' + now
         # dir_path = os.path.join('./timeout_pics', dir_name)
         dir_path = os.path.join('logs', dir_name)
         os.makedirs(dir_path)

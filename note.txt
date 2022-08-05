@@ -982,6 +982,9 @@ todo list
 
 log 中某些pic名字太长，导致删除报错
 
+find 出来的pos，直接return屏幕的实际pos。然后click，直接click
+-》不行。这样的话，有些代码中直接写死的pos就不能工作了
+
 
 
 
