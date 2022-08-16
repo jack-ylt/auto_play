@@ -390,7 +390,7 @@ async def test(names, bbox=None, threshold=0.8, max_try=1, verify=True):
     t2 = time.time()
     print("cost time: {:.2f}".format(t2 - t1))
 
-    if all_res:
+    if len(all_res) > 1:
         # show match img
         img_rgb = ImageGrab.grab(bbox=bbox)
         img_rgb = np.array(img_rgb)

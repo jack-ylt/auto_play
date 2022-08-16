@@ -11,6 +11,7 @@ from lib.player import FindTimeout
 from lib.recorder import PlayCounter
 from lib.role import Role
 import time
+from lib.tasks import PlayException
 # from lib import role
 
 # from ui_data import SCREEN_DICT
@@ -42,12 +43,12 @@ daily_play_tasks = (
     'XingYunZhuanPan',
     'RenWuLan',
     'VipShangDian',
+    'JiYiDangAnGuan',
     'YingXiongYuanZheng',
     'MiGong',
     'LianSaiBaoXiang',
     'GongHuiZhan',
     'RenWu',
-
 )
 
 
@@ -145,7 +146,7 @@ async def daily_play(player, role):
                 player.logger.info("End to run: " + cls_name)
             else:
                 player.logger.info("Skip to run: " + cls_name)
-        except FindTimeout as err:
+        except (FindTimeout, PlayException) as err:
             error_count += 1
             player.logger.error(f"run {cls_name} faled: {str(err)}")
             player.save_operation_pics(str(err))

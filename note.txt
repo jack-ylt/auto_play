@@ -989,3 +989,6 @@ find 出来的pos，直接return屏幕的实际pos。然后click，直接click
 
 
 
+
+
+
