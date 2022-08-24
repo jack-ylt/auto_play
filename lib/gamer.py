@@ -99,13 +99,26 @@ class GamerBase(object):
     async def restart(self, role):
         """游戏异常就重启游戏"""
         self.logger.error("restart game")
-        await self.close_game()
+        # try:
+        #     await self.close_game()
+        # except FindTimeout:
+        #     await self._restart_emulator()
+
+        await self._restart_emulator()
+
         try:
             await self._login_game(role, change_account=False)
         except FindTimeout:
             await self.close_game()
             # 模拟器偶尔会卡住
             await self._login_game(role, change_account=False)
+
+    async def _restart_emulator(self):
+        await self.player.find_then_click('close_emu')
+        await self.player.find_then_click('chong_qi')
+        await asyncio.sleep(20)
+        await self.player.monitor('ye_sheng', timeout=30)
+        await self.player.monitor('liu_lan_qi', timeout=30)
 
     async def login(self, role):
         """使用role登录游戏"""
@@ -175,13 +188,17 @@ class GamerBase(object):
 
     async def close_game(self):
         await self.player.find_then_click('recent_tasks', cheat=False)
-        name, pos = await self.player.monitor(['quan_bu_qing_chu', 'empty_apps'])
-        if name == 'quan_bu_qing_chu':  # 1 或 2 个app
-            await self.player.click(pos, cheat=False)
-        elif name == 'empty_apps':    # 0 个app
-            await self.player.find_then_click('recent_tasks', cheat=False)
+        
+        for _ in range(5):
+            name, pos = await self.player.monitor(['liu_lan_qi', 'quan_bu_qing_chu', 'empty_apps', 'close_btn6'])
+            if name == 'quan_bu_qing_chu' or name == 'close_btn6':  # 1 或 2 个app
+                await self.player.click(pos, cheat=False)
+            elif name == 'empty_apps':    # 0 个app
+                await self.player.find_then_click('recent_tasks', cheat=False)
+            else:
+                break
 
-        await self.player.monitor('liu_lan_qi')
+            await asyncio.sleep(1)
 
     async def _get_curr_game(self):
         title_to_game = {

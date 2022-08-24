@@ -74,19 +74,24 @@ async def test_tasks(cls_name, func=None):
     else:
         await obj.run()
 
-async def test_emulator():
-    window = windows.Window('full')
-    player = Player(g_lock=asyncio.Lock(), window=window)
+# async def test_emulator():
+#     window = windows.Window('full')
+#     player = Player(g_lock=asyncio.Lock(), window=window)
 
-    e = emulator.Emulator(player)
-    await e.start_emulator()
+#     e = emulator.Emulator(player)
+#     await e.start_emulator()
 
 async def test_gamer(func=None):
     window = windows.Window('left_top')
     player = Player(g_lock=asyncio.Lock(), window=window)
 
     g = Gamer(player)
-    await getattr(g, func)()
+    if func in ['restart', 'login']:
+        r = role.Role('mo_shi_jun_tun', 'aa592729440')
+        await getattr(g, func)(r)
+    else:
+        await getattr(g, func)()
+    
 
 async def test_role():
     game = 'mo_shi_jun_tun'
@@ -155,7 +160,7 @@ if __name__ == '__main__':
     # names = ['receive4']
     # asyncio.run(test_eye(names, threshold=0.8, verify=False, bbox = (0, 0, 1920, 1080)))
 
-    asyncio.run(test_tasks('JiYiDangAnGuan'))
+    # asyncio.run(test_tasks('GuanJunShiLian'))
 
     # asyncio.run(test_emulator())
 
@@ -163,7 +168,7 @@ if __name__ == '__main__':
 
     # asyncio.run(test_mouse())
 
-    # asyncio.run(test_gamer('goto_main_ui'))
+    asyncio.run(test_gamer('restart'))
 
     # t1 = time.time()
     # asyncio.run(find_emulator())

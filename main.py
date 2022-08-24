@@ -103,8 +103,8 @@ async def main(goal):
                 return stop_play(f"配置错误，请先修正配置")
             elif status == 'mouse failure':
                 return stop_play(f"糟糕，鼠标貌似失灵了，需要手动激活下鼠标，然后重试")
-            elif status == 'unexpected error':
-                return stop_play(f"未知错误，请稍后重试")
+            # elif status == 'unexpected error':
+            #     return stop_play(f"未知错误，请稍后重试")
             elif status == 'game not found':
                 return stop_play(f"未找到{role.game}，请在每个模拟器窗口都安装好游戏")
             else:

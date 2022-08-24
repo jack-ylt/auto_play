@@ -1607,12 +1607,16 @@ class GuanJunShiLian(Task):
         need_score = self._target_score - self._get_count()
         while (win * 2 + lose) < need_score:
             await self._choose_opponent()
-            if await self._fight_win():
+            res = await self._fight_win()
+            if res == win:
                 win += 1
                 self._increate_count(val=2)
-            else:
+            elif res == 'lose':
                 lose += 1
                 self._increate_count(val=1)
+                self._move_next = True
+            else:
+                # 达到战斗上限了，换个对手
                 self._move_next = True
 
         self.logger.info(f"GuanJunShiLian: win: {win}, lose: {lose}")
@@ -1638,7 +1642,7 @@ class GuanJunShiLian(Task):
             self.logger.warning('英雄未上阵，无法进行冠军试炼')
             return False
         except FindTimeout:
-            await self.player.find_then_click('save')
+            await self.player.find_then_click(['save', 'save_1'])
             return True
 
     async def _choose_opponent(self):
@@ -1664,15 +1668,20 @@ class GuanJunShiLian(Task):
         await self.player.click(pos_fights[self._idx])
 
     async def _fight_win(self):
-        await self.player.find_then_click('fight_green')
+        await self.player.find_then_click(['fight_green', 'fight_green_1'])
         pos_ok = (440, 430)
         while True:
-            name = await self.player.find_then_click(['card', 'ok12', 'ok16', 'next', 'next1', 'go_last'])
+            try:
+                name = await self.player.find_then_click(['card', 'ok12', 'ok16', 'next', 'next1', 'go_last'])
+            except FindTimeout:
+                return 'skip'
+
             if name == 'card':
                 await self.player.click(pos_ok)
                 result = await self.player.find_then_click(['win', 'lose'], threshold=0.9)
                 await self.player.click(pos_ok)
-                return result == 'win'
+                return result
+
             await asyncio.sleep(1)
 
 
