@@ -157,8 +157,8 @@ async def test_mouse():
 if __name__ == '__main__':
     # names = ['guai1', 'guai2', 'guai3', 'guai4', 'guai5', 'guai6', 'guai7']
     # names = ['bao_xiang_guai', 'bao_xiang_guai1', 'bao_xiang_guai2', 'bao_xiang_guai3']
-    # names = ['receive4']
-    # asyncio.run(test_eye(names, threshold=0.8, verify=False, bbox = (0, 0, 1920, 1080)))
+    names = ['xing_pian_bao_xiang']
+    asyncio.run(test_eye(names, threshold=0.8, verify=False, bbox = (0, 0, 1920, 1080)))
 
     # asyncio.run(test_tasks('GuanJunShiLian'))
 
@@ -168,7 +168,7 @@ if __name__ == '__main__':
 
     # asyncio.run(test_mouse())
 
-    asyncio.run(test_gamer('restart'))
+    # asyncio.run(test_gamer('restart'))
 
     # t1 = time.time()
     # asyncio.run(find_emulator())

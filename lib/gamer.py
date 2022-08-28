@@ -99,12 +99,12 @@ class GamerBase(object):
     async def restart(self, role):
         """游戏异常就重启游戏"""
         self.logger.error("restart game")
-        # try:
-        #     await self.close_game()
-        # except FindTimeout:
-        #     await self._restart_emulator()
+        try:
+            await self.close_game()
+        except FindTimeout:
+            await self._restart_emulator()
 
-        await self._restart_emulator()
+        # await self._restart_emulator()
 
         try:
             await self._login_game(role, change_account=False)

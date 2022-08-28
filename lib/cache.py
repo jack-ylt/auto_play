@@ -37,21 +37,35 @@ class Cacher():
             return data
 
     def get_cache_area(self, names, base_area):
-        key = str(names)
-        if key in self._data:
-            x0, y0, x1, y1 = self._data[key]
-            dx, dy, _, _ = base_area    # 获得屏幕的实际区域，以便直接截图
-            return (x0 + dx, y0 + dy, x1 + dx, y1 + dy)
-        else:
-            return None
+        a, b, c, d = 10000, 10000, 0, 0
+        for key in names:
+            if key in self._data:
+                x0, y0, x1, y1 = self._data[key]
+                dx, dy, _, _ = base_area    # 获得屏幕的实际区域，以便直接截图
+                a = min(a, x0 + dx)
+                b = min(b, y0 + dy)
+                c = max(c, x1 + dx)
+                d = max(d, y1 + dy)
+                print((a, b, c, d))
+            else:
+                return None
+        return (a, b, c, d)
 
-    def update_cache_area(self, names, found_area, base_area):
+        # key = str(names)
+        # if key in self._data:
+        #     x0, y0, x1, y1 = self._data[key]
+        #     dx, dy, _, _ = base_area    # 获得屏幕的实际区域，以便直接截图
+        #     return (x0 + dx, y0 + dy, x1 + dx, y1 + dy)
+        # else:
+        #     return None
+
+    def update_cache_area(self, name, found_area, base_area):
         x0, y0, x1, y1 = found_area
         dx, dy, _, _ = base_area
         # 计算从（0， 0）开始的相对区域
         x0, y0, x1, y1 = (x0 - dx, y0 - dy, x1 - dx, y1 - dy)
 
-        key = str(names)
+        key = str(name)
         if key in self._data:
             x2, y2, x3, y3 = self._data[key]
             # 取两个矩形的并集

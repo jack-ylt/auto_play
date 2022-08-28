@@ -1427,7 +1427,9 @@ class ShiChang(Task):
 
     async def _buy_goods(self):
         nice_goods = ['task_ticket', 'hero_badge', 'arena_tickets',
-                      'soda_water', 'hero_blue', 'hero_green', 'hero_light_blue', 'hero_red', 'bao_shi']
+                      'soda_water', 'hero_blue', 'hero_green', 
+                      'hero_light_blue', 'hero_red', 'bao_shi',
+                      'xing_pian_bao_xiang']
         list1 = await self.player.find_all_pos('gold')
         list2 = await self.player.find_all_pos(nice_goods)
         pos_list1 = self._merge_pos_list(list1, list2, dx=50, dy=100)
@@ -1589,8 +1591,8 @@ class GuanJunShiLian(Task):
     def __init__(self, player, role_setting, counter):
         super().__init__(player, role_setting, counter)
         self._target_score = 50
-        self._page = 4    # 通常第四页开始，对手都比较弱
-        self._idx = 0
+        self._page = 2    # 通常第四页开始，对手都比较弱
+        self._idx = 1
         self._move_next = False
 
     async def run(self):
@@ -1608,14 +1610,14 @@ class GuanJunShiLian(Task):
         while (win * 2 + lose) < need_score:
             await self._choose_opponent()
             res = await self._fight_win()
-            if res == win:
+            if res == 'win':
                 win += 1
                 self._increate_count(val=2)
             elif res == 'lose':
                 lose += 1
                 self._increate_count(val=1)
                 self._move_next = True
-            else:
+            elif res == 'skip':
                 # 达到战斗上限了，换个对手
                 self._move_next = True
 
@@ -2522,6 +2524,78 @@ class JiYiDangAnGuan(Task):
 
     def test(self):
         return self._get_cfg('enable')
+
+
+class YiJiMoKu(Task):
+    """遗迹魔窟"""
+
+    def __init__(self, player, role_setting, counter):
+        super().__init__(player, role_setting, counter)
+
+    async def run(self):
+        if not self.test():
+            return
+
+        if not await self._enter():
+            return False
+
+        try:
+            await self.player.find_then_click('yi_jian_ling_qv1', timeout=2)
+            await self.player.find_then_click('receive4')
+        except FindTimeout:
+            pass
+        else:
+            self._increate_count()
+
+    def test(self):
+        return self._get_cfg('enable')
+
+    async def _enter(self):
+        await self._move_to_right_down()
+        await self.player.click((635, 350))
+
+        name, pos = await self.player.monitor(['close', 'jin_ru'])
+        if name == 'close':
+            await self._equip_team()
+            await self.player.find_then_click('start_fight')
+        elif name == 'jin_ru':
+            await self.player.click(pos)
+            name, pos = await self.player.monitor(['close', 'yi_jian_ling_qv1'])
+            if name == 'close':
+                await self._equip_team()
+                await self.player.find_then_click('start_fight')
+            else:
+                return False
+
+        return True
+
+        # 领取资源
+        await self.player.find_then_click('yi_jian_ling_qv2')
+        try:
+            await self.player.find_then_click(OK_BUTTONS, timeout=3)
+        except FindTimeout:
+            pass
+    
+        # 普通商店购物
+        await self.player.find_then_click('gou_wu_che')
+        await self.player.find_then_click('pu_tong_shang_dian')
+        
+
+        # zhuan_pan_bi
+        # gold2
+
+        # try:
+        #     await self.player.monitor('ranking_icon4')
+        #     await asyncio.sleep(1)
+        #     await self.player.click((110, 435))
+        #     await self.player.find_then_click('skill_preview_btn', timeout=3)
+        # except FindTimeout as e:
+        #     self.logger.info("The yi ji mo ku is not open yet.")
+        #     return False
+        # else:
+        #     return True
+
+
 
 
 # class ZhouNianQing(Task):

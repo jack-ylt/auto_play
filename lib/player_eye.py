@@ -218,7 +218,7 @@ class Eye(object):
         try:
             name, pos_list = await asyncio.wait_for(_monitor(), timeout=timeout)
             found_area = self._calc_found_area(name, pos_list[0], area)
-            self._cacher.update_cache_area(names, found_area, area)
+            self._cacher.update_cache_area(name, found_area, area)
             self._count += 1
             if self._count % 20 == 19:
                 self._cacher.save_data()

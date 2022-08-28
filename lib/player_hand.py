@@ -66,7 +66,7 @@ class Hand(object):
         if mouse_pos != (x, y):
             self.logger.error(
                 f"The mouse is failure: want click pos: {(x, y)}, but real mouse pos: {mouse_pos}")
-            sleep(10)
+            sleep(30)
             self.m.release(x, y)
             self.m.move(x, y)
             self.m.click(x, y)
