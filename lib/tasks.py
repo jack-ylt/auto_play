@@ -860,12 +860,13 @@ class GongHui(Task):
         await self._fight_guild()
 
     async def _fight_guild(self):
-        next_fight = (520, 425)
+        # next_fight = (520, 425)
 
         await self.player.find_then_click('start_fight')
         await self._go_last()
 
-        await self.player.click(next_fight)
+        # await self.player.click(next_fight)
+        await self.player.click_untile_disappear('next_fight')
         await self._go_last()
 
         await self.player.find_then_click('ok')
@@ -873,7 +874,7 @@ class GongHui(Task):
 
     async def _go_last(self):
         # go_last 按钮有时候会被boos挡住，所以没用find_then_click
-        await self.player.monitor('message')
+        await self.player.monitor(['message', 'go_last'])
         await asyncio.sleep(2)
 
         pos_go_last = (835, 56)
@@ -1749,7 +1750,8 @@ class YongZheFuBen(Task):
         await self.player.find_then_click('challenge4')
 
     async def _fight_win(self):
-        await self.player.find_then_click('start_fight')
+        # await self.player.find_then_click('start_fight')
+        await self.player.click_untile_disappear('start_fight')
 
         # 5次不一定够用，因为不要60级，无法go_last
         # for _ in range(5):

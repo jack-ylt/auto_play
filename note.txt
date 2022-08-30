@@ -987,8 +987,58 @@ find 出来的pos，直接return屏幕的实际pos。然后click，直接click
 
 
 
+enter
+    click, then monitor
+    if enter
+        click
+        monitor
+        if close
+            equip
+            True
+        if receive:
+            True
+receive
+    click
+    if ok:
+        click
+        True
+    else:
+        False
 
+gou wu che
 
+buy goods
+    pu tong
+    
+    for _ 10:
+        gold + zhuan pan, men piap
+        if 
+            click
+            ok
+            ok
+        else:
+            moveup 3
+            if same:
+                moveup 3
+                if same:
+                    break
+                    
+close
 
+buy gaoji goods
+    gaoji
+    for _ 10:
+        gold + zhuan pan, men piap
+        diamond + pijiu, baotu
+        if 
+            click
+            ok
+            ok
+        else:
+            moveup 3
+            if same:
+                moveup 3
+                if same:
+                    break
 
 
