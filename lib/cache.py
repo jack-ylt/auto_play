@@ -46,18 +46,9 @@ class Cacher():
                 b = min(b, y0 + dy)
                 c = max(c, x1 + dx)
                 d = max(d, y1 + dy)
-                print((a, b, c, d))
             else:
                 return None
         return (a, b, c, d)
-
-        # key = str(names)
-        # if key in self._data:
-        #     x0, y0, x1, y1 = self._data[key]
-        #     dx, dy, _, _ = base_area    # 获得屏幕的实际区域，以便直接截图
-        #     return (x0 + dx, y0 + dy, x1 + dx, y1 + dy)
-        # else:
-        #     return None
 
     def update_cache_area(self, name, found_area, base_area):
         x0, y0, x1, y1 = found_area
