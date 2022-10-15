@@ -189,6 +189,8 @@ class GamerBase(object):
                     break
 
                 await asyncio.sleep(1)
+
+            await self.player.monitor('liu_lan_qi', timeout=1)
         except FindTimeout:
             await self._restart_emulator()
 

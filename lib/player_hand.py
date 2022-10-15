@@ -66,15 +66,20 @@ class Hand(object):
         if mouse_pos != (x, y):
             self.logger.error(
                 f"The mouse is failure: want click pos: {(x, y)}, but real mouse pos: {mouse_pos}")
-            sleep(30)
-            self.m.release(x, y)
-            self.m.move(x, y)
-            self.m.click(x, y)
 
-            mouse_pos = self.mouse_pos()
-            if mouse_pos != (x, y):
-                self.logger.error(
-                    f"The mouse still failure: want click pos: {(x, y)}, but real mouse pos: {mouse_pos}")
+            for _ in range(3):
+                sleep(20)
+                self.m.release(x, y)
+                self.m.move(x, y)
+                self.m.click(x, y)
+
+                mouse_pos = self.mouse_pos()
+                if mouse_pos != (x, y):
+                    self.logger.error(
+                        f"The mouse still failure: want click pos: {(x, y)}, but real mouse pos: {mouse_pos}")
+                else:
+                    break
+            else:
                 raise MouseFailure()
 
     async def double_click(self, pos, cheat=True):

@@ -36,7 +36,7 @@ class Emulator(object):
             for pos in pos_list:
                 yield self.in_which_window(pos)
         except FindTimeout:
-            await self._start_emulator()
+            await self._start_emulators()
 
             try:
                 await self.player.monitor('liu_lan_qi', timeout=60, threshold=0.9)
@@ -103,7 +103,7 @@ class Emulator(object):
         self.player.save_operation_pics(msg)
         return None
 
-    async def _start_emulator(self):
+    async def _start_emulators(self, max_num=3):
         try:
             _, pos = await self.player.monitor(['emulator_icon', 'emulator_icon1'], timeout=2, threshold=0.9)
             await self.player.double_click(pos)
@@ -117,15 +117,27 @@ class Emulator(object):
                 raise EmulatorNotFound("未找到夜神模拟器，请先安装夜神模拟器")
 
         await self.player.find_then_click(['duo_kai_guang_li', 'duo_kai_guang_li_1'])
-        await self.player.find_then_click('select_all', threshold=0.9)
+        # await self.player.find_then_click('select_all', threshold=0.9)
+
+        # try:
+        #     await self.player.monitor('selected', timeout=2, threshold=0.9)
+        # except FindTimeout:
+        #     await self.player.find_then_click('select_all', threshold=0.9)
+
+        await self._select_emulators(3)
+
+        await asyncio.sleep(20)    # 点太快，可能有窗口启动不了
+        await self.player.find_then_click('start_emulator', threshold=0.9)
+
+    async def _select_emulators(self, max_num):
+        await self.player.monitor('select_all', threshold=0.9)
 
         try:
-            await self.player.monitor('selected', timeout=2, threshold=0.9)
+            await self.player.monitor('selected', timeout=1, threshold=0.9)
         except FindTimeout:
-            await self.player.find_then_click('select_all', threshold=0.9)
-
-        await asyncio.sleep(2)    # 点太快，可能有窗口启动不了
-        await self.player.find_then_click('start_emulator', threshold=0.9)
+            pos_list = await self.player.find_all_pos('check_box1', threshold=0.9)
+            pos_list.sort(key=lambda pos: pos[1])
+            await self.player.multi_click(pos_list[1: max_num + 1], cheat=False)
 
     async def _find_emulator(self):
         emulator_name = 'MultiPlayerManager.exe'

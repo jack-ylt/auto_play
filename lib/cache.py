@@ -6,6 +6,7 @@ import shutil
 
 from lib.helper import singleton
 from lib.mylogs import make_logger
+from lib.windows import Window
 
 logger = make_logger('full')
 
@@ -52,6 +53,12 @@ class Cacher():
 
     def update_cache_area(self, name, found_area, base_area):
         x0, y0, x1, y1 = found_area
+
+        # 过滤无效的area
+        if x0 < 0 or y0 < 0 or x1 > Window.WIDTH or y1 > Window.HIGH:
+            logger.error(f"Skip update cache area, for invalid area: {found_area}")
+            return
+
         dx, dy, _, _ = base_area
         # 计算从（0， 0）开始的相对区域
         x0, y0, x1, y1 = (x0 - dx, y0 - dy, x1 - dx, y1 - dy)

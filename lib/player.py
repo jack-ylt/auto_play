@@ -348,7 +348,6 @@ class Player(object):
             for pos in new_pos_list:
                 self.hand.click(pos, cheat=cheat)
                 await asyncio.sleep(0.5)
-            await asyncio.sleep(0.1)
 
         await asyncio.sleep(delay)
         self._cache_operation_pic(msg, pos_list)

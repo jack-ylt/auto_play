@@ -584,7 +584,8 @@ class SheQvZhuLi(Task):
         await self.player.go_back_to('gift')
         await self._upgrade_Assistant()
         # TODO 如果没有升级，就不用送礼物
-        await self._send_gifts()
+        if self._get_cfg('send_gift'):
+            await self._send_gifts()
 
         self._increate_count('count', 1)
 
