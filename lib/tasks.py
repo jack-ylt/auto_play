@@ -1746,7 +1746,7 @@ class YongZheFuBen(Task):
             await self.player.monitor('brave_coin')
             await asyncio.sleep(2)    # 多等会，避免误判的
 
-        _, (x, y) = await self.player.monitor('current_level', threshold=0.95)
+        _, (x, y) = await self.player.monitor('current_level', threshold=0.95, timeout=5)
         await self.player.click((x, y + 35), cheat=False)
         await self.player.find_then_click('challenge4')
 
@@ -1758,12 +1758,14 @@ class YongZheFuBen(Task):
         # for _ in range(5):
         while True:
             # 10s 有时候会timeout
-            name, pos = await self.player.monitor(['card', 'lose', 'go_last', 'fast_forward1'], timeout=20)
+            name, pos = await self.player.monitor(['card', 'lose', 'win', 'go_last', 'fast_forward1', 'ok'], timeout=20)
             if name == "card":
                 await self.player.click_untile_disappear('card')
                 await self.player.click(pos)
                 return True
-            elif name in ['go_last', 'fast_forward1']:
+            elif name == 'win':
+                return True
+            elif name in ['go_last', 'fast_forward1', 'ok']:
                 await self.player.click(pos)
             else:
                 return False
