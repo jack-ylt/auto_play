@@ -126,7 +126,7 @@ class Emulator(object):
 
         await self._select_emulators(3)
 
-        await asyncio.sleep(20)    # 点太快，可能有窗口启动不了
+        await asyncio.sleep(2)    # 点太快，可能有窗口启动不了
         await self.player.find_then_click('start_emulator', threshold=0.9)
 
     async def _select_emulators(self, max_num):

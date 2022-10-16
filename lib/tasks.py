@@ -1378,7 +1378,10 @@ class WuQiKu(Task):
 
 
 class XingCunJiangLi(Task):
-    """幸存奖励"""
+    """幸存奖励
+    
+    一天领一次就可以了，以便于一次性完成所有日常任务
+    """
 
     def __init__(self, player, role_setting, counter):
         super().__init__(player, role_setting, counter)
@@ -1400,8 +1403,10 @@ class XingCunJiangLi(Task):
             except FindTimeout:
                 break
 
+        self._increate_count()
+
     def test(self):
-        return self.cfg['XingCunJiangLi']['enable']
+        return self._get_cfg('enable') and self._get_count() < 1
 
 
 class ShiChang(Task):
@@ -1839,8 +1844,8 @@ class RenWuLan(Task):
 
         await self._accept_all_tasks()
         await self._finish_all_tasks()
-        if await self._refresh_tasks():
-            await self._accept_all_tasks()
+        await self._refresh_tasks()
+        await self._accept_and_finish_left_tasks()
 
         self._increate_count('count')
 
@@ -1889,13 +1894,6 @@ class RenWuLan(Task):
             await self.player.monitor('receivable_task')
             await self.player.click(pos)
             await self.player.find_then_click('yi_jian_shang_zhen')
-            # try:
-            #     await self.player.monitor(['empty_box1', 'empty_box2'], timeout=1)
-            # except FindTimeout:
-            #     pass
-            # else:
-            #     logger.warning("Lack of heroes to accept task")
-            #     return False
             await self.player.find_then_click('kai_shi_ren_wu')
 
             # 注意：有可能英雄不够，则需要关闭窗口，继续往下运行
@@ -1957,6 +1955,25 @@ class RenWuLan(Task):
                 await self.player.monitor(['unlock', 'lock'], timeout=1)
             except FindTimeout:
                 break
+
+    async def _accept_and_finish_left_tasks(self):
+        """完成1星、2星任务
+        
+        以便一次性完成所有日常任务
+        """
+        for _ in range(10):
+            try:
+                await self.player.find_then_click('receivable_task', timeout=2)
+                await self.player.find_then_click('yi_jian_shang_zhen')
+                await self.player.find_then_click('kai_shi_ren_wu')
+            except FindTimeout:
+                break
+
+            try:
+                await self.player.find_then_click('diamond_0', timeout=2)
+                await self.player.find_then_click(OK_BUTTONS)
+            except FindTimeout:
+                pass
 
 
 class VipShangDian(Task):
