@@ -1400,13 +1400,13 @@ class XingCunJiangLi(Task):
             await self.player.click(pos_receive)
             try:
                 await self.player.find_then_click(OK_BUTTONS, timeout=2)
+                self._increate_count()
             except FindTimeout:
                 break
 
-        self._increate_count()
 
     def test(self):
-        return self._get_cfg('enable') and self._get_count() < 1
+        return self._get_cfg('enable') and self._get_count() < 2
 
 
 class ShiChang(Task):
