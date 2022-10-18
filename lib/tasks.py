@@ -2022,8 +2022,8 @@ class YingXiongYuanZheng(Task):
 
             try:
                 await self._collect_oil()
-                # 每周三、日扫荡，防止油溢出
-                if self._get_cfg('sweep') and is_afternoon() and (is_wednesday() or is_sunday()):
+                # 每周2,4,6扫荡，防止油溢出
+                if self._get_cfg('sweep') and datetime.now().weekday() % 2 == 0:
                     await self._saodan()
                 return
             except FindTimeout:
