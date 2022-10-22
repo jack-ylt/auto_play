@@ -328,7 +328,7 @@ class XianShiJie(Task):
             # 正常是一个point都没有的，3个是作为buffer
             if len(pos_list) < 3:
                 break
-        
+
         # 每个大关卡的第一个区域坐标
         await self.player.click((200, 250))
         await self.player.find_then_click('ok1')
@@ -1229,7 +1229,8 @@ class ShengCunJiaYuan(Task):
 
         for _ in range(max_try):
             await self.player.find_then_click(['start_fight', 'xia_yi_chang1'])
-            await asyncio.sleep(2)    # 界面切换需要时间 （xia_yi_chang1 和 message 是在同一个页面的）
+            # 界面切换需要时间 （xia_yi_chang1 和 message 是在同一个页面的）
+            await asyncio.sleep(2)
             name, _ = await self.player.monitor(['message', 'fight_report'])
             if name == 'message':
                 await self.player.click(pos_go_last)
@@ -1379,7 +1380,7 @@ class WuQiKu(Task):
 
 class XingCunJiangLi(Task):
     """幸存奖励
-    
+
     一天领一次就可以了，以便于一次性完成所有日常任务
     """
 
@@ -1396,14 +1397,13 @@ class XingCunJiangLi(Task):
 
         await self.player.click(pos_plus, cheat=False)
         await self.player.monitor('xing_cun_jiang_li')
-        for _ in range(2):
+        for _ in range(2 - self._get_count()):
             await self.player.click(pos_receive)
             try:
                 await self.player.find_then_click(OK_BUTTONS, timeout=2)
                 self._increate_count()
             except FindTimeout:
                 break
-
 
     def test(self):
         return self._get_cfg('enable') and self._get_count() < 2
@@ -1434,7 +1434,7 @@ class ShiChang(Task):
 
     async def _buy_goods(self):
         nice_goods = ['task_ticket', 'hero_badge', 'arena_tickets',
-                      'soda_water', 'hero_blue', 'hero_green', 
+                      'soda_water', 'hero_blue', 'hero_green',
                       'hero_light_blue', 'hero_red', 'bao_shi',
                       'xing_pian_bao_xiang']
         list1 = await self.player.find_all_pos('gold')
@@ -1763,14 +1763,16 @@ class YongZheFuBen(Task):
         # for _ in range(5):
         while True:
             # 10s 有时候会timeout
-            name, pos = await self.player.monitor(['card', 'lose', 'win', 'go_last', 'fast_forward1', 'ok'], timeout=20)
+            name, pos = await self.player.monitor(['card', 'lose', 'win', 'go_last', 'fast_forward1', 'huo_de_wu_ping'], timeout=20)
             if name == "card":
                 await self.player.click_untile_disappear('card')
                 await self.player.click(pos)
                 return True
             elif name == 'win':
                 return True
-            elif name in ['go_last', 'fast_forward1', 'ok']:
+            elif name == 'huo_de_wu_ping':
+                await self.player.click(OK_BUTTONS)
+            elif name in ['go_last', 'fast_forward1']:
                 await self.player.click(pos)
             else:
                 return False
@@ -1958,7 +1960,7 @@ class RenWuLan(Task):
 
     async def _accept_and_finish_left_tasks(self):
         """完成1星、2星任务
-        
+
         以便一次性完成所有日常任务
         """
         for _ in range(10):
@@ -2346,7 +2348,8 @@ class GongHuiZhan(Task):
 
         await self._pull_up_the_lens()
 
-        list1 = ['bao_xiang_guai', 'bao_xiang_guai1', 'bao_xiang_guai2', 'bao_xiang_guai3']
+        list1 = ['bao_xiang_guai', 'bao_xiang_guai1',
+                 'bao_xiang_guai2', 'bao_xiang_guai3']
         list2 = ['guai1', 'guai2', 'guai3', 'guai4', 'guai5', 'guai6', 'guai7']
         bao_xiang_guai_list = list1 + list2
 
@@ -2460,7 +2463,8 @@ class GongHuiZhan(Task):
 
         for pos in await self.player.find_all_pos(['tiao_zhan', 'tiao_zhan1']):
             try:
-                await self.player.monitor(['tiao_zhan', 'tiao_zhan1'])    # 确保不会点错
+                # 确保不会点错
+                await self.player.monitor(['tiao_zhan', 'tiao_zhan1'])
                 await self.player.click(pos)
                 res = await self._do_fight()
             except FindTimeout:
@@ -2475,7 +2479,8 @@ class GongHuiZhan(Task):
 
         for pos in await self.player.find_all_pos(['tiao_zhan', 'tiao_zhan1']):
             try:
-                await self.player.monitor(['tiao_zhan', 'tiao_zhan1'])    # 确保不会点错
+                # 确保不会点错
+                await self.player.monitor(['tiao_zhan', 'tiao_zhan1'])
                 await self.player.click(pos)
                 res = await self._do_fight()
             except FindTimeout:
@@ -2597,11 +2602,10 @@ class YiJiMoKu(Task):
             await self.player.find_then_click(OK_BUTTONS, timeout=3)
         except FindTimeout:
             pass
-    
+
         # 普通商店购物
         await self.player.find_then_click('gou_wu_che')
         await self.player.find_then_click('pu_tong_shang_dian')
-        
 
         # zhuan_pan_bi
         # gold2
@@ -2616,8 +2620,6 @@ class YiJiMoKu(Task):
         #     return False
         # else:
         #     return True
-
-
 
 
 # class ZhouNianQing(Task):
@@ -2643,7 +2645,7 @@ class YiJiMoKu(Task):
 
 #         await self.player.find_then_click('qian_dao_hao_li')
 #         await self.player.find_then_click('zhou_nian_qian_dao')
-        
+
 #         self._increate_count()
 
 
