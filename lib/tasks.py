@@ -180,11 +180,17 @@ class Task(object):
         await self.player.multi_click(pos_list)
 
     def _get_count(self, key='count', cls_name=None):
+        if self.counter is None:
+            return 0
+
         if cls_name is None:
             cls_name = self.__class__.__name__
         return self.counter.get(cls_name, key)
 
     def _increate_count(self, key='count', val=1, cls_name=None):
+        if self.counter is None:
+            return None
+
         if cls_name is None:
             cls_name = self.__class__.__name__
         new_val = self._get_count(key) + val

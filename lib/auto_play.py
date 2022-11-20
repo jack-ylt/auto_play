@@ -86,6 +86,66 @@ async def play(goal, player, role, g_queue):
             player.logger.info(
                 f'Run {goal} for {role} on {player.window} end. Cost {cost_second}s.')
 
+    elif goal == 'quick_play':
+        start_t = time.time()
+        player.logger.info(f'Run {goal} on {player.window} start')
+        gamer = Gamer(player)
+        have_error = False
+
+        role = Role()
+        try:
+            await role.load_all_attributes()
+        except Exception as err:
+            player.logger.error(str(err))
+            raise UserConfigError()
+
+        failed_set = set()
+        error_count = 0
+        task_list = list(daily_play_tasks)
+
+        for cls_name in task_list:
+            player.logger.info("Start to run: " + cls_name)
+            obj = getattr(tasks, cls_name)(player, role.play_setting, None)
+
+            try:
+                await obj.run()
+                error_count = max(error_count - 1, 0)
+            except (FindTimeout, PlayException) as err:
+                error_count += 1
+                player.logger.error(f"run {cls_name} faled: {str(err)}")
+                player.save_operation_pics(str(err))
+
+                # 失败了，就过段时间再尝试一次, 还失败，就算了
+                if cls_name not in failed_set:
+                    failed_set.add(cls_name)
+                    task_list.append(cls_name)
+
+                # 连续两次任务失败，可能游戏出错了
+                if error_count >= 2:
+                    break
+
+            try:
+                await gamer.goto_main_ui()
+            except FindTimeout as err:
+                error_count += 1
+                msg = "go to main interface failed"
+                player.logger.error(msg + '\n' + str(err))
+                player.save_operation_pics(msg)
+
+                # 回不到主界面，可能卡住了
+                break
+
+        end_t = time.time()
+        cost_second = int(end_t - start_t)
+        player.logger.info(
+            f'Run {goal} on {player.window} end. Cost {cost_second}s.')
+            
+        if have_error:
+            await g_queue.put(('unexpected error', player.window, role))
+        else:
+            await g_queue.put(('done', player.window, role))
+
+
     elif goal == 'shen_yuan_mo_ku':
         start_t = time.time()
         player.logger.info(f'Run {goal} on {player.window} start')
@@ -115,7 +175,7 @@ async def daily_play(player, role):
     try:
         await role.load_all_attributes()
     except Exception as err:
-        player.logger.eror(str(err))
+        player.logger.error(str(err))
         raise UserConfigError()
 
     gamer = Gamer(player)

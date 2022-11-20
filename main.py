@@ -146,6 +146,30 @@ async def main(goal):
             f'Done, 为您节省时间约{cost_minute}分钟。\n如果对现有buff不满意，可以退回到游戏主界面，然后运行程序重刷。')
 
 
+    # 用户先自己登陆好游戏，程序来完成任务
+    # 可以应对那些不想配置的用户
+    # 以及那些登陆有验证码的游戏平台
+    elif goal == 'quick_play':
+        pos_list = await player.find_all_pos('setting')
+        if not pos_list:
+            return stop_play("请先开好游戏，让其停留在游戏主界面，然后再运行程序来快速完成任务")
+
+        for pos in pos_list:
+            create_play_task(None, g_lock, g_sem,
+                             emu.in_which_window(pos), g_queue)
+
+        count = len(pos_list)
+        while count > 0:
+            status, window, role = await g_queue.get()
+            count -= 1
+            print('count', count)
+
+        playsound('./sounds/end.mp3')
+        end_t = time.time()
+        cost_minute = int((end_t - start_t) / 60)
+        logger.info(
+            f'Done, 为您节省时间约{cost_minute}分钟。')
+
 def report_play_result(roles):
     done_roles = []
     undone_roles = []
