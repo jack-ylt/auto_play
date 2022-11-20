@@ -1740,7 +1740,10 @@ class YongZheFuBen(Task):
         # current_level: 第一次进入
         # ok：非第一次，非vip
         # next_level4：非第一次，vip
-        name, pos = await self.player.monitor(['next_level4', 'ok', 'current_level'], timeout=1, verify=False)
+        name, pos = await self.player.monitor(['huo_de_wu_ping', 'next_level4', 'ok', 'current_level'], timeout=2, verify=False)
+        if name == 'huo_de_wu_ping':
+            await self.player.find_then_click(OK_BUTTONS)
+            name, pos = await self.player.monitor(['next_level4', 'ok', 'current_level'], timeout=2, verify=False)
 
         if name == 'next_level4':
             await self.player.click(pos)
@@ -1749,7 +1752,13 @@ class YongZheFuBen(Task):
         elif name == 'ok':
             await self.player.click(pos)
             await self.player.monitor('brave_coin')
-            await asyncio.sleep(2)    # 多等会，避免误判的
+
+        try:
+            # 获得物品可能会这时候弹出来
+            await self.player.monitor('huo_de_wu_ping', timeout=2)
+            await self.player.find_then_click(OK_BUTTONS)
+        except FindTimeout:
+            pass
 
         _, (x, y) = await self.player.monitor('current_level', threshold=0.95, timeout=5)
         await self.player.click((x, y + 35), cheat=False)
@@ -1771,7 +1780,7 @@ class YongZheFuBen(Task):
             elif name == 'win':
                 return True
             elif name == 'huo_de_wu_ping':
-                await self.player.click(OK_BUTTONS)
+                await self.player.find_then_click(OK_BUTTONS)
             elif name in ['go_last', 'fast_forward1']:
                 await self.player.click(pos)
             else:
@@ -2270,7 +2279,7 @@ class ShenYuanMoKu(Task):
         await self.player.find_then_click(CLOSE_BUTTONS)
 
 
-class MeiRiRenWu(Task):
+class KuaiJieZhiNan(Task):
     """快捷每日任务"""
 
     def __init__(self, player, role_setting, counter):
@@ -2283,19 +2292,20 @@ class MeiRiRenWu(Task):
         await self.player.find_then_click('quick_ico')
         await self.player.find_then_click('yi_jian_zhi_xing')
         try:
-            await self.player.monitor(OK_BUTTONS, timeout=2)
+            await self.player.monitor('ok_1', timeout=3)
         except FindTimeout:
             pass
         else:
             await self._update_counter()
             # 等待时间长也没什么用，挑战副本有时候就是没有满，是官方的bug
             await asyncio.sleep(5)
-            await self.player.find_then_click(OK_BUTTONS, timeout=1)
+            await self.player.find_then_click('ok_1', timeout=1)
         finally:
             await self.player.find_then_click(CLOSE_BUTTONS)
+            self._increate_count()
 
     def test(self):
-        return self.cfg['MeiRiRenWu']['enable']
+        return self._get_cfg() and self._get_count() < 1
 
     async def _update_counter(self):
         self._increate_count('count', val=3, cls_name='XianShiJie')

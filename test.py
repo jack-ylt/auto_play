@@ -3,6 +3,7 @@ import logging
 from lib import tasks
 # from lib import helper
 from lib import ui_data
+from lib.ui_data import OK_BUTTONS
 from lib.gamer import Gamer
 from lib.player import FindTimeout, Player
 from lib import player_eye
@@ -157,10 +158,10 @@ async def test_mouse():
 if __name__ == '__main__':
     # names = ['guai1', 'guai2', 'guai3', 'guai4', 'guai5', 'guai6', 'guai7']
     # names = ['bao_xiang_guai', 'bao_xiang_guai1', 'bao_xiang_guai2', 'bao_xiang_guai3']
-    # names = ['diamond_0']
+    # names = OK_BUTTONS
     # asyncio.run(test_eye(names, threshold=0.8, verify=False, bbox = (0, 0, 1920, 1080)))
 
-    asyncio.run(test_tasks('RenWuLan'))
+    asyncio.run(test_tasks('KuaiJieZhiNan'))
 
     # asyncio.run(test_emulator())
 
