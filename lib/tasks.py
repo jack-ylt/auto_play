@@ -179,6 +179,23 @@ class Task(object):
 
         await self.player.multi_click(pos_list)
 
+    async def _equip_team_yjmk(self):
+        await self.player.monitor('start_fight')    # 确保界面刷出来
+        try:
+            await self.player.monitor('empty_box3', timeout=1)
+        except FindTimeout:
+            return
+
+        x = 150
+        y = 400
+        dx = 75
+        pos_list = [(x, y)]
+        for _ in range(5):
+            x += dx
+            pos_list.append((x, y))
+
+        await self.player.multi_click(pos_list)
+
     def _get_count(self, key='count', cls_name=None):
         if self.counter is None:
             return 0
@@ -2295,7 +2312,7 @@ class KuaiJieZhiNan(Task):
         if not self.test():
             return
 
-        await self.player.find_then_click('quick_ico')
+        await self.player.find_then_click(['quick_ico', 'quick_ico1'])
         await self.player.find_then_click('yi_jian_zhi_xing')
         try:
             await self.player.monitor('ok_1', timeout=3)
@@ -2319,10 +2336,7 @@ class KuaiJieZhiNan(Task):
         self._increate_count('count', val=6, cls_name='TiaoZhanFuben')
         self._increate_count('count', val=3, cls_name='WuQiKu')
         self._increate_count('count', val=3, cls_name='JingJiChang')
-        # TODO 快捷任务使用了免费啤酒，后来的英雄邀请task还是会使用一次啤酒
-        # 主要是免费啤酒无法确定是否有
-        # -> 在任务task中处理？
-        # count_gao_ji_yao_qing
+        self._increate_count('count', val=2, cls_name='XingCunJiangLi')
 
 
 class LianSaiBaoXiang(Task):
@@ -2570,7 +2584,11 @@ class JiYiDangAnGuan(Task):
 
 
 class YiJiMoKu(Task):
-    """遗迹魔窟"""
+    """遗迹魔窟
+    
+    适用于高级号，扫荡收菜
+    TODO: 针对没有达到15关的小号，也收菜
+    """
 
     def __init__(self, player, role_setting, counter):
         super().__init__(player, role_setting, counter)
@@ -2582,46 +2600,70 @@ class YiJiMoKu(Task):
         if not await self._enter():
             return False
 
-        try:
-            await self.player.find_then_click('yi_jian_ling_qv1', timeout=2)
-            await self.player.find_then_click('receive4')
-        except FindTimeout:
-            pass
-        else:
-            self._increate_count()
-
-    def test(self):
-        return self._get_cfg('enable')
-
-    async def _enter(self):
-        await self._move_to_right_down()
-        await self.player.click((635, 350))
-
-        name, pos = await self.player.monitor(['close', 'jin_ru'])
-        if name == 'close':
-            await self._equip_team()
-            await self.player.find_then_click('start_fight')
-        elif name == 'jin_ru':
-            await self.player.click(pos)
-            name, pos = await self.player.monitor(['close', 'yi_jian_ling_qv1'])
-            if name == 'close':
-                await self._equip_team()
-                await self.player.find_then_click('start_fight')
-            else:
-                return False
-
-        return True
-
         # 领取资源
         await self.player.find_then_click('yi_jian_ling_qv2')
-        try:
-            await self.player.find_then_click(OK_BUTTONS, timeout=3)
-        except FindTimeout:
-            pass
+        await self.player.find_then_click(OK_BUTTONS)
 
         # 普通商店购物
         await self.player.find_then_click('gou_wu_che')
         await self.player.find_then_click('pu_tong_shang_dian')
+
+        # zhuan_pan_bi
+        # gold2
+        # for _ in range(20):
+        #     list1 = await self.player.find_all_pos('gold2')
+        #     list2 = await self.player.find_all_pos('zhuan_pan_bi')
+        #     pos_list = self._merge_pos_list(list1, list2, dy=30)
+        #     if pos_list:
+        #         await self.player.click(pos_list[0], cheat=False)
+        #         await self.player.find_then_click(OK_BUTTONS)
+        #     else:
+        #         drag_up
+
+
+        self._increate_count()
+            
+
+    def test(self):
+        return self._get_cfg('enable') and self._get_count() < 1
+
+    async def _enter(self):
+        await self._move_to_right_down()
+        await self.player.click((635, 350))
+        name, _ = await self.player.monitor(['close', 'jin_ru'])
+        if name == 'close':
+            return False
+        elif name == 'jin_ru':
+            await self.player.click((110, 435))
+            name, _ = await self.player.monitor(['kai_shi_tiao_zhan', 'yi_jian_ling_qv2', 'huo_dong_wei_kai_qi', 'close'])
+            if name == 'huo_dong_wei_kai_qi':
+                return False
+            elif name == 'yi_jian_ling_qv2':
+                return True
+            elif name == 'close':
+                # 小号
+                await self._equip_team_yjmk()
+                await self.player.find_then_click('start_fight')
+                return True
+            elif name == 'kai_shi_tiao_zhan':
+                await self.player.find_then_click('kai_shi_tiao_zhan')
+                await self.player.find_then_click(OK_BUTTONS)
+                await self.player.monitor('close')
+                await self._equip_team_yjmk()
+                await self.player.find_then_click('start_fight')
+                return True
+
+
+        # # 领取资源
+        # await self.player.find_then_click('yi_jian_ling_qv2')
+        # try:
+        #     await self.player.find_then_click(OK_BUTTONS, timeout=3)
+        # except FindTimeout:
+        #     pass
+
+        # # 普通商店购物
+        # await self.player.find_then_click('gou_wu_che')
+        # await self.player.find_then_click('pu_tong_shang_dian')
 
         # zhuan_pan_bi
         # gold2

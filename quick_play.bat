@@ -1,6 +1,6 @@
 @echo off
 
 path = %path%;
-main.exe shen_yuan_mo_ku
+main.exe quick_play
 
 pause
