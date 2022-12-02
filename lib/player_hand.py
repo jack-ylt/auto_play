@@ -121,6 +121,34 @@ class Hand(object):
         self.m.release(x2, y2)
         await asyncio.sleep(0.3)
 
+
+    async def drag_and_keep(self, p1, p2, speed=0.05):
+        """drag from position 1 to position 2 and keep the mouse"""
+        x1 = p1[0] + random.randint(-5, 5)
+        y1 = p1[1] + random.randint(-3, 3)
+        x2 = p2[0] + random.randint(-5, 5)
+        y2 = p2[1] + random.randint(-3, 3)
+        step = 10
+
+        self.m.move(x1, y1)
+        self.m.press(x1, y1)
+
+        while distance((x1, y1), (x2, y2)) >= 1:
+            x1 += int((x2 - x1)/step)
+            y1 += int((y2 - y1)/step)
+            step -= 1
+            self.m.move(x1, y1)
+            await asyncio.sleep(speed)
+
+        self.m.move(p2[0], p2[1])
+        await asyncio.sleep(0.3)
+
+    async def release_mouse(self, pos):
+        """after drag_and_keep, call this to release mouse"""
+        x, y = pos
+        self.m.release(x, y)
+        await asyncio.sleep(0.3)
+
     async def scroll(self, vertical_num, delay=0.2):
         """垂直滚动"""
         num = vertical_num + random.randint(-1, 1)

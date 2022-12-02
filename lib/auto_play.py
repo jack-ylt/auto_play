@@ -44,6 +44,7 @@ daily_play_tasks = (
     'RenWuLan',
     'VipShangDian',
     'JiYiDangAnGuan',
+    'YiJiMoKu',
     'YingXiongYuanZheng',
     'MiGong',
     'LianSaiBaoXiang',

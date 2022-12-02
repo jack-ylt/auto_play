@@ -2600,32 +2600,59 @@ class YiJiMoKu(Task):
         if not await self._enter():
             return False
 
+        self._increate_count()
+
         # 领取资源
-        await self.player.find_then_click('yi_jian_ling_qv2')
-        await self.player.find_then_click(OK_BUTTONS)
+        # await self.player.find_then_click('yi_jian_ling_qv2')
+        # await self.player.find_then_click(OK_BUTTONS)
 
         # 普通商店购物
         await self.player.find_then_click('gou_wu_che')
         await self.player.find_then_click('pu_tong_shang_dian')
+        await self.player.monitor('ptsd_title')
+        for _ in range(20):
+            list1 = await self.player.find_all_pos('gold2')
+            list2 = await self.player.find_all_pos('zhuan_pan_bi')
+            pos_list = self._merge_pos_list(list1, list2, dy=30)
+            if pos_list:
+                await self.player.click(pos_list[0], cheat=False)
+                await self.player.find_then_click(OK_BUTTONS)
+                await self.player.find_then_click(OK_BUTTONS)
+            else:
+                reach_bottom = await self.player.drag_then_find((350, 450), (350, 180), 'reach_bottom')
+                if reach_bottom:
+                    break
+        await self.player.find_then_click(CLOSE_BUTTONS)
 
-        # zhuan_pan_bi
-        # gold2
-        # for _ in range(20):
-        #     list1 = await self.player.find_all_pos('gold2')
-        #     list2 = await self.player.find_all_pos('zhuan_pan_bi')
-        #     pos_list = self._merge_pos_list(list1, list2, dy=30)
-        #     if pos_list:
-        #         await self.player.click(pos_list[0], cheat=False)
-        #         await self.player.find_then_click(OK_BUTTONS)
-        #     else:
-        #         drag_up
+        # 高级商店购物
+        await self.player.find_then_click('gao_ji_shang_dian')
+        await self.player.monitor('gjsd_title')
+        for _ in range(20):
+            while self.player.is_exist('gold2'):
+                await self.player.find_then_click('gold2', cheat=False)
+                await self.player.find_then_click(OK_BUTTONS)
+                await self.player.find_then_click(OK_BUTTONS)
 
+            list1 = await self.player.find_all_pos('buy_btn')
+            list2 = await self.player.find_all_pos('pi_jiu')
+            pos_list = self._merge_pos_list(list1, list2, dy=30)
+            if pos_list:
+                await self.player.click(pos_list[0], cheat=False)
+                await self.player.find_then_click(OK_BUTTONS)
+                await self.player.find_then_click(OK_BUTTONS)
+            else:
+                reach_bottom = await self.player.drag_then_find((350, 450), (350, 180), 'reach_bottom')
+                if reach_bottom:
+                    break
+        await self.player.find_then_click(CLOSE_BUTTONS)
 
         self._increate_count()
             
 
     def test(self):
+        return True
         return self._get_cfg('enable') and self._get_count() < 1
+        # TODO 4天一次，不用每天都执行
 
     async def _enter(self):
         await self._move_to_right_down()
@@ -2639,6 +2666,8 @@ class YiJiMoKu(Task):
             if name == 'huo_dong_wei_kai_qi':
                 return False
             elif name == 'yi_jian_ling_qv2':
+                # 上次领取过了
+                # return False
                 return True
             elif name == 'close':
                 # 小号
@@ -2652,60 +2681,3 @@ class YiJiMoKu(Task):
                 await self._equip_team_yjmk()
                 await self.player.find_then_click('start_fight')
                 return True
-
-
-        # # 领取资源
-        # await self.player.find_then_click('yi_jian_ling_qv2')
-        # try:
-        #     await self.player.find_then_click(OK_BUTTONS, timeout=3)
-        # except FindTimeout:
-        #     pass
-
-        # # 普通商店购物
-        # await self.player.find_then_click('gou_wu_che')
-        # await self.player.find_then_click('pu_tong_shang_dian')
-
-        # zhuan_pan_bi
-        # gold2
-
-        # try:
-        #     await self.player.monitor('ranking_icon4')
-        #     await asyncio.sleep(1)
-        #     await self.player.click((110, 435))
-        #     await self.player.find_then_click('skill_preview_btn', timeout=3)
-        # except FindTimeout as e:
-        #     self.logger.info("The yi ji mo ku is not open yet.")
-        #     return False
-        # else:
-        #     return True
-
-
-# class ZhouNianQing(Task):
-#     """4周年庆，自动签到"""
-
-#     def __init__(self, player, role_setting, counter):
-#         super().__init__(player, role_setting, counter)
-
-#     async def run(self):
-#         if not self.test():
-#             return
-
-#         await self.player.find_then_click('4zhou_nian', timeout=3)
-#         await self.player.monitor(['dian_zan', 'qian_dao_hao_li'])
-#         await asyncio.sleep(2)    # 界面可能先看到签到好礼，再马上跳转到点赞
-
-#         name, pos = await self.player.monitor(['dian_zan', 'qian_dao_hao_li'])
-#         if name == 'dian_zan':
-#             await self.player.click(pos)
-#             await self.player.go_back()
-#             await self.player.monitor('setting')
-#             await self.player.find_then_click('4zhou_nian', timeout=3)
-
-#         await self.player.find_then_click('qian_dao_hao_li')
-#         await self.player.find_then_click('zhou_nian_qian_dao')
-
-#         self._increate_count()
-
-
-#     def test(self):
-#         return self._get_cfg('enable') and self._get_count('count') < 1

@@ -142,7 +142,7 @@ class Player(object):
         self.last_click = None
         return name, pos
 
-    def is_exist(self, name, threshold):
+    def is_exist(self, name, threshold=0.8):
         return self.eye.is_exist(name, area=self.window.bbox, threshold=threshold)
 
     async def find_all_pos(self, names, threshold=0.8):
@@ -239,6 +239,21 @@ class Player(object):
             await self.hand.drag(p1, p2, speed, stop)
             pos1, pos2 = self.window.win_pos(p1), self.window.win_pos(p2)
             self._cache_operation_pic(msg, [pos1, pos2])
+
+    async def drag_then_find(self, p1, p2, pic):
+        """drag to p2, then check is pic appear"""
+        msg = f"{self.window.name}: drag from {p1} to {p2}"
+        self.logger.debug(msg)
+
+        p1, p2 = map(self.window.real_pos, [p1, p2])
+        async with self.g_lock:
+            await self.hand.drag_and_keep(p1, p2)
+            pos1, pos2 = self.window.win_pos(p1), self.window.win_pos(p2)
+            self._cache_operation_pic(msg, [pos1, pos2])
+            res = self.eye.is_exist(pic, area=self.window.bbox)
+            await self.hand.release_mouse(p2)
+
+        return res
 
     async def scroll(self, vertical_num, pos=None, delay=0.2):
         """滚动 家园的楼层地图的时候，容易误操作"""
