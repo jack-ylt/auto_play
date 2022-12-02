@@ -1452,6 +1452,24 @@ class ShiChang(Task):
             if not await self._refresh_new_goods():
                 break
 
+        # 高级市场
+        if self._get_count() < 1:
+            self._increate_count()
+
+            await self.player.find_then_click('gao_ji')
+            if self._get_cfg('mai_lv_yao'):
+                await self.player.find_then_click('gold_30m')
+                await self.player.find_then_click(OK_BUTTONS)
+                await self.player.find_then_click(OK_BUTTONS)
+
+            if self._get_cfg('mai_bao_tu'):
+                await self.player.find_then_click('xia_yi_ye')
+                await self.player.monitor('bao_tu')
+                await self.player.click((600, 420))
+                await self.player.find_then_click(OK_BUTTONS)
+                await self.player.find_then_click(OK_BUTTONS)
+        
+
     def test(self):
         return self.cfg['ShiChang']['enable']
 

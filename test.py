@@ -161,7 +161,7 @@ if __name__ == '__main__':
     # names = ['buy_btn', ]
     # asyncio.run(test_eye(names, threshold=0.8, verify=False, bbox = (0, 0, 1920, 1080)))
 
-    asyncio.run(test_tasks('YiJiMoKu'))
+    asyncio.run(test_tasks('ShiChang'))
 
     # asyncio.run(test_emulator())
 
