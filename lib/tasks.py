@@ -1457,17 +1457,31 @@ class ShiChang(Task):
             self._increate_count()
 
             await self.player.find_then_click('gao_ji')
+            try:
+                await self.player.monitor('gold_30m')
+            except FindTimeout:
+                # 100级以上才解锁
+                return
+
             if self._get_cfg('mai_lv_yao'):
                 await self.player.find_then_click('gold_30m')
-                await self.player.find_then_click(OK_BUTTONS)
-                await self.player.find_then_click(OK_BUTTONS)
+                try:
+                    await self.player.find_then_click(OK_BUTTONS)
+                    await self.player.find_then_click(OK_BUTTONS)
+                except FindTimeout:
+                    # 如果金币不足，忽略
+                    pass
 
             if self._get_cfg('mai_bao_tu'):
                 await self.player.find_then_click('xia_yi_ye')
                 await self.player.monitor('bao_tu')
                 await self.player.click((600, 420))
-                await self.player.find_then_click(OK_BUTTONS)
-                await self.player.find_then_click(OK_BUTTONS)
+                try:
+                    await self.player.find_then_click(OK_BUTTONS)
+                    await self.player.find_then_click(OK_BUTTONS)
+                except FindTimeout:
+                    # 如果钻石不足，直接结束
+                    return
         
 
     def test(self):
@@ -1541,7 +1555,11 @@ class JingJiChang(Task):
         win, lose = 0, 0
         page = 0
         for i in range(num):
-            page = await self._choose_opponent(page)
+            try:
+                page = await self._choose_opponent(page)
+            except PlayException:
+                return
+
             if await self._fight_win():
                 win += 1
             else:
@@ -1599,7 +1617,7 @@ class JingJiChang(Task):
                 await self.player.find_then_click('refresh5')
                 page += 1
 
-        # 如果两次都无法进入战斗，可能是在结算其了
+        # 如果两次都无法进入战斗，可能是在结算期了
         raise PlayException('_choose_opponent failed')
 
     async def _fight_win(self):
@@ -2621,8 +2639,14 @@ class YiJiMoKu(Task):
         self._increate_count()
 
         # 领取资源
-        # await self.player.find_then_click('yi_jian_ling_qv2')
-        # await self.player.find_then_click(OK_BUTTONS)
+        await self.player.find_then_click('yi_jian_ling_qv2')
+        try:
+            await self.player.find_then_click(OK_BUTTONS)
+        except FindTimeout:
+            # 打通的关数太少，是没有菜可以收的
+            return
+
+        lack_gold = False
 
         # 普通商店购物
         await self.player.find_then_click('gou_wu_che')
@@ -2634,34 +2658,53 @@ class YiJiMoKu(Task):
             pos_list = self._merge_pos_list(list1, list2, dy=30)
             if pos_list:
                 await self.player.click(pos_list[0], cheat=False)
-                await self.player.find_then_click(OK_BUTTONS)
-                await self.player.find_then_click(OK_BUTTONS)
+                try:
+                    await self.player.find_then_click(OK_BUTTONS)
+                    await self.player.find_then_click(OK_BUTTONS)
+                except FindTimeout:
+                    # 如果金币不足，结束
+                    lack_gold = True
+                    break
             else:
                 reach_bottom = await self.player.drag_then_find((350, 450), (350, 180), 'reach_bottom')
                 if reach_bottom:
                     break
+
         await self.player.find_then_click(CLOSE_BUTTONS)
 
         # 高级商店购物
+        lack_diamond = False
         await self.player.find_then_click('gao_ji_shang_dian')
         await self.player.monitor('gjsd_title')
         for _ in range(20):
-            while self.player.is_exist('gold2'):
+            if not lack_gold and self.player.is_exist('gold2'):
                 await self.player.find_then_click('gold2', cheat=False)
-                await self.player.find_then_click(OK_BUTTONS)
-                await self.player.find_then_click(OK_BUTTONS)
+                try:
+                    await self.player.find_then_click(OK_BUTTONS)
+                    await self.player.find_then_click(OK_BUTTONS)
+                    continue
+                except FindTimeout:
+                    lack_gold = True
 
-            list1 = await self.player.find_all_pos('buy_btn')
-            list2 = await self.player.find_all_pos('pi_jiu')
-            pos_list = self._merge_pos_list(list1, list2, dy=30)
-            if pos_list:
-                await self.player.click(pos_list[0], cheat=False)
-                await self.player.find_then_click(OK_BUTTONS)
-                await self.player.find_then_click(OK_BUTTONS)
-            else:
-                reach_bottom = await self.player.drag_then_find((350, 450), (350, 180), 'reach_bottom')
-                if reach_bottom:
-                    break
+            if not lack_diamond:
+                list1 = await self.player.find_all_pos('buy_btn')
+                list2 = await self.player.find_all_pos('pi_jiu')
+                pos_list = self._merge_pos_list(list1, list2, dy=30)
+                if pos_list:
+                    await self.player.click(pos_list[0], cheat=False)
+                    name, _ = await self.player.monitor(['lack_of_diamond', 'ok8'], timeout=3)
+                    if name == 'ok8':
+                        await self.player.find_then_click(OK_BUTTONS)
+                        await self.player.find_then_click(OK_BUTTONS)
+                        continue
+                    else:
+                        lack_diamond = True
+                
+            # 没东西可以买了，就向上滑动
+            reach_bottom = await self.player.drag_then_find((350, 450), (350, 180), 'reach_bottom')
+            if reach_bottom:
+                break
+
         await self.player.find_then_click(CLOSE_BUTTONS)
 
         self._increate_count()
@@ -2677,6 +2720,7 @@ class YiJiMoKu(Task):
         await self.player.click((635, 350))
         name, _ = await self.player.monitor(['close', 'jin_ru'])
         if name == 'close':
+            # 连一个300英雄都没有，就不收菜了
             return False
         elif name == 'jin_ru':
             await self.player.click((110, 435))

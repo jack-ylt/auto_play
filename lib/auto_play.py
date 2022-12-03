@@ -111,7 +111,7 @@ async def play(goal, player, role, g_queue):
             try:
                 await obj.run()
                 error_count = max(error_count - 1, 0)
-            except (FindTimeout, PlayException) as err:
+            except FindTimeout as err:
                 error_count += 1
                 player.logger.error(f"run {cls_name} faled: {str(err)}")
                 player.save_operation_pics(str(err))
@@ -207,7 +207,7 @@ async def daily_play(player, role):
                 player.logger.info("End to run: " + cls_name)
             else:
                 player.logger.info("Skip to run: " + cls_name)
-        except (FindTimeout, PlayException) as err:
+        except FindTimeout as err:
             error_count += 1
             player.logger.error(f"run {cls_name} faled: {str(err)}")
             player.save_operation_pics(str(err))
