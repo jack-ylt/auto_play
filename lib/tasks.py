@@ -2351,14 +2351,14 @@ class KuaiJieZhiNan(Task):
         await self.player.find_then_click(['quick_ico', 'quick_ico1'])
         await self.player.find_then_click('yi_jian_zhi_xing')
         try:
-            await self.player.monitor('ok_1', timeout=3)
+            await self.player.monitor(['ok_1', 'sao_dang_zhong'], timeout=3)
         except FindTimeout:
             pass
         else:
             await self._update_counter()
             # 等待时间长也没什么用，挑战副本有时候就是没有满，是官方的bug
             await asyncio.sleep(5)
-            await self.player.find_then_click('ok_1', timeout=1)
+            await self.player.find_then_click('ok_1')
         finally:
             await self.player.find_then_click(CLOSE_BUTTONS)
             self._increate_count()
