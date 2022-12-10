@@ -999,7 +999,13 @@ find 出来的pos，直接return屏幕的实际pos。然后click，直接click
 如果有个模拟器窗口启动失败，就会一直卡住，并且另外两个窗口完成了一个角色之后也会卡住
 
 遗迹魔窟：
+    如果不是 enalbe and （not done or done date expired):
+        return
     
+    进入
+    
+    
+浅蓝色的床单上，一个可爱的亚洲少年，趴在床上，晃荡着脚丫，4K，高清
 
 
 enter
@@ -1065,4 +1071,16 @@ bug：截图，截到其它窗口那里去了
         1037
     ],
     
-    
+python 实战
+    蓝桥云课 Python 实战合集：https://www.lanqiao.cn/cofeeurses/?=free&tag=Python
+    腾讯云在线 Python 实验：https://cloud.tencent.com/developer/labs/gallery?tagId=23
+    阿里云 Python 入门实验：https://developer.aliyun.com/adc/scenario/e04fe73ad95d4782aef7aecca206196e
+    华为云沙箱实验室：https://lab.huaweicloud.com/testList.html
+    Python123：https://python123.io/index（在线编程，部分课收费）
+    CheckiO 游戏学 Python：https://py.checkio.org/
+    通过测试交互式学 Python（英文）：https://github.com/gregmalcolm/python_koans
+    交互式 Python 挑战（英文）：https://github.com/donnemartin/interactive-coding-challenges
+    通过项目学 Python（英文）：https://github.com/practical-tutorials/project-based-learning#python
+    通过示例交互式学 Python（英文）：https://github.com/jerry-git/learn-python3
+
+

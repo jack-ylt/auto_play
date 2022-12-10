@@ -227,23 +227,21 @@ if __name__ == "__main__":
     try:
         loop.run_forever()
     except KeyboardInterrupt:
-        logger.info("User stoped, so exit.")
-        if loop.is_running():
-            loop.stop()
+        logger.info("User stopped, so exit.")
     except Exception as e:
         logger.error(str(e))
-        logger.error("出错了！请稍后重试。如果错误重复出现，可向作者反馈。")
-
-    tasks = asyncio.all_tasks(loop=loop)
-    group = asyncio.gather(*tasks, return_exceptions=True)
-    group.cancel()
-    try:
-        loop.run_until_complete(group)
-    except asyncio.CancelledError:
-        if loop.is_running():
-            print("CancelledError, stop")
-            loop.stop()
-    loop.close()
+        logger.error("An error occurred. Please try again later. If the error persists, please contact the author.")
+    finally:
+        tasks = asyncio.all_tasks(loop=loop)
+        group = asyncio.gather(*tasks, return_exceptions=True)
+        group.cancel()
+        try:
+            loop.run_until_complete(group)
+        except asyncio.CancelledError:
+            if loop.is_running():
+                print("CancelledError, stop")
+                loop.stop()
+        loop.close()
 
     # 按任意键继续
     os.system('pause')

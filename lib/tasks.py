@@ -2364,7 +2364,7 @@ class KuaiJieZhiNan(Task):
             self._increate_count()
 
     def test(self):
-        return self._get_cfg() and self._get_count() < 1
+        return self._get_cfg()
 
     async def _update_counter(self):
         self._increate_count('count', val=3, cls_name='XianShiJie')
@@ -2718,9 +2718,12 @@ class YiJiMoKu(Task):
     async def _enter(self):
         await self._move_to_right_down()
         await self.player.click((635, 350))
-        name, _ = await self.player.monitor(['close', 'jin_ru'])
+        name, _ = await self.player.monitor(['close', 'jin_ru', 'hou_kai_qi'])
         if name == 'close':
             # 连一个300英雄都没有，就不收菜了
+            return False
+        elif name == 'hou_kai_qi':
+            # 活动未开启
             return False
         elif name == 'jin_ru':
             await self.player.click((110, 435))
