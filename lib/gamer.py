@@ -21,6 +21,7 @@ GAME_ICONS = {
 
 # 每种游戏，创建一个类。使用代理模式
 
+
 class Gamer(object):
     def __init__(self, player):
         self.player = player
@@ -80,7 +81,7 @@ class GamerBase(object):
             else:
                 await self.player.click(pos)
                 await asyncio.sleep(3)
-        
+
         for _ in range(5):
             try:
                 name, pos = await self.player.monitor(['close', 'setting'], timeout=2)
@@ -178,7 +179,7 @@ class GamerBase(object):
         self.logger.info("close game")
         try:
             await self.player.find_then_click('recent_tasks', cheat=False)
-            
+
             for _ in range(3):
                 name, pos = await self.player.monitor(['liu_lan_qi', 'quan_bu_qing_chu', 'empty_apps', 'close_btn6'], timeout=5)
                 if name == 'quan_bu_qing_chu' or name == 'close_btn6':  # 1 或 2 个app
@@ -235,7 +236,7 @@ class GamerBase(object):
 
     async def _close_ad(self, timeout=2):
         cloes_btns = ['close_btn1', 'close_btn2',
-                      'close_btn3', 'close9', 'close_btn4']
+                      'close_btn3', 'close9', 'close_btn4', 'close_btn7']
         for _ in range(3):
             try:
                 await self.player.find_then_click(cloes_btns + OK_BUTTONS, timeout=timeout)
@@ -246,7 +247,8 @@ class GamerBase(object):
     async def _close_main_ad(self):
         """关闭游戏主界面弹出的广告"""
 
-        names = ['survival_home', 'invite_hero', 'level_battle', 'lucky_draw', 'armory']
+        names = ['survival_home', 'invite_hero',
+                 'level_battle', 'lucky_draw', 'armory']
         for _ in range(3):
             try:
                 # 没加工会，系统会推荐公会
