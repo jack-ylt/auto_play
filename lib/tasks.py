@@ -1482,16 +1482,29 @@ class ShiChang(Task):
                     # 如果金币不足，忽略
                     pass
 
+            goods_list = []
             if self._get_cfg('mai_bao_tu'):
+                goods_list.append('bao_tu')
+
+            if self._get_cfg('mai_pi_jiu'):
+                goods_list.append('pi_jiu1')
+            
+            if self._get_cfg('mai_hui_zhang'):
+                goods_list.append('hui_zhang1')
+
+
+            if goods_list:
                 await self.player.find_then_click('xia_yi_ye')
-                await self.player.monitor('bao_tu')
-                await self.player.click((600, 420))
-                try:
-                    await self.player.find_then_click(OK_BUTTONS)
-                    await self.player.find_then_click(OK_BUTTONS)
-                except FindTimeout:
-                    # 如果钻石不足，直接结束
-                    return
+                for goods in goods_list:
+                    _, pos = await self.player.monitor(goods)
+                    await self.player.click((pos[0], pos[1] + 70))
+                    try:
+                        await self.player.find_then_click(OK_BUTTONS)
+                        await self.player.find_then_click(OK_BUTTONS)
+                    except FindTimeout:
+                        # 如果钻石不足，直接结束
+                        self.logger.warning("钻石不足")
+                        return
         
 
     def test(self):
