@@ -959,6 +959,16 @@ class MeiRiQianDao(Task):
 
         self._increate_count('count', 1)
 
+        # 领取周礼包、月礼包
+        for pos in await self.player.find_all_pos('red_point2'):
+            await self.player.click((pos[0] - 80, pos[1] + 30))
+            await self.player.monitor('mian_fei')
+            await self.player.click((405, 250))
+            await self.player.find_then_click('5_xing_sui_pian')
+            await self.player.find_then_click('ok_btn2')
+            await self.player.find_then_click('mian_fei')
+            await self.player.find_then_click(OK_BUTTONS)
+
     def test(self):
         return self.cfg['MeiRiQianDao']['enable']
 
