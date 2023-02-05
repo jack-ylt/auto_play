@@ -1652,7 +1652,48 @@ class JingJiChang(Task):
 
 
 class GuanJunShiLian(Task):
-    """冠军试炼"""
+    """冠军试炼
+    _test()
+        if not enable():
+            return False
+        if not 5, 6, 7:
+            return False
+        if score >= 50:
+            return False
+        return True
+
+    _enter()
+        竞技场
+        冠军试炼
+        进入
+
+        close，战斗
+        if 战斗：
+            return True
+
+        close
+        no_hero2，保存
+        if no_hero2:
+            return False
+
+        click 保存
+        return True
+
+    for i in range(30):
+        _choose_opponent()
+            for j in range(3):
+                if 战力低 and not in can't win:
+                    win = _fight()
+                    if win:
+                        score += 2
+                    else:
+                        score += 1
+                        cannt_win.add(j)
+            else
+                reflesh
+    
+    
+    """
 
     def __init__(self, player, role_setting, counter):
         super().__init__(player, role_setting, counter)
@@ -2641,10 +2682,11 @@ class YiJiMoKu(Task):
         # 领取资源
         await self.player.find_then_click('yi_jian_ling_qv2')
         try:
-            await self.player.find_then_click(OK_BUTTONS)
+            await self.player.find_then_click(OK_BUTTONS, timeout=3)
         except FindTimeout:
             # 打通的关数太少，是没有菜可以收的
-            return
+            # return
+            pass
 
         lack_gold = False
 
@@ -2654,7 +2696,7 @@ class YiJiMoKu(Task):
         await self.player.monitor('ptsd_title')
         for _ in range(20):
             list1 = await self.player.find_all_pos('gold2')
-            list2 = await self.player.find_all_pos('zhuan_pan_bi')
+            list2 = await self.player.find_all_pos(['zhuan_pan_bi', 'jing_ji_men_piao'])
             pos_list = self._merge_pos_list(list1, list2, dy=30)
             if pos_list:
                 await self.player.click(pos_list[0], cheat=False)
@@ -2676,6 +2718,13 @@ class YiJiMoKu(Task):
         lack_diamond = False
         await self.player.find_then_click('gao_ji_shang_dian')
         await self.player.monitor('gjsd_title')
+
+        goods_list = ['pi_jiu']
+        if self._get_cfg('mai_bao_tu'):
+            goods_list.append('bao_tu_moku')
+        if self._get_cfg('mai_hui_zhang'):
+            goods_list.append('hui_zhang_moku')
+
         for _ in range(20):
             if not lack_gold and self.player.is_exist('gold2'):
                 await self.player.find_then_click('gold2', cheat=False)
@@ -2688,7 +2737,7 @@ class YiJiMoKu(Task):
 
             if not lack_diamond:
                 list1 = await self.player.find_all_pos('buy_btn')
-                list2 = await self.player.find_all_pos('pi_jiu')
+                list2 = await self.player.find_all_pos(goods_list)
                 pos_list = self._merge_pos_list(list1, list2, dy=30)
                 if pos_list:
                     await self.player.click(pos_list[0], cheat=False)

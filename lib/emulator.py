@@ -133,6 +133,8 @@ class Emulator(object):
         await self.player.monitor('select_all', threshold=0.9)
 
         try:
+            # 两个都判断，避免误判
+            await self.player.monitor('start_emulator', timeout=1, threshold=0.9)
             await self.player.monitor('selected', timeout=1, threshold=0.9)
         except FindTimeout:
             pos_list = await self.player.find_all_pos('check_box1', threshold=0.9)
