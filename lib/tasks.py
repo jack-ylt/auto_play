@@ -2708,8 +2708,9 @@ class YiJiMoKu(Task):
             await self.player.find_then_click(OK_BUTTONS, timeout=3)
         except FindTimeout:
             # 打通的关数太少，是没有菜可以收的
-            # return
-            pass
+            # 或者已经领过了
+            return
+            # pass
 
         lack_gold = False
 
@@ -2803,8 +2804,6 @@ class YiJiMoKu(Task):
             if name == 'huo_dong_wei_kai_qi':
                 return False
             elif name == 'yi_jian_ling_qv2':
-                # 上次领取过了
-                # return False
                 return True
             elif name == 'close':
                 # 小号
