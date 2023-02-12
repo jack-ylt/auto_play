@@ -2790,24 +2790,26 @@ class YiJiMoKu(Task):
         await self.player.click((635, 350))
         name, _ = await self.player.monitor(['close', 'jin_ru', 'hou_kai_qi'])
         if name == 'close':
-            # 连一个300英雄都没有，就不收菜了
-            return False
+            await self._equip_team_yjmk()
+            await self.player.find_then_click('start_fight')
+            return True
         elif name == 'hou_kai_qi':
             # 活动未开启
             return False
         elif name == 'jin_ru':
-            await self.player.click((110, 435))
-            name, _ = await self.player.monitor(['kai_shi_tiao_zhan', 'yi_jian_ling_qv2', 'huo_dong_wei_kai_qi', 'close'])
+            await self.player.click((110, 435))    # click enter btn
+            name, _ = await self.player.monitor(['ying_xiong_chu_zhan', 'yi_jian_ling_qv2', 'huo_dong_wei_kai_qi', 'close', 'kai_shi_tiao_zhan'])
             if name == 'huo_dong_wei_kai_qi':
                 return False
             elif name == 'yi_jian_ling_qv2':
                 return True
-            elif name == 'close':
+            elif name == 'ying_xiong_chu_zhan':
                 # 小号
                 await self._equip_team_yjmk()
                 await self.player.find_then_click('start_fight')
                 return True
-            elif name == 'kai_shi_tiao_zhan':
+            elif name in ['close', 'kai_shi_tiao_zhan']:
+                await self.player.find_then_click('close', timeout=2, raise_exception=True)    # 长时间未登录，会有新手引导
                 await self.player.find_then_click('kai_shi_tiao_zhan')
                 await self.player.find_then_click(OK_BUTTONS)
                 await self.player.monitor('close')
