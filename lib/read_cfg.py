@@ -43,14 +43,32 @@ def read_game_user():
 
 
 def read_role_cfg(name='basic'):
+    # 先加载基础配置，再更新特定配置
+    # 这样，特定配置就不需要写那么多了
+    basic_cfg = _read_role_cfg('basic')
+
+    if name != 'basic':
+        specific_cfg = _read_role_cfg(name)
+        basic_cfg.update(specific_cfg)
+
+    return basic_cfg
+    
+
+def _read_role_cfg(name):
     cfg_dict = {}
+
     config = configparser.RawConfigParser()
     config.read(f'./configs/roles_setting/{name}.cfg', encoding='utf-8')
 
     for sct in config.sections():
         cfg_dict[sct] = {}
         for opt in config[sct]:
-            cfg_dict[sct][opt] = config.get(sct, opt)
+            val = config.get(sct, opt).lower().strip()
+            if val == 'yes':
+                val = True
+            elif val == 'no':
+                val = False
+            cfg_dict[sct][opt] = val
 
     return cfg_dict
 

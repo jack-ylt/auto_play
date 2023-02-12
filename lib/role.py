@@ -49,20 +49,7 @@ class Role():
             self.cfg_name = 'basic'
 
         # load from roles_setting and ext_roles_setting
-        self.play_setting = {}
-        config = configparser.RawConfigParser()
-        config.read(
-            f'./configs/roles_setting/{self.cfg_name}.cfg', encoding='utf-8')
-        for sct in config.sections():
-            if sct not in self.play_setting:
-                self.play_setting[sct] = {}
-            for opt in config[sct]:
-                val = config.get(sct, opt).lower().strip()
-                if val == 'yes':
-                    val = True
-                elif val == 'no':
-                    val = False
-                self.play_setting[sct][opt] = val
+        self.play_setting = read_role_cfg(self.cfg_name)
 
 
 class Roles():

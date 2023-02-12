@@ -1488,10 +1488,9 @@ class ShiChang(Task):
 
             if self._get_cfg('mai_pi_jiu'):
                 goods_list.append('pi_jiu1')
-            
+
             if self._get_cfg('mai_hui_zhang'):
                 goods_list.append('hui_zhang1')
-
 
             if goods_list:
                 await self.player.find_then_click('xia_yi_ye')
@@ -1505,7 +1504,6 @@ class ShiChang(Task):
                         # 如果钻石不足，直接结束
                         self.logger.warning("钻石不足")
                         return
-        
 
     def test(self):
         return self.cfg['ShiChang']['enable']
@@ -1714,8 +1712,8 @@ class GuanJunShiLian(Task):
                         cannt_win.add(j)
             else
                 reflesh
-    
-    
+
+
     """
 
     def __init__(self, player, role_setting, counter):
@@ -2685,7 +2683,7 @@ class JiYiDangAnGuan(Task):
 
 class YiJiMoKu(Task):
     """遗迹魔窟
-    
+
     适用于高级号，扫荡收菜
     TODO: 针对没有达到15关的小号，也收菜
     """
@@ -2772,7 +2770,7 @@ class YiJiMoKu(Task):
                         continue
                     else:
                         lack_diamond = True
-                
+
             # 没东西可以买了，就向上滑动
             reach_bottom = await self.player.drag_then_find((350, 450), (350, 180), 'reach_bottom')
             if reach_bottom:
@@ -2781,7 +2779,6 @@ class YiJiMoKu(Task):
         await self.player.find_then_click(CLOSE_BUTTONS)
 
         self._increate_count()
-            
 
     def test(self):
         return True
@@ -2865,4 +2862,37 @@ class GongHuiFuBen(Task):
 
         await self.player.find_then_click(CLOSE_BUTTONS)
         # await self.player.go_back()
-                
+
+
+class JueDiQiuSheng(Task):
+    """绝地求生"""
+
+    def __init__(self, player, role_setting, counter):
+        super().__init__(player, role_setting, counter)
+
+    async def run(self):
+        if not self.test():
+            return
+
+        await self.player.find_then_click('yue_du_huo_dong')
+        await self.player.find_then_click('jue_di_qiu_sheng')
+
+        y = 400
+        for x in (390, 540, 690):
+            for i in range(20):
+                await self.player.monitor('hui_zhang2')
+                await self.player.click((x, y))    # click fight btn
+                await self.player.monitor('sao_dang2')
+                # 1 票打不死，就停止
+                if self.player.is_exist('bai_fen_bai', threshold=0.9):
+                    await self.player.find_then_click('sao_dang2')
+                    await self.player.find_then_click(OK_BUTTONS)
+                    await self.player.find_then_click('start_fight')
+                    await self.player.monitor('huo_de_wu_ping')
+                    await self.player.find_then_click(OK_BUTTONS)
+                else:
+                    await self.player.find_then_click(CLOSE_BUTTONS)
+                    break
+
+    def test(self):
+        return self._get_cfg('enable') and self._get_count() < 1
