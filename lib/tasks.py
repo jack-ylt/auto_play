@@ -869,8 +869,13 @@ class GongHui(Task):
         await self.player.click(pos)
 
         await self.player.monitor('ranking_icon2')
+
+        if self.player.is_exist('zuan_shi'):
+            # 避免花费钻石
+            return
+            
         try:
-            await self.player.find_then_click('fight4', threshold=0.84, timeout=2)
+            await self.player.find_then_click('fight4', threshold=0.8, timeout=2)
         except FindTimeout:
             return
 
