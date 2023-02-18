@@ -61,7 +61,9 @@ def _read_role_cfg(name):
     config.read(f'./configs/roles_setting/{name}.cfg', encoding='utf-8')
 
     for sct in config.sections():
-        cfg_dict[sct] = {}
+        if sct not in cfg_dict:
+            cfg_dict[sct] = {}
+            
         for opt in config[sct]:
             val = config.get(sct, opt).lower().strip()
             if val == 'yes':
