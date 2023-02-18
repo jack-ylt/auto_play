@@ -161,10 +161,10 @@ def test_text_recognition():
 
 
 if __name__ == '__main__':
-    # names = [ 'bai_fen_bai', 'hui_zhang']
-    # asyncio.run(test_eye(names, threshold=0.8, verify=False, bbox = (0, 0, 1920, 1080)))
+    # names = [ 'gold3', ]
+    # asyncio.run(test_eye(names, threshold=0.85, verify=False, bbox = (0, 0, 1920, 1080)))
 
-    asyncio.run(test_tasks('GongHui'))
+    asyncio.run(test_tasks('YiJiMoKu'))
 
     # test_text_recognition()
 

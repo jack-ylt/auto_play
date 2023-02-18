@@ -2721,10 +2721,16 @@ class YiJiMoKu(Task):
         await self.player.find_then_click('gou_wu_che')
         await self.player.find_then_click('pu_tong_shang_dian')
         await self.player.monitor('ptsd_title')
-        for _ in range(20):
-            list1 = await self.player.find_all_pos('gold2')
+
+        finish_buy = False    # 东西是否都买完了，可以结束了
+
+        while True:
+            # gold2 包含了按钮花纹，而按钮花纹会因为位置不同而不同，影响识别率
+            # list1 = await self.player.find_all_pos('gold2')
+            list1 = await self.player.find_all_pos('gold3')
             list2 = await self.player.find_all_pos(['zhuan_pan_bi', 'jing_ji_men_piao'])
             pos_list = self._merge_pos_list(list1, list2, dy=30)
+
             if pos_list:
                 await self.player.click(pos_list[0], cheat=False)
                 try:
@@ -2735,9 +2741,11 @@ class YiJiMoKu(Task):
                     lack_gold = True
                     break
             else:
+                if finish_buy:
+                    break
                 reach_bottom = await self.player.drag_then_find((350, 450), (350, 180), 'reach_bottom')
                 if reach_bottom:
-                    break
+                    finish_buy = True
 
         await self.player.find_then_click(CLOSE_BUTTONS)
 
@@ -2752,7 +2760,9 @@ class YiJiMoKu(Task):
         if self._get_cfg('mai_hui_zhang'):
             goods_list.append('hui_zhang_moku')
 
-        for _ in range(20):
+        finish_buy = False    # 东西是否都买完了，可以结束了
+
+        while True:
             if not lack_gold and self.player.is_exist('gold2'):
                 await self.player.find_then_click('gold2', cheat=False)
                 try:
@@ -2763,11 +2773,14 @@ class YiJiMoKu(Task):
                     lack_gold = True
 
             if not lack_diamond:
-                list1 = await self.player.find_all_pos('buy_btn')
-                list2 = await self.player.find_all_pos(goods_list)
-                pos_list = self._merge_pos_list(list1, list2, dy=30)
+                # # buy_btn 识别率太低
+                # list1 = await self.player.find_all_pos('buy_btn')
+                pos_list = await self.player.find_all_pos(goods_list)
+                # pos_list = self._merge_pos_list(list1, list2, dy=30)
                 if pos_list:
-                    await self.player.click(pos_list[0], cheat=False)
+                    pos = pos_list[0]
+                    pos = (pos[0] + 340, pos[1] + 20)
+                    await self.player.click(pos)
                     name, _ = await self.player.monitor(['lack_of_diamond', 'ok8'], timeout=3)
                     if name == 'ok8':
                         await self.player.find_then_click(OK_BUTTONS)
@@ -2776,10 +2789,15 @@ class YiJiMoKu(Task):
                     else:
                         lack_diamond = True
 
-            # 没东西可以买了，就向上滑动
+            
+            if finish_buy:
+                break
+
+            # # 没东西可以买了(金币、钻石都没可买的），向上滑动
             reach_bottom = await self.player.drag_then_find((350, 450), (350, 180), 'reach_bottom')
             if reach_bottom:
-                break
+                # 达到了底部，不能立即结束，有可能还有东西需要买的
+                finish_buy = True
 
         await self.player.find_then_click(CLOSE_BUTTONS)
 
@@ -2793,13 +2811,16 @@ class YiJiMoKu(Task):
     async def _enter(self):
         await self._move_to_right_down()
         await self.player.click((635, 350))
-        name, _ = await self.player.monitor(['close', 'jin_ru', 'hou_kai_qi'])
+        name, _ = await self.player.monitor(['close', 'jin_ru', 'hou_kai_qi', 'yi_jian_ling_qv2'])
         if name == 'close':
             await self._equip_team_yjmk()
             await self.player.find_then_click('start_fight')
             return True
         elif name == 'hou_kai_qi':
             # 活动未开启
+            return False
+        elif name == 'yi_jian_ling_qv2':
+            # 一点就进来了是太小的小号
             return False
         elif name == 'jin_ru':
             await self.player.click((110, 435))    # click enter btn
@@ -2814,7 +2835,7 @@ class YiJiMoKu(Task):
                 await self.player.find_then_click('start_fight')
                 return True
             elif name in ['close', 'kai_shi_tiao_zhan']:
-                await self.player.find_then_click('close', timeout=2, raise_exception=True)    # 长时间未登录，会有新手引导
+                await self.player.find_then_click('close', timeout=2, raise_exception=False)    # 长时间未登录，会有新手引导
                 await self.player.find_then_click('kai_shi_tiao_zhan')
                 await self.player.find_then_click(OK_BUTTONS)
                 await self.player.monitor('close')
