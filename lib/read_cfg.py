@@ -49,7 +49,8 @@ def read_role_cfg(name='basic'):
 
     if name != 'basic':
         specific_cfg = _read_role_cfg(name)
-        basic_cfg.update(specific_cfg)
+        for k in specific_cfg:
+            basic_cfg[k].update(specific_cfg[k])
 
     return basic_cfg
     
