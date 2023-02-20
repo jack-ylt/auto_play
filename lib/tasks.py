@@ -873,7 +873,7 @@ class GongHui(Task):
         if self.player.is_exist('zuan_shi'):
             # 避免花费钻石
             return
-            
+
         try:
             await self.player.find_then_click('fight4', threshold=0.8, timeout=2)
         except FindTimeout:
@@ -2789,7 +2789,6 @@ class YiJiMoKu(Task):
                     else:
                         lack_diamond = True
 
-            
             if finish_buy:
                 break
 
@@ -2835,7 +2834,8 @@ class YiJiMoKu(Task):
                 await self.player.find_then_click('start_fight')
                 return True
             elif name in ['close', 'kai_shi_tiao_zhan']:
-                await self.player.find_then_click('close', timeout=2, raise_exception=False)    # 长时间未登录，会有新手引导
+                # 长时间未登录，会有新手引导
+                await self.player.find_then_click('close', timeout=2, raise_exception=False)
                 await self.player.find_then_click('kai_shi_tiao_zhan')
                 await self.player.find_then_click(OK_BUTTONS)
                 await self.player.monitor('close')
@@ -2921,6 +2921,35 @@ class JueDiQiuSheng(Task):
                 else:
                     await self.player.find_then_click(CLOSE_BUTTONS)
                     break
+        
+        self._increate_count()
 
     def test(self):
         return self._get_cfg('enable') and self._get_count() < 1
+
+
+class ShiJieBoss(Task):
+    """世界Boss"""
+
+    def __init__(self, player, role_setting, counter):
+        super().__init__(player, role_setting, counter)
+
+    async def run(self):
+        if not self.test():
+            return
+
+        await self.player.find_then_click('shi_jie_boos')
+        await self.player.find_then_click('gong_ji')
+        await self.player.find_then_click('start_fight')
+
+        for i in range(10):
+            await self.player.find_then_click('xia_yi_chang')
+            await asyncio.sleep(3)
+
+        await self.player.find_then_click(OK_BUTTONS)
+        self._increate_count()
+
+    def test(self):
+        if self._get_cfg('enable') and datetime.now().weekday() in [0, 1] and self._get_count() < 1:
+            return True
+        return False
