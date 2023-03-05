@@ -28,12 +28,25 @@
 
 import os
 import json
-from datetime import datetime
+from datetime import datetime, timedelta
 from lib.mylogs import make_logger
 
 logger = make_logger('full')
 
 TODAY = datetime.now().strftime(r'%Y-%m-%d')
+
+def _days_later(num):
+    date = datetime.now() + timedelta(days=num)
+    return date.strftime(r'%Y-%m-%d')
+
+SPECIAL_DICT = {
+    'YiJiMoKu': {
+        'expired_date': _days_later(4)
+    },
+    'JueDiQiuSheng': {
+        'expired_date': _days_later(15)
+    },
+}
 
 
 class PlayCounter(object):
@@ -42,33 +55,50 @@ class PlayCounter(object):
         if not os.path.exists(_dir):
             os.mkdir(_dir)
         self._file = os.path.join(_dir, name + '.json')
+
         if name == 'debug':
+            self._init_data()
+        elif not os.path.exists(self._file):
             self._init_data()
         else:
             self._load_data()
+            self._update_data()
 
     def _load_data(self):
-        if os.path.exists(self._file):
-            try:
-                with open(self._file, 'r') as f:
-                    self._data = json.load(f)
-            except json.decoder.JSONDecodeError as e:
-                logger.error(f'load {self._file} failed: {str(e)}')
-                os.remove(self._file)
-                return self._init_data()
+        try:
+            with open(self._file, 'r') as f:
+                self._data = json.load(f)
+        except json.decoder.JSONDecodeError as e:
+            logger.error(f'load {self._file} failed: {str(e)}')
+            os.remove(self._file)
+            return self._init_data()
 
-            if self._data['date'] == TODAY:
-                self._data['run_count'] += 1
-                return
+    def _update_data(self):
+        """重置过期数据"""
+        if self._data['date'] == TODAY:
+            self._data['run_count'] += 1
+            return
+        
+        self._data['date'] = TODAY
+        self._data['run_count'] = 1
 
-        # 如果文件不存在，或者数据过期，重新初始化
-        self._init_data()
+        for k, v in self._data.items():
+            if not isinstance(v, dict):
+                continue
+            expired_date = self._data[k].get('expired_date', TODAY)
+            if expired_date < TODAY:
+                self._data[k] = {}
+
 
     def _init_data(self):
         self._data = {}
         self._data['date'] = TODAY
         self._data['run_count'] = 1
 
+        self._data.update(SPECIAL_DICT)
+    
+
+    
     def get(self, cls_name, key):
         try:
             return int(self._data[cls_name][key])
@@ -80,7 +110,7 @@ class PlayCounter(object):
 
     def set(self, cls_name, key, val):
         if cls_name not in self._data:
-            self._data[cls_name] = {}
+            self._data[cls_name] = SPECIAL_DICT.get(cls_name, {})
         self._data[cls_name][key] = val
 
     def save_data(self):

@@ -2938,6 +2938,7 @@ class ShiJieBoss(Task):
         if not self.test():
             return
 
+        # 简单起见，小号不打这个世界Boos了
         await self.player.find_then_click('shi_jie_boos')
         await self.player.find_then_click('gong_ji')
         await self.player.find_then_click('start_fight')
@@ -2950,6 +2951,6 @@ class ShiJieBoss(Task):
         self._increate_count()
 
     def test(self):
-        if self._get_cfg('enable') and datetime.now().weekday() in [0, 1] and self._get_count() < 1:
+        if self._get_cfg('enable') and datetime.now().weekday() in [0, 1] and self._get_count() < 2:
             return True
         return False
