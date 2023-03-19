@@ -27,6 +27,7 @@ from lib.windows import Window
 from lib.role import Role
 from lib.recorder import PlayCounter
 from lib import text_recognition
+from lib import player_eye
 
 # 切换到脚本所在目录
 # 否则，基于相对路径的代码会出问题
@@ -156,17 +157,25 @@ async def test_mouse():
         #     player.hand.m.release(450, 20)
 
 def test_text_recognition():
-    texts = text_recognition.get_texts('text6.jpg')
-    print(texts)
-
+    # eye = player_eye.Eye()
+    # area = (395, 153, 503, 183)
+    # text = eye.get_text(area)
+    # print(text)
+    window = windows.Window('left_top')
+    player = Player(g_lock=asyncio.Lock(), window=window)
+    area = (395, 153, 503, 183)
+    text = player.get_text(area)
+    print(text)
 
 if __name__ == '__main__':
-    # names = [ 'gold3', ]
-    # asyncio.run(test_eye(names, threshold=0.85, verify=False, bbox = (0, 0, 1920, 1080)))
+    # names = [ 'zuan_shi_3xing', ]
+    # asyncio.run(test_eye(names, threshold=0.78, verify=False, bbox = (0, 0, 1920, 1080)))
 
-    asyncio.run(test_tasks('JueDiQiuSheng'))
+    asyncio.run(test_tasks('GuanJunShiLian'))
+
 
     # test_text_recognition()
+
 
 
 

@@ -20,7 +20,7 @@ from pickle import NEXT_BUFFER
 from cv2 import threshold
 
 
-from lib.helper import is_afternoon, is_monday, is_sunday, is_wednesday
+from lib.helper import is_afternoon, is_monday, is_sunday, is_wednesday, format_text
 from lib.player import FindTimeout, Player
 from lib.ui_data import CLOSE_BUTTONS, GOOD_TASKS, OK_BUTTONS, SCREEN_DICT
 
@@ -66,7 +66,7 @@ class Task(object):
     def test(self):
         raise NotImplementedError()
 
-    def run(self):
+    async def run(self):
         raise NotImplementedError()
 
     async def _fight(self):
@@ -1487,6 +1487,16 @@ class ShiChang(Task):
                     # 如果金币不足，忽略
                     pass
 
+            if self._get_cfg('mai_men_piao'):
+                await self.player.find_then_click('xia_yi_ye')
+                await self.player.find_then_click('gold_300k')
+                try:
+                    await self.player.find_then_click(OK_BUTTONS)
+                    await self.player.find_then_click(OK_BUTTONS)
+                except FindTimeout:
+                    # 如果金币不足，忽略
+                    pass
+
             goods_list = []
             if self._get_cfg('mai_bao_tu'):
                 goods_list.append('bao_tu')
@@ -1498,7 +1508,7 @@ class ShiChang(Task):
                 goods_list.append('hui_zhang1')
 
             if goods_list:
-                await self.player.find_then_click('xia_yi_ye')
+                await self.player.find_then_click('xia_yi_ye', timeout=1, raise_exception=False)
                 for goods in goods_list:
                     _, pos = await self.player.monitor(goods)
                     await self.player.click((pos[0], pos[1] + 70))
@@ -1678,13 +1688,63 @@ class JingJiChang(Task):
 
 
 class GuanJunShiLian(Task):
+    def __init__(self, player, role_setting, counter):
+        super().__init__(player, role_setting, counter)
+        self.zhan_li = self._get_count('zhan_li')
+
+    def test(self):
+        if not self._get_cfg():
+            return False
+        if not datetime.now().weekday() in (4, 5, 6):
+            return False
+        if self._get_count('score') >= 50 and self._get_count('reach_zuanshi'):
+            return False
+        return True
+
+    async def _enter(self):
+        await self._move_to_left_top()
+        await self.player.find_then_click('arena')
+        await self.player.find_then_click('champion')
+        await self.player.find_then_click('enter')
+
+        name, _ = await self.player.monitor(['zhan_dou_shuo_ming', 'zhan_dou'])
+        if name == 'zhan_dou':
+            return True
+        else:
+            await self._set_team()
+            try:
+                await self.player.monitor('zhan_dou', timeout=3)
+                return True
+            except FindTimeout:
+                return False
+
+    async def _set_team(self):
+        await self.player.find_then_click(CLOSE_BUTTONS)
+
+        text = self.player.get_text((395, 150, 499, 188))
+        self.zhan_li = format_text(text, format='int', line=0)
+        # print(self.zhan_li)
+        
+
+        await self.player.find_then_click('save_1')
+
+    async def run(self):
+        if not self.test():
+            return
+
+        await self._enter()
+
+
+
+
+class GuanJunShiLian_old(Task):
     """冠军试炼
     _test()
         if not enable():
             return False
         if not 5, 6, 7:
             return False
-        if score >= 50:
+        if score >= 50 and is_zhuanshi:
             return False
         return True
 
@@ -1693,31 +1753,73 @@ class GuanJunShiLian(Task):
         冠军试炼
         进入
 
-        close，战斗
-        if 战斗：
-            return True
+        monitor 战斗说明，战斗btn
+        if 战斗btn
+            return true
 
-        close
-        no_hero2，保存
-        if no_hero2:
-            return False
+        点 close
+        点 保存
 
-        click 保存
-        return True
+        monitor 战斗btn （3s)
+            return ture
+        else
+            # 以前没打过就没法保存
+            return false
 
-    for i in range(30):
-        _choose_opponent()
+
+    run()
+        while True
+            try:
+                score = fight()
+            except no_opponment:
+                break
+            total_score += score
+            if total_score >= xxx and is_zuanshi:
+                break
+                
+        save total_score
+
+    fight
+        点 战斗
+        for i in range(5):
             for j in range(3):
-                if 战力低 and not in can't win:
-                    win = _fight()
-                    if win:
-                        score += 2
-                    else:
-                        score += 1
-                        cannt_win.add(j)
-            else
-                reflesh
+                if 超过对战次数 or 上次打不过 or 战力不低(>50%):
+                    continue
+                    
+                try:
+                    score = _do_fight()
+                    return score
+                except ReachMaxFightNum
+                    continue
 
+            点刷新
+        raise no_opponment
+
+    _do_fight()
+        点战斗
+        点战斗
+        monitor 对战 下一场
+        if 对战：（超过对战次数 5）
+            超过对战次数.add()
+            dian close
+            raise ReachMaxFightNum
+        
+        while True：
+            monitor 下一场 确定 card
+            if not card:
+                点 下一场
+                点 下一场 或确定
+                点 下一场 或确定
+            else:
+                点 card
+                点 card
+                if win:
+                    score 2
+                else:
+                    打不过.add()
+                    score 1
+                dian 确定
+                return score
 
     """
 
@@ -2025,7 +2127,7 @@ class RenWuLan(Task):
 
     async def _accept_tasks(self):
         list1 = await self.player.find_all_pos('receivable_task')
-        list2 = await self.player.find_all_pos(self._good_tasks)
+        list2 = await self.player.find_all_pos(self._good_tasks, threshold=0.85)
         pos_list = self._merge_pos_list(list1, list2, dx=10)
         for pos in pos_list:
             await self.player.monitor('receivable_task')
@@ -2036,8 +2138,11 @@ class RenWuLan(Task):
             # 注意：有可能英雄不够，则需要关闭窗口，继续往下运行
             try:
                 await self.player.find_then_click(CLOSE_BUTTONS, timeout=1)
+                print("英雄不够")
+                return False
             except FindTimeout:
                 pass
+        return True
 
     async def _swip_to_right(self, stop=True):
         pos_r = (800, 300)
@@ -2112,6 +2217,70 @@ class RenWuLan(Task):
             except FindTimeout:
                 pass
 
+
+class RenWuLan300(RenWuLan):
+    def __init__(self, player, role_setting, counter):
+        super().__init__(player, role_setting, counter)
+        self._good_tasks = [
+            'zuan_shi_4xing',
+            'pi_jiu_4xing',
+            'task_5star',
+            'task_6star',
+            'task_7star'
+        ]
+    
+    async def run(self):
+        await self._enter()
+        await asyncio.sleep(3)
+        await self._accept_all_tasks()
+
+        if not await self._refresh_tasks():
+            return
+
+        end = False
+        total_cost = 0
+        max_num = 4
+        while not end:
+            task_num = len(await self.player.find_all_pos('receivable_task'))
+
+            if task_num >= 3:
+                # refresh tasks
+                if not await self._refresh_tasks():
+                    end = True
+            else:
+                # add tasks
+                add_num = max_num - task_num
+                total_cost += add_num
+                await self._add_task(add_num)
+
+            if self.player.is_exist('task_7star'):
+                print("刷到了7星任务")
+                end = True
+
+            if not self.player.is_exist('receivable_task'):
+                print("没有白信封了")
+                end = True
+
+            # accept tasks
+            if not await self._accept_tasks():
+                end = True
+        
+        print(f"总共消耗白信封：{total_cost}")
+
+    async def _add_task(self, num):
+        for _ in range(num):
+            await self.player.click((290, 475))
+        await asyncio.sleep(3)
+
+    async def _refresh_tasks(self):
+        await self.player.find_then_click('refresh4')
+        await asyncio.sleep(2)
+        try:
+            await self.player.find_then_click(CLOSE_BUTTONS, timeout=2)
+            print("钻石不够，无法刷新任务")
+            return False
+        except FindTimeout:
+            return True
 
 class VipShangDian(Task):
     """VIP商店"""
@@ -2646,7 +2815,9 @@ class GongHuiZhan(Task):
             await self.player.find_then_click(CLOSE_BUTTONS)
             return 'win'
 
-        await self.player.find_then_click(OK_BUTTONS)
+        # await self.player.find_then_click(OK_BUTTONS)
+        # ok 经常点击失效
+        await self.player.click_untile_disappear(OK_BUTTONS)
         return name
 
     async def _swip_up(self):
@@ -2712,6 +2883,7 @@ class YiJiMoKu(Task):
         except FindTimeout:
             # 打通的关数太少，是没有菜可以收的
             # 或者已经领过了
+            # TODO 要以get_count为准，要区分小号和大号，因为可能购物过程出错退出，需要重新购物
             return
             # pass
 
@@ -2804,7 +2976,7 @@ class YiJiMoKu(Task):
 
     def test(self):
         return True
-        return self._get_cfg('enable') and self._get_count() < 1
+        # return self._get_cfg('enable') and self._get_count() < 1
         # TODO 4天一次，不用每天都执行
 
     async def _enter(self):
@@ -2940,7 +3112,11 @@ class ShiJieBoss(Task):
 
         # 简单起见，小号不打这个世界Boos了
         await self.player.find_then_click('shi_jie_boos')
-        await self.player.find_then_click('gong_ji')
+        try:
+            # 可能是跨服联赛，没有boos可以打
+            await self.player.find_then_click('gong_ji', timeout=3)
+        except FindTimeout:
+            return 
         await self.player.find_then_click('start_fight')
 
         for i in range(10):
@@ -2951,6 +3127,6 @@ class ShiJieBoss(Task):
         self._increate_count()
 
     def test(self):
-        if self._get_cfg('enable') and datetime.now().weekday() in [0, 1] and self._get_count() < 2:
+        if self._get_cfg('enable') and datetime.now().weekday() in [0, 1] and self._get_count() < 1:
             return True
         return False

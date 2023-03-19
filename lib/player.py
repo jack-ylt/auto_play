@@ -450,12 +450,20 @@ class Player(object):
             f"wait {check_count} times, the {name} still not disapper.")
         return False
 
-    async def click_untile_disappear(self, name, max_count=5):
-        await self.find_then_click(name)
+    async def click_untile_disappear(self, names, max_count=5):
+        await self.find_then_click(names)
         for _ in range(max_count - 1):
             await asyncio.sleep(1)
             try:
-                await self.find_then_click(name, timeout=1)
+                await self.find_then_click(names, timeout=1)
             except FindTimeout:
                 return True
         return False
+    
+    def get_text(self, area):
+        (x1, y1, x2, y2) = area
+        (dx, dy, _, _) = self.window.bbox
+        
+        real_area = (x1 + dx, y1 + dy, x2 + dx, y2 + dy)
+        print('real_area', real_area)
+        return self.eye.get_text(real_area)

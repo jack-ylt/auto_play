@@ -22,6 +22,7 @@ from lib.helper import get_window_region
 from lib.ui_data import SCREEN_DICT
 from copy import deepcopy
 import pyautogui
+import pytesseract
 
 
 import logging
@@ -370,6 +371,10 @@ class Eye(object):
 
         return new_pos_list
 
+    def get_text(self, area):
+        img_bg = self._screenshot(area)
+        text = pytesseract.image_to_string(img_bg)
+        return text
 
 async def test(names, bbox=None, threshold=0.8, max_try=1, verify=True):
     if isinstance(names, str):
@@ -403,5 +408,4 @@ async def test(names, bbox=None, threshold=0.8, max_try=1, verify=True):
         cv2.imwrite('res.png', img_rgb)
         img = Image.open('res.png')
         img.show()
-
 

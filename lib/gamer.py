@@ -223,7 +223,6 @@ class GamerBase(object):
         await self.player.find_then_click('start_game')
         await self._enter_account_info(role)
         await self._close_ad(timeout=5)
-        await self.player.monitor('setting', timeout=15)
         await self._close_main_ad()
 
     async def _logout(self):
@@ -234,7 +233,7 @@ class GamerBase(object):
     async def _enter_account_info(self, role):
         raise NotImplementedError()
 
-    async def _close_ad(self, timeout=2):
+    async def _close_ad(self, timeout=5):
         cloes_btns = ['close_btn1', 'close_btn2',
                       'close_btn3', 'close9', 'close_btn4', 'close_btn7']
         for _ in range(3):
@@ -242,7 +241,10 @@ class GamerBase(object):
                 await self.player.find_then_click(cloes_btns + OK_BUTTONS, timeout=timeout)
                 await asyncio.sleep(1)
             except FindTimeout:
-                break
+                # close_btn7 可能会在setting出现之前，就弹出来
+                # 所以，要持续关闭广告，知道出现setting为止
+                if self.player.is_exist('setting'):
+                    break
 
     async def _close_main_ad(self):
         """关闭游戏主界面弹出的广告"""
@@ -318,7 +320,6 @@ class GamerMrxzJy(GamerBase):
                 pass
 
         await self._close_ad(timeout=5)
-        await self.player.monitor('setting', timeout=15)
         await self._close_main_ad()
 
     async def _enter_account_info(self, role):
@@ -353,7 +354,6 @@ class GamerMrxzMht(GamerBase):
                 pass
 
         await self._close_ad(timeout=5)
-        await self.player.monitor('setting', timeout=15)
         await self._close_main_ad()
 
     async def _enter_account_info(self, role):
@@ -381,7 +381,6 @@ class GamerMrxzCx(GamerBase):
             await self.player.find_then_click('kui_su_deng_lu')
 
         await self._close_ad(timeout=5)
-        await self.player.monitor('setting', timeout=15)
         await self._close_main_ad()
 
     async def _enter_account_info(self, role):
@@ -413,7 +412,6 @@ class GamerMsjt(GamerBase):
                 await self.player.find_then_click('login_btn')
 
         await self._close_ad(timeout=5)
-        await self.player.monitor('setting', timeout=15)
         await self._close_main_ad()
 
         if need_switch_account:

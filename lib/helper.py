@@ -12,6 +12,7 @@ import time
 import win32api
 import win32gui
 from win32con import WM_INPUTLANGCHANGEREQUEST
+import re
 
 
 # file_dir = os.path.split(os.path.realpath(__file__))[0]
@@ -108,4 +109,20 @@ def singleton(cls):
 
     return _singleton
 
+def format_text(text, format='str', line=0):
+    lines = text.splitlines()
+    # print(lines)
+
+    res = lines[line]
+
+    if format == 'str':
+        match_list = re.findall(r'(\w+)', res)
+    elif format == 'int':
+        match_list = re.findall(r'(\d+)', res)
+    else:
+        raise TypeError(f"Unkown format {format}")
+    
+    res = sorted(match_list, key=lambda x: len(x))[-1]
+
+    return res
 

@@ -46,6 +46,9 @@ SPECIAL_DICT = {
     'JueDiQiuSheng': {
         'expired_date': _days_later(15)
     },
+    'GuanJunShiLian': {
+        'expired_date': _days_later(4)
+    }
 }
 
 
@@ -62,7 +65,6 @@ class PlayCounter(object):
             self._init_data()
         else:
             self._load_data()
-            self._update_data()
 
     def _load_data(self):
         try:
@@ -72,6 +74,8 @@ class PlayCounter(object):
             logger.error(f'load {self._file} failed: {str(e)}')
             os.remove(self._file)
             return self._init_data()
+        
+        self._update_data()
 
     def _update_data(self):
         """重置过期数据"""
@@ -85,8 +89,12 @@ class PlayCounter(object):
         for k, v in self._data.items():
             if not isinstance(v, dict):
                 continue
-            expired_date = self._data[k].get('expired_date', TODAY)
-            if expired_date < TODAY:
+
+            if k in SPECIAL_DICT:
+                expired_date = self._data[k].get('expired_date', TODAY)
+                if expired_date <= TODAY:
+                    self._data[k] = SPECIAL_DICT[k]
+            else:
                 self._data[k] = {}
 
 
