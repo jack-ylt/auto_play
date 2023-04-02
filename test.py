@@ -62,7 +62,7 @@ async def test_eye(name=None, threshold=0.8, verify=True, bbox=None):
     # await eye.monitor(name)
 
 
-async def test_tasks(cls_name, func=None):
+async def test_tasks(cls_name, func=None, args=[]):
     g_player_lock = asyncio.Lock()
     window = Window('left_top')
     player = Player(window=window, g_lock=g_player_lock)
@@ -73,7 +73,7 @@ async def test_tasks(cls_name, func=None):
 
     obj = getattr(tasks, cls_name)(player, role_obj.play_setting, counter)
     if func:
-        await getattr(obj, func)()
+        await getattr(obj, func)(*args)
     else:
         await obj.run()
 
@@ -164,11 +164,14 @@ def test_text_recognition():
     window = windows.Window('left_top')
     player = Player(g_lock=asyncio.Lock(), window=window)
     area = (395, 153, 503, 183)
+    # area = (210, 215, 370, 280)
+
+
     text = player.get_text(area)
     print(text)
 
 if __name__ == '__main__':
-    # names = [ 'zuan_shi_3xing', ]
+    # names = [ 'empty_box4', ]
     # asyncio.run(test_eye(names, threshold=0.78, verify=False, bbox = (0, 0, 1920, 1080)))
 
     asyncio.run(test_tasks('GuanJunShiLian'))

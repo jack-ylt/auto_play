@@ -229,14 +229,14 @@ class Player(object):
         await asyncio.sleep(delay)
         
 
-    async def drag(self, p1, p2, speed=0.05, stop=False):
+    async def drag(self, p1, p2, speed=0.05, stop=False, step=10):
         """drag from position 1 to position 2"""
         msg = f"{self.window.name}: drag from {p1} to {p2}"
         self.logger.debug(msg)
 
         p1, p2 = map(self.window.real_pos, [p1, p2])
         async with self.g_lock:
-            await self.hand.drag(p1, p2, speed, stop)
+            await self.hand.drag(p1, p2, speed, stop, step)
             pos1, pos2 = self.window.win_pos(p1), self.window.win_pos(p2)
             self._cache_operation_pic(msg, [pos1, pos2])
 
@@ -460,10 +460,24 @@ class Player(object):
                 return True
         return False
     
-    def get_text(self, area):
+    def get_text(self, area, format='str'):
         (x1, y1, x2, y2) = area
         (dx, dy, _, _) = self.window.bbox
         
         real_area = (x1 + dx, y1 + dy, x2 + dx, y2 + dy)
-        print('real_area', real_area)
-        return self.eye.get_text(real_area)
+        text = self.eye.get_text(real_area)
+
+        if format == 'str':
+            match_list = re.findall(r'(\w+)', text)
+        elif format == 'int':
+            match_list = re.findall(r'(\d+)', text)
+        else:
+            raise TypeError(f"Unkown format {format}")
+        
+        res = sorted(match_list, key=lambda x: len(x))[-1]
+
+        if format == 'int':
+            res = int(res)
+
+        return res
+

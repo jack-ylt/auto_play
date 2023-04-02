@@ -95,13 +95,12 @@ class Hand(object):
         # self.m.click(x, y)
         await asyncio.sleep(0.1)
 
-    async def drag(self, p1, p2, speed=0.05, stop=False):
+    async def drag(self, p1, p2, speed=0.05, stop=False, step=10):
         """drag from position 1 to position 2"""
         x1 = p1[0] + random.randint(-5, 5)
         y1 = p1[1] + random.randint(-3, 3)
         x2 = p2[0] + random.randint(-5, 5)
         y2 = p2[1] + random.randint(-3, 3)
-        step = 10
 
         self.m.move(x1, y1)
         self.m.press(x1, y1)

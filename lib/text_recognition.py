@@ -22,7 +22,6 @@ def get_texts(file_path, options=options):
     image = get_file_content(file_path)
     texts = client.basicGeneral(image, options)
     return texts
-    # print(texts)
 
 
 def find_text_pos(file_path, text, options=options):
