@@ -254,7 +254,7 @@ class GamerBase(object):
         for _ in range(3):
             try:
                 # 没加工会，系统会推荐公会
-                await self.player.find_then_click(['close5'] + OK_BUTTONS + CLOSE_BUTTONS, timeout=1)
+                await self.player.find_then_click(['close5', 'close10'] + OK_BUTTONS + CLOSE_BUTTONS, timeout=1)
             except FindTimeout:
                 pos_list = await self.player.find_all_pos(names)
                 if len(pos_list) >= 2:    # 没广告遮挡，最少能看到两个
