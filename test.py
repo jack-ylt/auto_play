@@ -163,18 +163,19 @@ def test_text_recognition():
     # print(text)
     window = windows.Window('left_top')
     player = Player(g_lock=asyncio.Lock(), window=window)
-    area = (395, 153, 503, 183)
+    # area = (395, 153, 503, 183)
     # area = (210, 215, 370, 280)
+    area = (390, 38, 470, 70)
 
 
     text = player.get_text(area)
     print(text)
 
 if __name__ == '__main__':
-    # names = [ 'empty_box4', ]
+    # names = [ 'red_point3', ]
     # asyncio.run(test_eye(names, threshold=0.78, verify=False, bbox = (0, 0, 1920, 1080)))
 
-    asyncio.run(test_tasks('GuanJunShiLian'))
+    asyncio.run(test_tasks('YingXiongYuanZheng'))
 
 
     # test_text_recognition()

@@ -460,24 +460,23 @@ class Player(object):
                 return True
         return False
     
-    def get_text(self, area, format='str'):
+    def get_text(self, area, format=''):
         (x1, y1, x2, y2) = area
         (dx, dy, _, _) = self.window.bbox
         
         real_area = (x1 + dx, y1 + dy, x2 + dx, y2 + dy)
         text = self.eye.get_text(real_area)
 
-        if format == 'str':
+        if format == '':
+            return text
+        elif format == 'name':
             match_list = re.findall(r'(\w+)', text)
-        elif format == 'int':
+        elif format == 'number':
             match_list = re.findall(r'(\d+)', text)
         else:
             raise TypeError(f"Unkown format {format}")
         
         res = sorted(match_list, key=lambda x: len(x))[-1]
-
-        if format == 'int':
-            res = int(res)
 
         return res
 

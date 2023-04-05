@@ -1798,7 +1798,7 @@ class GuanJunShiLian(Task):
 
             # 更新战力
             area = (395, 153, 503, 183)
-            self.zhan_li = self.player.get_text(area, format='int')
+            self.zhan_li = int(self.player.get_text(area, format='number'))
         
     async def _swipe_left(self):
         p1 = (720, 470)
@@ -1843,7 +1843,7 @@ class GuanJunShiLian(Task):
         (x0, y0, x1, y1) = (210, 215, 370, 280)
         dy = 80
         area = (x0, y0 + dy * idx, x1, y1 + dy * idx )
-        zhan_li = self.player.get_text(area, format='int')
+        zhan_li = int(self.player.get_text(area, format='number'))
         # print(zhan_li)
         return zhan_li
     
@@ -1859,7 +1859,7 @@ class GuanJunShiLian(Task):
         await self.player.monitor(['fight_green', 'fight_green_1'])
 
         area = (395, 153, 503, 183)
-        zhan_li = self.player.get_text(area, format='int')
+        zhan_li = ing(self.player.get_text(area, format='number'))
         self.zhan_li = zhan_li
 
         await self.player.find_then_click(CLOSE_BUTTONS)
@@ -2306,7 +2306,11 @@ class YingXiongYuanZheng(Task):
 
             try:
                 await self._collect_oil()
-                # 每周2,4,6扫荡，防止油溢出
+                await self.player.go_back_to('shang_dian')
+                await self._yuan_gu_yi_ji_saodan()
+                await self.player.go_back_to('shang_dian')
+                await self._buy_goods()
+                await self.player.go_back_to('shang_dian')
                 if self._get_cfg('sweep') and datetime.now().weekday() % 2 == 0:
                     await self._saodan()
                 return
@@ -2392,7 +2396,6 @@ class YingXiongYuanZheng(Task):
     async def _collect_oil(self):
         await self.player.find_then_click('production_workshop')
         await self.player.find_then_click('one_click_collection1')
-        await self.player.go_back()
 
     async def _saodan(self):
         await self.player.find_then_click('yuan_zheng_fu_ben')
@@ -2401,6 +2404,66 @@ class YingXiongYuanZheng(Task):
         # await self.player.find_then_click('sao_dang')
         await self.player.find_then_click('max1')
         await self.player.find_then_click('sao_dang1')
+
+    async def _buy_goods(self):
+        await self.player.find_then_click('shang_dian')
+        for _ in range(3):
+            await self.player.find_then_click('men')
+            if self.player.is_exist('yan_jiu_bi'):
+                break
+        else:
+            # 需要通关4-10才行
+            return
+
+        list1 = await self.player.find_all_pos('yan_jiu_bi')
+        list2 = await self.player.find_all_pos("ji_ying_zu_jian")
+        pos_list1 = self._merge_pos_list(list1, list2, dx=50, dy=100)
+        for pos in sorted(pos_list1, reverse=True):
+            await self.player.click((pos[0]+30, pos[1]))
+            try:
+                await self.player.find_then_click(OK_BUTTONS, timeout=3)
+                await self.player.find_then_click(OK_BUTTONS)
+            except FindTimeout:
+                break
+
+    async def _yuan_gu_yi_ji_saodan(self):
+        await self.player.find_then_click('yuan_zheng_fu_ben')
+        await self.player.find_then_click('tiao_zhan_fu_ben2')
+        try:
+            await self.player.monitor('kao_gu_tong_xing_zheng')
+        except FindTimeout:
+            # 需要通关4-10才行
+            return
+        
+        await self.player.find_then_click('plus2')    
+        list1 = await self.player.find_all_pos('qi_you')
+        list2 = await self.player.find_all_pos("kao_gu_tong_xing_zheng2")
+        pos_list1 = self._merge_pos_list(list1, list2, dx=50, dy=100)
+        for pos in sorted(pos_list1):
+            await self.player.click((pos[0]+30, pos[1]))
+            try:
+                await self.player.find_then_click(OK_BUTTONS, timeout=3)
+                await self.player.find_then_click(OK_BUTTONS)
+            except FindTimeout:
+                break
+        await self.player.find_then_click(CLOSE_BUTTONS)
+
+        await self.player.monitor('kao_gu_tong_xing_zheng')
+        text = self.player.get_text((390, 38, 470, 70))
+        num = int(text.split('/')[0])
+        if num <= 6:
+            return 
+        
+        await self.player.find_then_click('sao_dang')
+        await self.player.find_then_click('1_saodan')
+        await self.player.tap_key(str(num-6))
+        await self.player.find_then_click('que_ding')
+        await self.player.find_then_click('sao_dang1')
+
+        await self.player.find_then_click(OK_BUTTONS)
+        await self.player.find_then_click('yuan_gu_mi_zang')
+        await self.player.find_then_click('red_point3')
+        
 
     async def _exit(self):
         while True:
