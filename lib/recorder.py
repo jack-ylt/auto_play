@@ -6,21 +6,21 @@
 
 """
 {
-    date: 2022-05-18,
+    date: 2023-05-01,
     run_count: 1,
-    YaoQingYingXion: {
-        count: 0,
-    }
-    WuQiKu: {
-        count: 0,
-    }
+
     YouJian: {
-        receive_count: 0,
+        receive_count: {
+            "value": 10,
+            "expired_date": "2023-05-02",
+        },
     },
-    HaoYou: {
-        receive_count: 0,
-        friend_boss: 0,
-        my_boss: 2,
+
+    "YiJiMoKu": {
+        count: {
+            "value": 10,
+            "expired_date": "2023-05-05",
+        },
     },
     ...
 }
@@ -31,26 +31,6 @@ import json
 from datetime import datetime, timedelta
 from lib.mylogs import make_logger
 
-logger = make_logger('full')
-
-TODAY = datetime.now().strftime(r'%Y-%m-%d')
-
-def _days_later(num):
-    date = datetime.now() + timedelta(days=num)
-    return date.strftime(r'%Y-%m-%d')
-
-SPECIAL_DICT = {
-    'YiJiMoKu': {
-        'expired_date': _days_later(4)
-    },
-    'JueDiQiuSheng': {
-        'expired_date': _days_later(15)
-    },
-    'GuanJunShiLian': {
-        'expired_date': _days_later(4)
-    }
-}
-
 
 class PlayCounter(object):
     def __init__(self, name):
@@ -59,6 +39,11 @@ class PlayCounter(object):
             os.mkdir(_dir)
         self._file = os.path.join(_dir, name + '.json')
 
+        self.logger = make_logger('full')
+
+        self.today = datetime.now()
+        self.today_str = datetime.now().strftime(r'%Y-%m-%d')
+
         if name == 'debug':
             self._init_data()
         elif not os.path.exists(self._file):
@@ -66,60 +51,48 @@ class PlayCounter(object):
         else:
             self._load_data()
 
+    def _init_data(self):
+        self.logger.debug('init recorder data')
+        self._data = {}
+        self._data['date'] = self.today_str
+        self._data['run_count'] = 1
+
     def _load_data(self):
         try:
             with open(self._file, 'r') as f:
                 self._data = json.load(f)
-        except json.decoder.JSONDecodeError as e:
-            logger.error(f'load {self._file} failed: {str(e)}')
+        except json.decoder.JSONDecodeError as err:
+            self.logger.error(f'load {self._file} failed: {str(err)}')
             os.remove(self._file)
             return self._init_data()
-        
-        self._update_data()
-
-    def _update_data(self):
-        """重置过期数据"""
-        if self._data['date'] == TODAY:
-            self._data['run_count'] += 1
-            return
-        
-        self._data['date'] = TODAY
-        self._data['run_count'] = 1
-
-        for k, v in self._data.items():
-            if not isinstance(v, dict):
-                continue
-
-            if k in SPECIAL_DICT:
-                expired_date = self._data[k].get('expired_date', TODAY)
-                if expired_date <= TODAY:
-                    self._data[k] = SPECIAL_DICT[k]
-            else:
-                self._data[k] = {}
-
-
-    def _init_data(self):
-        self._data = {}
-        self._data['date'] = TODAY
-        self._data['run_count'] = 1
-
-        self._data.update(SPECIAL_DICT)
-    
-
-    
-    def get(self, cls_name, key):
-        try:
-            return int(self._data[cls_name][key])
-        except KeyError:
-            return 0
 
     def get_run_count(self):
         return self._data['run_count']
 
-    def set(self, cls_name, key, val):
+    def get(self, cls_name, key, default=0):
+        try:
+            expired_date = self._data[cls_name][key]['expired_date']
+            if self.today_str < expired_date:
+                return int(self._data[cls_name][key]['value'])
+            else:
+                return default
+        except KeyError:
+            return default
+
+    def set(self, cls_name, key, val, validity_period=1):
         if cls_name not in self._data:
-            self._data[cls_name] = SPECIAL_DICT.get(cls_name, {})
-        self._data[cls_name][key] = val
+            self._data[cls_name] = {}
+
+        if key not in self._data[cls_name]:
+            self._data[cls_name][key] = {}
+
+        d = self._data[cls_name][key]
+        d['value'] = val
+        d['expired_date'] = self._days_later(validity_period)
+
+    def _days_later(self, num):
+        date = self.today + timedelta(days=num)
+        return date.strftime(r'%Y-%m-%d')
 
     def save_data(self):
         with open(self._file, 'w') as f:

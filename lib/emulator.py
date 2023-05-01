@@ -116,7 +116,7 @@ class Emulator(object):
             else:
                 raise EmulatorNotFound("未找到夜神模拟器，请先安装夜神模拟器")
 
-        await self.player.find_then_click(['duo_kai_guang_li', 'duo_kai_guang_li_1'])
+        await self.player.find_then_click(['duo_kai_guang_li', 'duo_kai_guang_li_1'], threshold=0.9)
         # await self.player.find_then_click('select_all', threshold=0.9)
 
         # try:

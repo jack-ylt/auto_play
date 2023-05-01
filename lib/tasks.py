@@ -196,30 +196,30 @@ class Task(object):
 
         await self.player.multi_click(pos_list)
 
-    def _get_count(self, key='count', cls_name=None):
+    def _get_count(self, key='count', cls_name=None, default=0):
         if self.counter is None:
             return 0
 
         if cls_name is None:
             cls_name = self.__class__.__name__
-        return self.counter.get(cls_name, key)
+        return self.counter.get(cls_name, key, default=default)
 
-    def _increate_count(self, key='count', val=1, cls_name=None):
+    def _increate_count(self, key='count', val=1, cls_name=None, validity_period=1):
         if self.counter is None:
             return None
 
         if cls_name is None:
             cls_name = self.__class__.__name__
         new_val = self._get_count(key) + val
-        self.counter.set(cls_name, key, new_val)
+        self.counter.set(cls_name, key, new_val, validity_period=validity_period)
 
-    def _set_count(self, val, key='count', cls_name=None):
+    def _set_count(self, val, key='count', cls_name=None, validity_period=1):
         if self.counter is None:
             return None
 
         if cls_name is None:
             cls_name = self.__class__.__name__
-        self.counter.set(cls_name, key, val)
+        self.counter.set(cls_name, key, val, validity_period=validity_period)
 
     def _get_cfg(self, *keys, cls_name=None):
         if cls_name is None:
@@ -1705,7 +1705,7 @@ class GuanJunShiLian(Task):
         self.can_not_win = set()
 
     def test(self):
-        if not self._get_cfg():
+        if not self._get_cfg('enable'):
             return False
         if not datetime.now().weekday() in (4, 5, 6):
             return False
@@ -1722,12 +1722,12 @@ class GuanJunShiLian(Task):
         while self.score < 50 or (not self.is_zuanshi):
             self.is_zuanshi = self.player.is_exist("zuan_shi_duan_wei")
             if self.is_zuanshi:
-                self._increate_count('reach_zuanshi')
+                self._increate_count('reach_zuanshi', GuanJunShiLian=4)
 
             try:
                 score = await self._fight()
                 self.score += score
-                self._increate_count('score', score)
+                self._increate_count('score', score, GuanJunShiLian=4)
             except PlayException as err:
                 if str(err) == "no opponment":
                     break
@@ -1809,15 +1809,19 @@ class GuanJunShiLian(Task):
     async def _fight(self):
         self.logger.info('_fight')
         try:
+            ji_fen = await self._get_my_score()
             await self.player.find_then_click('zhan_dou')
         except FindTimeout:
             raise PlayException("set team")
 
         await self.player.monitor('ying_xiong_chu_zhan')
-        for i in range(5):
+        for _ in range(5):
             for j in range(3):
-                zhan_li = await self._get_enemy_power(j)
+                ji_fen_enemy = await self._get_enemy_score(j)
+                if ji_fen_enemy * 1.1 < ji_fen:
+                    continue
 
+                zhan_li = await self._get_enemy_power(j)
                 if zhan_li in self.fight_too_much or zhan_li in self.can_not_win:
                     continue
                 if zhan_li > await self._get_self_power():
@@ -1838,13 +1842,23 @@ class GuanJunShiLian(Task):
             await self.player.find_then_click('shua_xing')
         raise PlayException("no opponment")
             
+    async def _get_my_score(self):
+        area = (610, 205, 720, 235)
+        ji_fen = int(self.player.get_text(area, format='number'))
+        return ji_fen
+    
+    async def _get_enemy_score(self, idx):
+        (x0, y0, x1, y1) = (425, 220, 490, 280)
+        dy = 80
+        area = (x0, y0 + dy * idx, x1, y1 + dy * idx )
+        ji_fen = int(self.player.get_text(area, format='number'))
+        return ji_fen
 
     async def _get_enemy_power(self, idx):
         (x0, y0, x1, y1) = (210, 215, 370, 280)
         dy = 80
         area = (x0, y0 + dy * idx, x1, y1 + dy * idx )
         zhan_li = int(self.player.get_text(area, format='number'))
-        # print(zhan_li)
         return zhan_li
     
     async def _get_self_power(self):
@@ -1859,7 +1873,7 @@ class GuanJunShiLian(Task):
         await self.player.monitor(['fight_green', 'fight_green_1'])
 
         area = (395, 153, 503, 183)
-        zhan_li = ing(self.player.get_text(area, format='number'))
+        zhan_li = int(self.player.get_text(area, format='number'))
         self.zhan_li = zhan_li
 
         await self.player.find_then_click(CLOSE_BUTTONS)
@@ -2403,7 +2417,7 @@ class YingXiongYuanZheng(Task):
         await self.player.click_untile_disappear('sao_dang')
         # await self.player.find_then_click('sao_dang')
         await self.player.find_then_click('max1')
-        await self.player.find_then_click('sao_dang1')
+        await self.player.find_then_click(['sao_dang1', 'sao_dang3'])
 
     async def _buy_goods(self):
         await self.player.find_then_click('shang_dian')
@@ -2456,9 +2470,16 @@ class YingXiongYuanZheng(Task):
         
         await self.player.find_then_click('sao_dang')
         await self.player.find_then_click('1_saodan')
-        await self.player.tap_key(str(num-6))
+        number = num - 6
+        if number < 10:
+            await self.player.tap_key(str(number))
+        else:
+            await self.player.tap_key(str(number // 10))
+            await self.player.tap_key(str(number % 10))
+
         await self.player.find_then_click('que_ding')
-        await self.player.find_then_click('sao_dang1')
+        await self.player.find_then_click(['sao_dang1', 'sao_dang3'])
+
 
         await self.player.find_then_click(OK_BUTTONS)
         await self.player.find_then_click('yuan_gu_mi_zang')
@@ -2925,8 +2946,8 @@ class YiJiMoKu(Task):
             # 打通的关数太少，是没有菜可以收的
             # 或者已经领过了
             # TODO 要以get_count为准，要区分小号和大号，因为可能购物过程出错退出，需要重新购物
-            return
-            # pass
+            # return
+            pass
 
         lack_gold = False
 
@@ -3013,7 +3034,7 @@ class YiJiMoKu(Task):
 
         await self.player.find_then_click(CLOSE_BUTTONS)
 
-        self._increate_count()
+        self._increate_count(validity_period=4)
 
     def test(self):
         return True
@@ -3135,7 +3156,7 @@ class JueDiQiuSheng(Task):
                     await self.player.find_then_click(CLOSE_BUTTONS)
                     break
         
-        self._increate_count()
+        self._increate_count(validity_period=15)
 
     def test(self):
         return self._get_cfg('enable') and self._get_count() < 1

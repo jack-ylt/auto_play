@@ -172,12 +172,12 @@ def test_text_recognition():
     print(text)
 
 if __name__ == '__main__':
-    # names = [ 'red_point3', ]
-    # asyncio.run(test_eye(names, threshold=0.78, verify=False, bbox = (0, 0, 1920, 1080)))
+    names = ['duo_kai_guang_li', 'duo_kai_guang_li_1']
+    asyncio.run(test_eye(names, threshold=0.78, verify=False, bbox = (0, 0, 1920, 1080)))
 
-    asyncio.run(test_tasks('YingXiongYuanZheng'))
-
-
+    # asyncio.run(test_tasks('JueDiQiuSheng'))
+    # asyncio.run(test_tasks('GuanJunShiLian', func='_get_enemy_score', args=[0]))
+   
     # test_text_recognition()
 
 
