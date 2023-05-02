@@ -1332,6 +1332,28 @@ class YaoQingYingXion(Task):
             else:
                 await self.player.find_then_click(name)    # 要避免点太快
 
+        # 购买光暗3星
+        if self._get_count('mai_guang_an_3_xing') > 0:
+            return
+        
+        await self.player.find_then_click('pi_jiu_icon')
+        await self.player.monitor('pi_jiu_icon1')
+        await self._swipe_left()
+
+        for _ in range(2):
+            try:
+                _, pos = await self.player.monitor(['guang_san_xing', 'an_san_xing'], threshold=0.9, timeout=2)
+                await self.player.click((pos[0], pos[1] + 80))
+            except FindTimeout:
+                break
+            await self.player.find_then_click('max2')
+            await self.player.find_then_click('gou_mai')
+            await self.player.find_then_click(OK_BUTTONS)
+        
+            self._increate_count('mai_guang_an_3_xing', validity_period=7)
+        
+
+
     def test(self):
         if not self.cfg['YaoQingYingXion']['enable']:
             return False
@@ -1361,6 +1383,11 @@ class YaoQingYingXion(Task):
         # 回到啤酒邀请界面
         await self.player.go_back()
 
+
+    async def _swipe_left(self):
+        p1 = (650, 275)
+        p2 = (250, 275)
+        await self.player.drag(p1, p2, stop=True)
 
 class WuQiKu(Task):
     """武器库"""
@@ -1722,12 +1749,12 @@ class GuanJunShiLian(Task):
         while self.score < 50 or (not self.is_zuanshi):
             self.is_zuanshi = self.player.is_exist("zuan_shi_duan_wei")
             if self.is_zuanshi:
-                self._increate_count('reach_zuanshi', GuanJunShiLian=4)
+                self._increate_count('reach_zuanshi', validity_period=4)
 
             try:
                 score = await self._fight()
                 self.score += score
-                self._increate_count('score', score, GuanJunShiLian=4)
+                self._increate_count('score', score, validity_period=4)
             except PlayException as err:
                 if str(err) == "no opponment":
                     break
