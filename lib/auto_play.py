@@ -225,14 +225,15 @@ async def daily_play(player, role):
                     await auto.recover(role)
                 except FindTimeout:
                     raise LoginTimeout()
-        except MouseFailure as err:
-            # 鼠标失灵，试试重启客户端
-            player.logger.error(f"run {cls_name} faled: {str(err)}")
-            player.save_operation_pics(str(err))
-            try:
-                await auto.recover(role)
-            except FindTimeout:
-                raise LoginTimeout()
+        # except MouseFailure as err:
+        #     # 鼠标失灵，试试重启客户端
+        #     # -> 没用，移动鼠标都办不到，根本没法重启
+        #     player.logger.error(f"run {cls_name} faled: {str(err)}")
+        #     player.save_operation_pics(str(err))
+        #     try:
+        #         await auto.recover(role)
+        #     except FindTimeout:
+        #         raise LoginTimeout()
         finally:
             counter.save_data()
 
