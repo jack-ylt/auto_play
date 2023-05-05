@@ -71,7 +71,7 @@ class Task(object):
 
     async def _fight(self):
         """do fight, return win or lose"""
-        await self.player.find_then_click(['start_fight', 'fight1'])
+        await self.player.click_untile_disappear(['start_fight', 'fight1'])
         await asyncio.sleep(3)
         res = await self._do_fight()
         pos_ok = (430, 430)
@@ -800,7 +800,7 @@ class TiaoZhanFuben(Task):
             self._increate_count('count')
 
     async def _tiao_zhan(self):
-        await self.player.find_then_click('start_fight')
+        await self.player.click_untile_disappear('start_fight')
         res = await self._fight_challenge()
 
         if res == 'win':
@@ -899,7 +899,7 @@ class GongHui(Task):
     async def _fight_guild(self):
         # next_fight = (520, 425)
 
-        await self.player.find_then_click('start_fight')
+        await self.player.click_untile_disappear('start_fight')
         await self._go_last()
 
         # await self.player.click(next_fight)
@@ -1671,7 +1671,7 @@ class JingJiChang(Task):
             name, _ = await self.player.monitor(['buy_ticket', 'start_fight'])
 
             if name == 'start_fight':
-                await self.player.find_then_click('start_fight')
+                await self.player.click_untile_disappear('start_fight')
             else:
                 raise PlayException('lack of ticket.')
 
@@ -3074,7 +3074,7 @@ class YiJiMoKu(Task):
         name, _ = await self.player.monitor(['close', 'jin_ru', 'hou_kai_qi', 'yi_jian_ling_qv2'])
         if name == 'close':
             await self._equip_team_yjmk()
-            await self.player.find_then_click('start_fight')
+            await self.player.click_untile_disappear('start_fight')
             return True
         elif name == 'hou_kai_qi':
             # 活动未开启
@@ -3092,7 +3092,7 @@ class YiJiMoKu(Task):
             elif name == 'ying_xiong_chu_zhan':
                 # 小号
                 await self._equip_team_yjmk()
-                await self.player.find_then_click('start_fight')
+                await self.player.click_untile_disappear('start_fight')
                 return True
             elif name in ['close', 'kai_shi_tiao_zhan']:
                 # 长时间未登录，会有新手引导
@@ -3101,7 +3101,7 @@ class YiJiMoKu(Task):
                 await self.player.find_then_click(OK_BUTTONS)
                 await self.player.monitor('close')
                 await self._equip_team_yjmk()
-                await self.player.find_then_click('start_fight')
+                await self.player.click_untile_disappear('start_fight')
                 return True
 
 
@@ -3176,7 +3176,7 @@ class JueDiQiuSheng(Task):
                 if self.player.is_exist('bai_fen_bai', threshold=0.9):
                     await self.player.find_then_click('sao_dang2')
                     await self.player.find_then_click(OK_BUTTONS)
-                    await self.player.find_then_click('start_fight')
+                    await self.player.click_untile_disappear('start_fight')
                     await self.player.monitor('huo_de_wu_ping')
                     await self.player.find_then_click(OK_BUTTONS)
                 else:
@@ -3206,7 +3206,7 @@ class ShiJieBoss(Task):
             await self.player.find_then_click('gong_ji', timeout=3)
         except FindTimeout:
             return 
-        await self.player.find_then_click('start_fight')
+        await self.player.click_untile_disappear('start_fight')
 
         for i in range(10):
             await self.player.find_then_click('xia_yi_chang')
