@@ -261,13 +261,18 @@ class Eye(object):
 
     def is_exist(self, name,  area=None, threshold=0.8):
         img_bg = self._screenshot(area=area)
-        img_target = self._get_img(name)
-        pos_list, max_val = self._find_img_pos(
-            img_bg, img_target, threshold=threshold)
-        if pos_list:
-            self.logger.debug(
-                f"{name} is exist at {pos_list}, max_val: {max_val}")
-            return True
+        if not isinstance(names, list):
+            names = [names]
+        
+        for name in names:
+            img_target = self._get_img(name)
+            pos_list, max_val = self._find_img_pos(
+                img_bg, img_target, threshold=threshold)
+            if pos_list:
+                self.logger.debug(
+                    f"{name} is exist at {pos_list}, max_val: {max_val}")
+                return True
+            
         return False
 
     def _screenshot(self, area=None, name=None):

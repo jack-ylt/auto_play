@@ -142,8 +142,9 @@ class Player(object):
         self.last_click = None
         return name, pos
 
-    def is_exist(self, name, threshold=0.8):
-        return self.eye.is_exist(name, area=self.window.bbox, threshold=threshold)
+    def is_exist(self, names, threshold=0.8):
+        return self.eye.is_exist(names, area=self.window.bbox, threshold=threshold)
+
 
     async def find_all_pos(self, names, threshold=0.8):
         """return pos_list, all rease timeout_error"""

@@ -345,7 +345,7 @@ class XianShiJie(Task):
                 await self._goto_next_area()
 
         await asyncio.sleep(3)
-        await self.player.find_then_click(['fight'])
+        await self.player.click_untile_disappear(['fight'])
 
     # TODO: 所有都完成了如何处理？
     async def _goto_next_map(self):
@@ -408,7 +408,7 @@ class XianShiJie(Task):
             raise PlayException(msg)
         await self.player.click(pos)
         await asyncio.sleep(3)
-        await self.player.find_then_click(['fight'])
+        await self.player.click_untile_disappear(['fight'])
 
 
 class YouJian(Task):
@@ -876,9 +876,9 @@ class GongHui(Task):
             pos = (pos[0], pos[1]-50)
         await self.player.click(pos)
 
-        await self.player.monitor('ranking_icon2')
+        await self.player.monitor('fight4')
 
-        if self.player.is_exist('zuan_shi'):
+        if self.player.is_exist(['zuan_shi', 'zuan_shi1']):
             # 避免花费钻石
             return
 
