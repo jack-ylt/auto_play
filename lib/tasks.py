@@ -1811,7 +1811,7 @@ class GuanJunShiLian(Task):
             x_list = [212, 286, 390, 467, 544, 620]
             y_list = [230, 300, 370]
             for r in range(3):
-                pos_list = [(x_list[c], y_list[r]) for c in range(cols)]
+                pos_list = [(x_list[c], y_list[r]) for c in range(3)]
                 await self.player.multi_click(pos_list) 
 
             # 重新上阵
@@ -1841,8 +1841,8 @@ class GuanJunShiLian(Task):
 
     async def _fight(self):
         self.logger.info('_fight')
-        await self.player.monitor('zhan_dou')
         try:
+            await self.player.monitor('zhan_dou')
             # 获取积分太不准了 555
             # ji_fen_me = await self._get_my_score()
             await self.player.find_then_click('zhan_dou')
@@ -1865,7 +1865,7 @@ class GuanJunShiLian(Task):
 
                 # 如果积分太低，后面的人只会更低
                 if zhan_li in self.too_poor:
-                    break
+                    raise PlayException("no opponment")
                 # ji_fen_enemy = await self._get_enemy_score(j)
                 # if ji_fen_enemy * 1.3 < ji_fen_me:
                 #     break
