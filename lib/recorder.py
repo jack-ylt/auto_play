@@ -68,6 +68,12 @@ class PlayCounter(object):
 
     def get_run_count(self):
         return self._data['run_count']
+    
+    def get_global(self, key, default=0):
+        return self._data[key]
+    
+    def set_global(self, key, val):
+        self._data[key] = val
 
     def get(self, cls_name, key, default=0):
         try:

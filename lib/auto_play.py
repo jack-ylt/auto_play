@@ -11,6 +11,7 @@ from lib.player import FindTimeout
 from lib.recorder import PlayCounter
 from lib.role import Role
 import time
+import datetime
 from lib.tasks import PlayException
 # from lib import role
 
@@ -23,35 +24,35 @@ from lib.global_vals import GameNotFound, UnsupportGame, LoginTimeout, RestartTo
 shen_yuan_tasks = ('ShenYuanMoKu', )
 
 daily_play_tasks = (
-    # 'KuaiJieZhiNan',
-    # 'XianShiJie',
-    # 'YouJian',
-    # 'HaoYou',
-    # 'SheQvZhuLi',
-    # 'TiaoZhanFuben',
-    # 'GongHui',
-    # 'MeiRiQianDao',
-    # 'JueDiKongJian',
-    # 'ShengCunJiaYuan',
-    # 'YaoQingYingXion',
-    # 'WuQiKu',
-    # 'XingCunJiangLi',
-    # 'ShiChang',
-    # 'JingJiChang',
+    'KuaiJieZhiNan',
+    'XianShiJie',
+    'YouJian',
+    'HaoYou',
+    'SheQvZhuLi',
+    'TiaoZhanFuben',
+    'GongHui',
+    'MeiRiQianDao',
+    'JueDiKongJian',
+    'ShengCunJiaYuan',
+    'YaoQingYingXion',
+    'WuQiKu',
+    'XingCunJiangLi',
+    'ShiChang',
+    'JingJiChang',
     'GuanJunShiLian',
-    # 'YongZheFuBen',
-    # 'XingYunZhuanPan',
-    # 'RenWuLan',
-    # 'VipShangDian',
-    # 'JiYiDangAnGuan',
-    # 'YiJiMoKu',
-    # 'YingXiongYuanZheng',
-    # 'MiGong',
-    # 'LianSaiBaoXiang',
-    # 'GongHuiZhan',
-    # 'JueDiQiuSheng',
-    # 'ShiJieBoss',
-    # 'RenWu',
+    'YongZheFuBen',
+    'XingYunZhuanPan',
+    'RenWuLan',
+    'VipShangDian',
+    'JiYiDangAnGuan',
+    'YiJiMoKu',
+    'YingXiongYuanZheng',
+    'MiGong',
+    'LianSaiBaoXiang',
+    'GongHuiZhan',
+    'JueDiQiuSheng',
+    'ShiJieBoss',
+    'RenWu',
 )
 
 
@@ -193,6 +194,9 @@ async def daily_play(player, role):
         raise LoginTimeout()
 
     counter = PlayCounter(role.game + '_' + role.user)
+    counter.set_global('run_count', counter.get_global('run_count') + 1)
+    counter.set_global('start_time', time.time())
+
     task_list = list(daily_play_tasks)
 
     error_count = 0
@@ -247,6 +251,10 @@ async def daily_play(player, role):
 
             # 回不到主界面，可能卡住了，需要重启
             await auto.recover(role)
+
+    # if done all success, save done time
+    counter.set_global('done_time', time.time())
+    counter.save_data()
 
 
 class AutoRecover():

@@ -1,3 +1,4 @@
+import time
 from lib.read_cfg import read_role_cfg
 import logging
 from lib.player import Player, FindTimeout
@@ -60,11 +61,13 @@ class Roles():
         self.all_roles = [Role(g, u) for (g, u) in read_game_user()]
         self.total_roles = len(self.all_roles)
 
+        # 按照用户配置顺序来执行游戏，如果2小时内完成过，则跳过它
+        self._idle_roles = []
+        now = time.time()
         for role in self.all_roles:
             counter = PlayCounter(role.game + '_' + role.user)
-            role._run_count = counter.get_run_count()
-
-        self._idle_roles = sorted(self.all_roles, key=lambda x: x._run_count)
+            if now - counter.get_global('done_time') > 3600 * 2:
+                self._idle_roles.append(role)
 
         if not self._idle_roles:
             raise UserConfigError("Error: 游戏账号未配置！请先参考文档配置游戏账号。")
