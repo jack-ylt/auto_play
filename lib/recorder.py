@@ -65,12 +65,12 @@ class PlayCounter(object):
             self.logger.error(f'load {self._file} failed: {str(err)}')
             os.remove(self._file)
             return self._init_data()
-
-    def get_run_count(self):
-        return self._data['run_count']
     
     def get_global(self, key, default=0):
-        return self._data[key]
+        try:
+            return self._data[key]
+        except KeyError:
+            return default
     
     def set_global(self, key, val):
         self._data[key] = val

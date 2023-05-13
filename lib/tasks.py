@@ -1911,10 +1911,12 @@ class GuanJunShiLian(Task):
         return ji_fen
 
     async def _get_enemy_power(self, idx):
-        (x0, y0, x1, y1) = (210, 215, 370, 280)
-        dy = 80
-        area = (x0, y0 + dy * idx, x1, y1 + dy * idx )
-        zhan_li = int(self.player.get_text(area, format='number'))
+        areas = [
+            (237, 250, 360, 280),
+            (237, 330, 360, 360),
+            (237, 415, 360, 445),
+        ]
+        zhan_li = int(self.player.get_text(areas[idx], format='number'))
         self.logger.info(f"_get_enemy_power: {zhan_li}")
         return zhan_li
     
