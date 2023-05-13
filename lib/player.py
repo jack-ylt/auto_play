@@ -467,6 +467,7 @@ class Player(object):
         
         real_area = (x1 + dx, y1 + dy, x2 + dx, y2 + dy)
         text = self.eye.get_text(real_area)
+        # print('text:', text)
 
         if format == '':
             return text

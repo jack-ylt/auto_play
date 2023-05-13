@@ -876,7 +876,7 @@ class GongHui(Task):
             pos = (pos[0], pos[1]-50)
         await self.player.click(pos)
 
-        await self.player.monitor('fight4')
+        await self.player.monitor('ranking_icon2')
 
         if self.player.is_exist(['zuan_shi', 'zuan_shi1']):
             # 避免花费钻石
@@ -1725,11 +1725,12 @@ class JingJiChang(Task):
 class GuanJunShiLian(Task):
     def __init__(self, player, role_setting, counter):
         super().__init__(player, role_setting, counter)
-        self.zhan_li = self._get_count('zhan_li')
+        self.zhan_li = None
         self.score = self._get_count('score')
         self.is_zuanshi = self._get_count('reach_zuanshi')
         self.fight_too_much = set()
         self.can_not_win = set()
+        self.too_poor = set()
 
     def test(self):
         if not self._get_cfg('enable'):
@@ -1746,17 +1747,22 @@ class GuanJunShiLian(Task):
 
         await self._enter()
 
-        while self.score < 50 or (not self.is_zuanshi):
+        while True:
             self.is_zuanshi = self.player.is_exist("zuan_shi_duan_wei")
             if self.is_zuanshi:
                 self._increate_count('reach_zuanshi', validity_period=4)
-
+                self.logger.info("reach_zuanshi, so exit")
+                break
             try:
                 score = await self._fight()
                 self.score += score
+                if self.score > 50:
+                    self.logger.info(f"the score is {self.score}, so exit")
+                    break
                 self._increate_count('score', score, validity_period=4)
             except PlayException as err:
                 if str(err) == "no opponment":
+                    self.logger.info("no opponment, so exit")
                     break
                 elif str(err) == "set team":
                     await self._set_team_defense()
@@ -1835,29 +1841,46 @@ class GuanJunShiLian(Task):
 
     async def _fight(self):
         self.logger.info('_fight')
+        await self.player.monitor('zhan_dou')
         try:
-            ji_fen = await self._get_my_score()
+            # 获取积分太不准了 555
+            # ji_fen_me = await self._get_my_score()
             await self.player.find_then_click('zhan_dou')
         except FindTimeout:
             raise PlayException("set team")
 
         await self.player.monitor('ying_xiong_chu_zhan')
+        try:
+            await self.player.monitor('men_piao_3', timeout=3)
+        except FindTimeout:
+            raise PlayException("set team")
+        
         for _ in range(5):
             for j in range(3):
-                ji_fen_enemy = await self._get_enemy_score(j)
-                if ji_fen_enemy * 1.1 < ji_fen:
-                    continue
-
                 zhan_li = await self._get_enemy_power(j)
                 if zhan_li in self.fight_too_much or zhan_li in self.can_not_win:
                     continue
                 if zhan_li > await self._get_self_power():
                     continue
 
+                # 如果积分太低，后面的人只会更低
+                if zhan_li in self.too_poor:
+                    break
+                # ji_fen_enemy = await self._get_enemy_score(j)
+                # if ji_fen_enemy * 1.3 < ji_fen_me:
+                #     break
+
                 try:
                     score = await self._do_fight(j)
                     if score == 1:
                         self.can_not_win.add(zhan_li)
+
+                    ji_fen_add = await self._get_increace_score()
+                    print('ji_fen_add', ji_fen_add)
+                    if ji_fen_add < 5:
+                        self.too_poor.add(zhan_li)
+                    await self.player.find_then_click(OK_BUTTONS)
+
                     return score
                 except PlayException as err:
                     if str(err) == "reach max fight num":
@@ -1866,19 +1889,25 @@ class GuanJunShiLian(Task):
                     else:
                         raise
     
-            await self.player.find_then_click('shua_xing')
+            await self._reflash()
         raise PlayException("no opponment")
             
     async def _get_my_score(self):
-        area = (610, 205, 720, 235)
+        # area = (610, 205, 720, 235)
+        # 之圈数字，否则容易误识别
+        area = (668, 205, 720, 235)
         ji_fen = int(self.player.get_text(area, format='number'))
+        self.logger.info(f"_get_my_score: {ji_fen}")
         return ji_fen
     
     async def _get_enemy_score(self, idx):
-        (x0, y0, x1, y1) = (425, 220, 490, 280)
-        dy = 80
-        area = (x0, y0 + dy * idx, x1, y1 + dy * idx )
-        ji_fen = int(self.player.get_text(area, format='number'))
+        areas = [
+            (430, 245, 490, 280),
+            (430, 327, 490, 362),
+            (430, 409, 490, 444),
+        ]
+        ji_fen = int(self.player.get_text(areas[idx], format='number'))
+        self.logger.info(f"_get_enemy_score: {ji_fen}")
         return ji_fen
 
     async def _get_enemy_power(self, idx):
@@ -1886,6 +1915,7 @@ class GuanJunShiLian(Task):
         dy = 80
         area = (x0, y0 + dy * idx, x1, y1 + dy * idx )
         zhan_li = int(self.player.get_text(area, format='number'))
+        self.logger.info(f"_get_enemy_power: {zhan_li}")
         return zhan_li
     
     async def _get_self_power(self):
@@ -1904,8 +1934,29 @@ class GuanJunShiLian(Task):
         self.zhan_li = zhan_li
 
         await self.player.find_then_click(CLOSE_BUTTONS)
-
+        
+        self.logger.info(f"_get_self_power: {zhan_li}")
         return zhan_li
+    
+    async def _get_increace_score(self):
+        area = (220, 335, 335, 370)
+        text = self.player.get_text(area)
+        # 1474(+23)
+        m = re.search(r'\(\+(\d+)\)', text)
+        if m:
+            score = int(m.group(1))
+            self.logger.info(f"_get_increace_score: {score}")
+            return score
+        else:
+            # 识别不成功，或者是负的
+            return 0
+        
+    async def _reflash(self):
+        # 刷新页面，并等待刷新完成
+        await self.player.find_then_click('shua_xing')
+        await self.player.monitor('men_piao_3')
+        await asyncio.sleep(1)
+
     
     async def _do_fight(self, idx):
         self.logger.info('_do_fight')
@@ -1935,7 +1986,6 @@ class GuanJunShiLian(Task):
             if name == 'card':
                 await self.player.click(pos_ok)
                 result = await self.player.find_then_click(['win', 'lose'], threshold=0.9)
-                await self.player.click(pos_ok)
                 return 2 if result == 'win' else 1
 
             await asyncio.sleep(1)

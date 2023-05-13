@@ -165,20 +165,24 @@ def test_text_recognition():
     player = Player(g_lock=asyncio.Lock(), window=window)
     # area = (395, 153, 503, 183)
     # area = (210, 215, 370, 280)
-    area = (390, 38, 470, 70)
+    # area = (220, 335, 335, 370)
+    area = (668, 205, 720, 235)
+    # area = (430, 327, 490, 362)
+
+
 
 
     text = player.get_text(area)
     print(text)
 
 if __name__ == '__main__':
-    names =['zuan_shi1', 'zuan_shi']
-    asyncio.run(test_eye(names, threshold=0.78, verify=False, bbox = (0, 0, 1920, 1080)))
+    # names =  ['duo_kai_guang_li', 'duo_kai_guang_li_1']
+    # asyncio.run(test_eye(names, threshold=0.78, verify=False, bbox = (0, 0, 1920, 1080)))
 
     # asyncio.run(test_tasks('YaoQingYingXion'))
     # asyncio.run(test_tasks('GuanJunShiLian', func='_get_enemy_score', args=[0]))
    
-    # test_text_recognition()
+    test_text_recognition()
 
 
 

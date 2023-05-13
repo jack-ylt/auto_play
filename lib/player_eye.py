@@ -259,7 +259,7 @@ class Eye(object):
 
         return True
 
-    def is_exist(self, name,  area=None, threshold=0.8):
+    def is_exist(self, names,  area=None, threshold=0.8):
         img_bg = self._screenshot(area=area)
         if not isinstance(names, list):
             names = [names]
