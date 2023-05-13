@@ -66,6 +66,10 @@ async def main(goal):
             roles = Roles()
         except UserConfigError as e:
             return stop_play(str(e))
+        
+        if not roles.have_idle_roles():
+            logger.info("所有角色都在最近2小时内运行过了，没必要频繁运行")
+            return
 
         try:
             async for window in emu.start_all_emulator():

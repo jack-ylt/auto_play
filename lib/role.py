@@ -59,6 +59,8 @@ class Roles():
         self._running_roles = []
         self._done_roles = []
         self.all_roles = [Role(g, u) for (g, u) in read_game_user()]
+        if not self.all_roles:
+            raise UserConfigError("Error: 游戏账号未配置！请先参考文档配置游戏账号。")
         self.total_roles = len(self.all_roles)
 
         # 按照用户配置顺序来执行游戏，如果2小时内完成过，则跳过它
@@ -69,8 +71,8 @@ class Roles():
             if now - counter.get_global('done_time') > 3600 * 2:
                 self._idle_roles.append(role)
 
-        if not self._idle_roles:
-            raise UserConfigError("Error: 游戏账号未配置！请先参考文档配置游戏账号。")
+    def have_idle_roles(self, game=None):
+        return bool(self._idle_roles)
 
     def get_idle_role(self, game=None):
         idle_role = None
