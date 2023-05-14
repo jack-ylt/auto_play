@@ -1748,17 +1748,13 @@ class GuanJunShiLian(Task):
         await self._enter()
 
         while True:
-            self.is_zuanshi = self.player.is_exist("zuan_shi_duan_wei")
-            if self.is_zuanshi:
+            if self.player.is_exist("zuan_shi_duan_wei"):
+                self.is_zuanshi = 1
                 self._increate_count('reach_zuanshi', validity_period=4)
-                self.logger.info("reach_zuanshi, so exit")
-                break
+
             try:
                 score = await self._fight()
                 self.score += score
-                if self.score > 50:
-                    self.logger.info(f"the score is {self.score}, so exit")
-                    break
                 self._increate_count('score', score, validity_period=4)
             except PlayException as err:
                 if str(err) == "no opponment":
@@ -1766,6 +1762,10 @@ class GuanJunShiLian(Task):
                     break
                 elif str(err) == "set team":
                     await self._set_team_defense()
+
+            if self.score > 50 and self.is_zuanshi:
+                self.logger.info(f"the score is {self.score} (>50) and has reached zuanshi, so exit")
+                break
 
     async def _enter(self):
         self.logger.info('_enter')

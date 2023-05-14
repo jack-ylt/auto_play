@@ -106,4 +106,5 @@ class Roles():
                     pass
 
     def is_all_roles_done(self):
-        return len(self._done_roles) == self.total_roles
+        # return len(self._done_roles) == self.total_roles
+        return self._running_roles == self._idle_roles == []
