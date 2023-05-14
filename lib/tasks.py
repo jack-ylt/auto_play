@@ -1811,7 +1811,7 @@ class GuanJunShiLian(Task):
             x_list = [212, 286, 390, 467, 544, 620]
             y_list = [230, 300, 370]
             for r in range(3):
-                pos_list = [(x_list[c], y_list[r]) for c in range(3)]
+                pos_list = [(x_list[c], y_list[r]) for c in range(cols)]
                 await self.player.multi_click(pos_list) 
 
             # 重新上阵
