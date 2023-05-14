@@ -451,10 +451,10 @@ class Player(object):
             f"wait {check_count} times, the {name} still not disapper.")
         return False
 
-    async def click_untile_disappear(self, names, max_count=5):
-        await self.find_then_click(names)
+    async def click_untile_disappear(self, names, max_count=3):
+        await self.find_then_click(names, raise_exception=False)
         for _ in range(max_count - 1):
-            await asyncio.sleep(1)
+            await asyncio.sleep(2)
             try:
                 await self.find_then_click(names, timeout=1)
             except FindTimeout:

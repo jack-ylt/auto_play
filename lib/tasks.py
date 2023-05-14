@@ -1804,34 +1804,34 @@ class GuanJunShiLian(Task):
         # await self.player.find_then_click('fang_shou_zheng_rong')
         await self.player.monitor('ying_xiong_chu_zhan')
 
-        if self.player.is_exist('empty_box4'):
-            cols = 3 if self.player.is_exist('lock_hero') else 6
-            
-            # 取消上阵英雄
-            x_list = [212, 286, 390, 467, 544, 620]
-            y_list = [230, 300, 370]
-            for r in range(3):
-                pos_list = [(x_list[c], y_list[r]) for c in range(cols)]
-                await self.player.multi_click(pos_list) 
-
-            # 重新上阵
-            x, y = (72, 468)
-            pos_list = [(x + 80 * c, y) for c in range(9)]
+        # if self.player.is_exist('empty_box4'):
+        cols = 3 if self.player.is_exist('lock_hero') else 6
+        
+        # 取消上阵英雄
+        x_list = [212, 286, 390, 467, 544, 620]
+        y_list = [230, 300, 370]
+        for r in range(3):
+            pos_list = [(x_list[c], y_list[r]) for c in range(cols)]
             await self.player.multi_click(pos_list) 
-            if cols == 6:
-                await self._swipe_left()
-                await self.player.multi_click(pos_list) 
 
-            # 1, 3 队互换
-            await self.player.click((706, 228))
-            await self.player.click((706, 370))
-            # 2, 3 队互换
-            await self.player.click((706, 297))
-            await self.player.click((706, 370))
+        # 重新上阵
+        x, y = (72, 468)
+        pos_list = [(x + 80 * c, y) for c in range(9)]
+        await self.player.multi_click(pos_list) 
+        if cols == 6:
+            await self._swipe_left()
+            await self.player.multi_click(pos_list) 
 
-            # 更新战力
-            area = (395, 153, 503, 183)
-            self.zhan_li = int(self.player.get_text(area, format='number'))
+        # 1, 3 队互换
+        await self.player.click((706, 228))
+        await self.player.click((706, 370))
+        # 2, 3 队互换
+        await self.player.click((706, 297))
+        await self.player.click((706, 370))
+
+        # 更新战力
+        area = (395, 153, 503, 183)
+        self.zhan_li = int(self.player.get_text(area, format='number'))
         
     async def _swipe_left(self):
         p1 = (720, 470)
@@ -1970,11 +1970,10 @@ class GuanJunShiLian(Task):
 
         await self.player.click(pos_fights[idx])
 
-        await self.player.monitor(['fight_green', 'fight_green_1'])
-        if self.player.is_exist('empty_box4'):
+        res = await self.player.click_untile_disappear(['fight_green', 'fight_green_1'])
+        if not res:
             await self._set_team_offense()
-
-        await self.player.find_then_click(['fight_green', 'fight_green_1'])
+            await self.player.find_then_click(['fight_green', 'fight_green_1'])
 
         pos_ok = (440, 430)
         while True:
@@ -2797,7 +2796,8 @@ class GongHuiZhan(Task):
         bao_xiang_guai_list = list1 + list2
 
         for _ in range(10):
-            await self.player.find_then_click(CLOSE_BUTTONS, timeout=3, raise_exception=False)
+            # 确保回到公会战主界面
+            await self.player.click_untile_disappear(CLOSE_BUTTONS)
             await self.player.monitor('zhu_jun_dui_wu')
             try:
                 await self.player.find_then_click(bao_xiang_guai_list, threshold=0.85, timeout=2, cheat=False)
@@ -2810,19 +2810,6 @@ class GongHuiZhan(Task):
                     return
 
         # TODO 银行可能没有在画面中
-        # await self._move_bank_center()
-
-        # for _ in range(10):
-        #     await self.player.monitor('zhu_jun_dui_wu')
-        #     try:
-        #         await self.player.find_then_click(bao_xiang_guai_list, threshold=0.85, timeout=2, cheat=False)
-        #     except FindTimeout:
-        #         break
-        #     else:
-        #         res = await self._tiao_zhan()
-        #         if res == 'no_hero':
-        #             self._increate_count()
-        #             return
 
     def test(self):
         return self._get_cfg('enable') and self._get_count('count') < 1
