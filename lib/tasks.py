@@ -3018,7 +3018,11 @@ class YiJiMoKu(Task):
         lack_gold = False
 
         # 普通商店购物
-        await self.player.find_then_click('gou_wu_che')
+        try:
+            # 小号可能还没有购物车
+            await self.player.find_then_click('gou_wu_che')
+        except FindTimeout:
+            return
         await self.player.find_then_click('pu_tong_shang_dian')
         await self.player.monitor('ptsd_title')
 
