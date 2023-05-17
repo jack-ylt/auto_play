@@ -877,7 +877,7 @@ class GongHui(Task):
         await self.player.click(pos)
 
         await self.player.monitor('ranking_icon2')
-
+        await asyncio.sleep(1)
         if self.player.is_exist(['zuan_shi', 'zuan_shi1']):
             # 避免花费钻石
             return
@@ -2543,12 +2543,12 @@ class YingXiongYuanZheng(Task):
         await self.player.monitor('kao_gu_tong_xing_zheng')
         text = self.player.get_text((390, 38, 470, 70))
         num = int(text.split('/')[0])
-        if num <= 6:
+        if num <= 9:
             return 
         
         await self.player.find_then_click('sao_dang')
         await self.player.find_then_click('1_saodan')
-        number = num - 6
+        number = num - 9
         if number < 10:
             await self.player.tap_key(str(number))
         else:
@@ -3107,9 +3107,7 @@ class YiJiMoKu(Task):
         self._increate_count(validity_period=4)
 
     def test(self):
-        return True
-        # return self._get_cfg('enable') and self._get_count() < 1
-        # TODO 4天一次，不用每天都执行
+        return self._get_cfg('enable') and self._get_count() < 1
 
     async def _enter(self):
         await self._move_to_right_down()
