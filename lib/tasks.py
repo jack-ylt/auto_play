@@ -888,6 +888,7 @@ class GongHui(Task):
             return
 
         # 小号通常不会设置队伍，也最好不要打公会战
+        await self.player.monitor(CLOSE_BUTTONS)  # 等待战斗页面出来
         try:
             await self.player.monitor('empty_box', timeout=1)
             return
