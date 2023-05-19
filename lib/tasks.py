@@ -165,7 +165,7 @@ class Task(object):
     async def _equip_team(self):
         await self.player.monitor('start_fight')    # 确保界面刷出来
         try:
-            await self.player.monitor('empty_box', timeout=1)
+            await self.player.monitor(['empty_box', 'empty_box5'], timeout=1)
         except FindTimeout:
             return
 
@@ -524,7 +524,7 @@ class HaoYou(Task):
             return False
 
         try:
-            await self.player.monitor('empty_box', timeout=1)
+            await self.player.monitor(['empty_box', 'empty_box5'], timeout=1)
             self.logger.debug(f"Skip, user haven't set the fighting team")
             await self.player.find_then_click(CLOSE_BUTTONS)
             return False
@@ -890,7 +890,7 @@ class GongHui(Task):
         # 小号通常不会设置队伍，也最好不要打公会战
         await self.player.monitor(CLOSE_BUTTONS)  # 等待战斗页面出来
         try:
-            await self.player.monitor('empty_box', timeout=1)
+            await self.player.monitor(['empty_box', 'empty_box5'], timeout=1)
             return
         except FindTimeout:
             pass
@@ -1753,6 +1753,11 @@ class GuanJunShiLian(Task):
                 self.is_zuanshi = 1
                 self._increate_count('reach_zuanshi', validity_period=4)
 
+            if self.player.is_exist("huang_jin_duan_wei") and datetime.now().weekday() == 4:
+                # 第一天就达到了黄金，此时分高的很少，即使辛苦打上去也很难上钻石，还很容易成为别人的踏脚石
+                self.logger.info(f"reach huangjin and it's the first day, there are few rich player, so exit")
+                break
+
             try:
                 score = await self._fight()
                 self.score += score
@@ -1864,9 +1869,11 @@ class GuanJunShiLian(Task):
                 if zhan_li > await self._get_self_power():
                     continue
 
-                # 如果积分太低，后面的人只会更低
-                if zhan_li in self.too_poor:
-                    raise PlayException("no opponment")
+                # 如果积分太低，后面的人只会更低 (不一定)
+                if (not self.is_zuanshi) and (zhan_li in self.too_poor):
+                    # 没到钻石之前，要打积分够多的人，节约门票
+                    continue
+                    # raise PlayException("no opponment")
                 # ji_fen_enemy = await self._get_enemy_score(j)
                 # if ji_fen_enemy * 1.3 < ji_fen_me:
                 #     break
@@ -1878,7 +1885,7 @@ class GuanJunShiLian(Task):
 
                     ji_fen_add = await self._get_increace_score()
                     print('ji_fen_add', ji_fen_add)
-                    if ji_fen_add < 5:
+                    if ji_fen_add < 10:
                         self.too_poor.add(zhan_li)
                     await self.player.find_then_click(OK_BUTTONS)
 
@@ -1913,9 +1920,9 @@ class GuanJunShiLian(Task):
 
     async def _get_enemy_power(self, idx):
         areas = [
-            (237, 250, 360, 280),
-            (237, 330, 360, 360),
-            (237, 415, 360, 445),
+            (239, 250, 360, 280),
+            (239, 330, 360, 360),
+            (239, 415, 360, 445),
         ]
         zhan_li = int(self.player.get_text(areas[idx], format='number'))
         self.logger.info(f"_get_enemy_power: {zhan_li}")
