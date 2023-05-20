@@ -66,7 +66,7 @@ async def test_tasks(cls_name, func=None, args=[]):
     g_player_lock = asyncio.Lock()
     window = Window('left_top')
     player = Player(window=window, g_lock=g_player_lock)
-    role_obj = Role(game='mo_shi_jun_tun', user='uu')
+    role_obj = Role(game='mo_ri_qian_xian', user='uu')
     await role_obj.load_all_attributes()
     counter = PlayCounter(role_obj.game + '_' + role_obj.user)
     # player.load_role_cfg()
@@ -90,7 +90,8 @@ async def test_gamer(func=None):
 
     g = Gamer(player)
     if func in ['restart', 'login']:
-        r = role.Role('mo_shi_jun_tun', 'aa592729440')
+        r = role.Role('mo_ri_qian_xian', 'aa592729440')
+        r.load_all_attributes()
         await getattr(g, func)(r)
     else:
         await getattr(g, func)()
@@ -177,12 +178,13 @@ def test_text_recognition():
     print(text)
 
 if __name__ == '__main__':
-    names =  [['empty_box', 'empty_box5'], 'empty_box5']
-    asyncio.run(test_eye(names, threshold=0.78, verify=False, bbox = (0, 0, 1920, 1080)))
+    # names =  [['empty_box', 'empty_box5'], 'empty_box5']
+    # asyncio.run(test_eye(names, threshold=0.78, verify=False, bbox = (0, 0, 1920, 1080)))
 
     # asyncio.run(test_tasks('YaoQingYingXion'))
     # asyncio.run(test_tasks('GuanJunShiLian', func='_get_enemy_score', args=[0]))
-   
+    asyncio.run(test_gamer('restart'))
+
     # test_text_recognition()
 
 

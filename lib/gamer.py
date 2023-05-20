@@ -17,6 +17,7 @@ GAME_ICONS = {
     'mo_ri_xue_zhan_jiuyou': 'mo_ri_xue_zhan_jiuyou',
     'mo_ri_xue_zhan_mihoutao': ['mo_ri_xue_zhan_mihoutao', 'mo_ri_xue_zhan_mihoutao_1'],
     'mo_ri_xue_zhan_changxiang': 'mo_ri_xue_zhan_changxiang',
+    'mo_ri_qian_xian': 'mo_ri_qian_xian',
 }
 
 # 每种游戏，创建一个类。使用代理模式
@@ -34,6 +35,7 @@ class Gamer(object):
             'mo_ri_xue_zhan_mihoutao': GamerMrxzMht,
             'mo_ri_xue_zhan_changxiang': GamerMrxzCx,
             'mo_shi_jun_tun': GamerMsjt,
+            'mo_ri_qian_xian': GamerMrqx,
         }
         return name_to_gamer[role.game](self.player)
 
@@ -210,6 +212,7 @@ class GamerBase(object):
             'mo_ri_xue_zhan_mihoutao_title_1': 'mo_ri_xue_zhan_mihoutao',
             'mo_ri_xue_zhan_changxiang_title': 'mo_ri_xue_zhan_changxiang',
             'mo_shi_jun_tun_title': 'mo_shi_jun_tun',
+            'mo_ri_qian_xian_title': 'mo_ri_qian_xian',
         }
         await self.player.find_then_click('recent_tasks', cheat=False)
         # 可能遇到不支持的游戏平台，那就timeout吧，关闭，打开新游戏
@@ -235,10 +238,10 @@ class GamerBase(object):
 
     async def _close_ad(self, timeout=5):
         cloes_btns = ['close_btn1', 'close_btn2',
-                      'close_btn3', 'close9', 'close_btn4', 'close_btn7']
+                      'close_btn3', 'close9', 'close_btn4', 'close_btn7', 'close_btn8']
         for _ in range(3):
             try:
-                await self.player.find_then_click(cloes_btns + OK_BUTTONS, timeout=timeout)
+                await self.player.find_then_click(cloes_btns + OK_BUTTONS + ['tong_yi'], timeout=timeout)
                 await asyncio.sleep(1)
             except FindTimeout:
                 # close_btn7 可能会在setting出现之前，就弹出来
@@ -424,3 +427,42 @@ class GamerMsjt(GamerBase):
             role, (370, 235), (370, 290), 'user_empty_9wan', 'pwd_empty_9wan')
 
         await self.player.find_then_click('login_btn')
+
+
+class GamerMrqx(GamerBase):
+    """gamer class of 末日前线"""
+
+    async def _login_game(self, role, change_account=True):
+        need_switch_account = False
+
+        await self._launch_game(role)
+
+        try:
+            await self.player.find_then_click('close_btn8', timeout=3)
+        except FindTimeout:
+            pass
+
+        try:
+            await self.player.monitor('login_btn3', timeout=3)
+        except FindTimeout:
+            if change_account:
+                need_switch_account = True
+        else:
+            if change_account:
+                await self._enter_account_info(role)
+            else:
+                await self.player.find_then_click('login_btn3')
+
+        await self._close_ad(timeout=5)
+        await self._close_main_ad()
+
+        if need_switch_account:
+            await self._switch_account(role)
+
+    async def _enter_account_info(self, role):
+        await self.player.monitor('login_btn3')
+
+        await self._input_user_and_pwd(
+            role, (330, 210), (330, 275), 'user_empty_9wan1', 'pwd_empty_9wan1')
+
+        await self.player.find_then_click('login_btn3')
