@@ -211,8 +211,8 @@ class GamerBase(object):
             'mo_ri_xue_zhan_mihoutao_title': 'mo_ri_xue_zhan_mihoutao',
             'mo_ri_xue_zhan_mihoutao_title_1': 'mo_ri_xue_zhan_mihoutao',
             'mo_ri_xue_zhan_changxiang_title': 'mo_ri_xue_zhan_changxiang',
-            'mo_shi_jun_tun_title': 'mo_shi_jun_tun',
             'mo_ri_qian_xian_title': 'mo_ri_qian_xian',
+            'mo_shi_jun_tun_title': 'mo_shi_jun_tun',
         }
         await self.player.find_then_click('recent_tasks', cheat=False)
         # 可能遇到不支持的游戏平台，那就timeout吧，关闭，打开新游戏

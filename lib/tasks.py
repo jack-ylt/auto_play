@@ -427,7 +427,8 @@ class YouJian(Task):
         if not self.test():
             return
 
-        await self.player.find_then_click('mail')
+        # 点左下角，避免广告弹出
+        await self.player.find_then_click('mail', pos=(45, 340), cheat=False)
         try:
             # 邮件全部删除了，就没有领取按钮
             await self.player.find_then_click(['yi_jian_ling_qv'], timeout=5)
@@ -1732,6 +1733,7 @@ class GuanJunShiLian(Task):
         self.fight_too_much = set()
         self.can_not_win = set()
         self.too_poor = set()
+        self.min_ji_fen = 0
 
     def test(self):
         if not self._get_cfg('enable'):
@@ -1870,13 +1872,13 @@ class GuanJunShiLian(Task):
                     continue
 
                 # 如果积分太低，后面的人只会更低 (不一定)
-                if (not self.is_zuanshi) and (zhan_li in self.too_poor):
-                    # 没到钻石之前，要打积分够多的人，节约门票
-                    continue
-                    # raise PlayException("no opponment")
-                # ji_fen_enemy = await self._get_enemy_score(j)
-                # if ji_fen_enemy * 1.3 < ji_fen_me:
-                #     break
+                # 没到钻石之前，要打积分够多的人，节约门票
+                if not self.is_zuanshi:
+                    if zhan_li in self.too_poor:
+                        continue
+                    ji_fen_enemy = await self._get_enemy_score(j)
+                    if ji_fen_enemy < self.min_ji_fen:
+                        continue
 
                 try:
                     score = await self._do_fight(j)
@@ -1887,6 +1889,7 @@ class GuanJunShiLian(Task):
                     print('ji_fen_add', ji_fen_add)
                     if ji_fen_add < 10:
                         self.too_poor.add(zhan_li)
+                        self.min_ji_fen = max(self.min_ji_fen, ji_fen_enemy)
                     await self.player.find_then_click(OK_BUTTONS)
 
                     return score
