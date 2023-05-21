@@ -314,7 +314,7 @@ class XianShiJie(Task):
             # await self._passed_to_fight()
             raise PlayException("Skip, the user went back to level")
         else:    # fight
-            await self.player.click(pos)
+            await self.player.click_untile_disappear('fight')
 
     async def _hand_upgraded(self):
         try:
