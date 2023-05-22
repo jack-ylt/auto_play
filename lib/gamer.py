@@ -167,7 +167,7 @@ class GamerBase(object):
             await self.player.double_click(pos)
 
         await asyncio.sleep(30)
-        await self.player.monitor(['close_btn', 'close_btn5', 'start_game'], timeout=90)
+        await self.player.monitor(['close_btn', 'close_btn5', 'start_game'], timeout=120)
 
         await asyncio.sleep(1)
         for _ in range(3):

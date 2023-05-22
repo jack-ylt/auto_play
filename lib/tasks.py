@@ -71,7 +71,9 @@ class Task(object):
 
     async def _fight(self):
         """do fight, return win or lose"""
-        await self.player.click_untile_disappear(['start_fight', 'fight1'])
+        if not await self.player.click_untile_disappear(['start_fight', 'fight1']):
+            self.logger.warning("skip, click fight1 or start_fight failed")
+            return 'lose'
         await asyncio.sleep(3)
         res = await self._do_fight()
         pos_ok = (430, 430)
@@ -79,13 +81,11 @@ class Task(object):
         return res
 
     async def _do_fight(self):
-        name_list = ['fast_forward1', 'go_last', 'win', 'lose']
+        name_list = ['win', 'lose', 'fast_forward1', 'go_last']
         while True:
-            name = await self.player.find_then_click(name_list, threshold=0.9, timeout=240)
+            name = await self.player.find_then_click(name_list, threshold=0.9, timeout=10)
             if name in ['win', 'lose']:
                 return name
-            else:
-                name_list = name_list[name_list.index(name) + 1:]
 
     async def _move_to_left_top(self):
         self.logger.debug('_move_to_left_top')
@@ -536,7 +536,7 @@ class HaoYou(Task):
         count = 0
 
         while True:
-            monitor_list = ['fast_forward1', 'go_last', 'card']
+            monitor_list = ['card', 'fast_forward1', 'go_last']
             count += 1
             for _ in range(5):
                 name, pos = await self.player.monitor(monitor_list, timeout=120)
@@ -546,7 +546,6 @@ class HaoYou(Task):
                     break
                 else:
                     await self.player.click(pos)
-                    monitor_list.remove(name)
 
             res, pos = await self.player.monitor(['win', 'lose'])
             if res == "win":
@@ -816,8 +815,14 @@ class TiaoZhanFuben(Task):
         await self.player.find_then_click(OK_BUTTONS)
 
     async def _fight_challenge(self):
-        await self.player.find_then_click('go_last')
-        await self.player.monitor('fight_report', timeout=240)
+        for _ in range(24):
+            await self.player.find_then_click('go_last')
+            try:
+                await self.player.monitor('fight_report')
+            except FindTimeout:
+                continue
+            else:
+                break
         res, _ = await self.player.monitor(['win', 'lose'])
         return res
 
@@ -1279,10 +1284,14 @@ class ShengCunJiaYuan(Task):
             await self.player.find_then_click(['start_fight', 'xia_yi_chang1'])
             # 界面切换需要时间 （xia_yi_chang1 和 message 是在同一个页面的）
             await asyncio.sleep(2)
-            name, _ = await self.player.monitor(['message', 'fight_report'])
-            if name == 'message':
-                await self.player.click(pos_go_last)
-            await self.player.monitor('fight_report', timeout=240)
+
+            for _ in range(24):
+                name, _ = await self.player.monitor(['message', 'fight_report'])
+                if name == 'message':
+                    await self.player.click(pos_go_last)
+                else:
+                    break
+
             fight_res, _ = await self.player.monitor(['win', 'lose'], threshold=0.9)
 
             if fight_res == 'win':
@@ -1694,16 +1703,15 @@ class JingJiChang(Task):
         raise PlayException('_choose_opponent failed')
 
     async def _fight_win(self):
-        name_list = ['fast_forward1', 'go_last', 'card']
+        name_list = ['card', 'fast_forward1', 'go_last']
         while True:
-            name, pos = await self.player.monitor(name_list, threshold=0.9, timeout=240)
+            name, pos = await self.player.monitor(name_list, threshold=0.9, timeout=10)
             if name == 'card':
                 await self.player.click_untile_disappear('card')
                 await self.player.click(pos)
                 break
             else:
                 await self.player.click(pos)
-                name_list.remove(name)
             await asyncio.sleep(1)
 
         res, _ = await self.player.monitor(['win', 'lose'])
