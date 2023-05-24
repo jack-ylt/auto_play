@@ -855,13 +855,14 @@ class GongHui(Task):
 
         await self.player.find_then_click('gong_hui_ling_di')
 
-        if self.cfg['GongHui']['fight_boss']:
+        if self._get_cfg('fight_boos') and self._get_count('fight_boos') != 0:
             await self._gong_hui_fu_ben()
             await self.player.go_back_to('guild_factory')
+            self._increate_count('fight_boos')
 
         await self._gong_hui_gong_chang()
 
-        self._increate_count('count', 1)
+        self._increate_count('count')
 
     def test(self):
         return self.cfg['GongHui']['enable']
