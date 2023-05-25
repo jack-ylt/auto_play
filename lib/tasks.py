@@ -3336,9 +3336,7 @@ class GaoTaShiLian(Task):
                 res, _ = await self.player.monitor(['win', 'lose'])
                 await self.player.find_then_click(OK_BUTTONS)
                 self._increate_count('fight_count', validity_period=15)
-                if res == "win":
-                    fight_count += 1
-                else:
+                if res != "win":
                     break
     
     async def _re_equip_team(self):
