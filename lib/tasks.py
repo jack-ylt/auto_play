@@ -443,7 +443,7 @@ class HaoYou(Task):
 
     def __init__(self, player, role_setting, counter):
         super().__init__(player, role_setting, counter)
-        self._fight_boos = self._get_cfg('fight_boos')
+        self._fight_boss = self._get_cfg('fight_boss')
 
     def verify(self):
         if not self._get_cfg('enable'):
@@ -459,7 +459,7 @@ class HaoYou(Task):
         await self.player.find_then_click('receive_and_send')
 
         # 刷好友的boos
-        if self._fight_boos:
+        if self._fight_boss:
             while True:
                 try:
                     await self.player.find_then_click('friend_boss', timeout=1)
@@ -473,7 +473,7 @@ class HaoYou(Task):
         while True:
             if not await self._found_boos():
                 break
-            if not self._fight_boos:
+            if not self._fight_boss:
                 break
 
             await self.player.find_then_click('fight2')
@@ -855,10 +855,10 @@ class GongHui(Task):
 
         await self.player.find_then_click('gong_hui_ling_di')
 
-        if self._get_cfg('fight_boos') and self._get_count('fight_boos') != 0:
+        if self._get_cfg('fight_boss') and self._get_count('fight_boss') != 0:
             await self._gong_hui_fu_ben()
             await self.player.go_back_to('guild_factory')
-            self._increate_count('fight_boos')
+            self._increate_count('fight_boss')
 
         await self._gong_hui_gong_chang()
 

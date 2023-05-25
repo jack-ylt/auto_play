@@ -50,6 +50,7 @@ daily_play_tasks = (
     'MiGong',
     'LianSaiBaoXiang',
     'GongHuiZhan',
+    'GaoTaShiLian',
     'JueDiQiuSheng',
     'ShiJieBoss',
     'RenWu',
