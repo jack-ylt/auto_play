@@ -178,7 +178,7 @@ def test_text_recognition():
     print(text)
 
 if __name__ == '__main__':
-    names =  ['gou_mai']
+    names =  ['yi_ling_qv']
     asyncio.run(test_eye(names, threshold=0.78, verify=False, bbox = (0, 0, 1920, 1080)))
 
     # asyncio.run(test_tasks('GaoTaShiLian'))

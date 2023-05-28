@@ -1882,10 +1882,12 @@ class GuanJunShiLian(Task):
 
                 # 如果积分太低，后面的人只会更低 (不一定)
                 # 没到钻石之前，要打积分够多的人，节约门票
+                ji_fen_enemy = await self._get_enemy_score(j)
+                
                 if not self.is_zuanshi:
                     if zhan_li in self.too_poor:
                         continue
-                    ji_fen_enemy = await self._get_enemy_score(j)
+                    
                     if ji_fen_enemy < self.min_ji_fen:
                         continue
 
@@ -2607,9 +2609,10 @@ class RenWu(Task):
         await self.player.find_then_click('receive_all')
 
         try:
-            await self.player.monitor('qian_wang', threshold=0.9, timeout=1)
-        except FindTimeout:
+            await self.player.monitor('yi_ling_qv', threshold=0.9, timeout=1)
             self._increate_count('count')
+        except FindTimeout:
+            pass
 
     def test(self):
         return self.cfg['RenWu']['enable'] and self._get_count() < 1
@@ -3301,11 +3304,11 @@ class GaoTaShiLian(Task):
             self._shi_lian_bao_zang()
             await self.player.go_back_to('gao_ta_te_quan')
             self._shi_lian_shang_dian()
-
-            self._increate_count(validity_period=15)
+        
+        self._increate_count()
         
     def test(self):
-        return self._get_cfg('enable') and self._get_count() < 1
+        return self._get_cfg('enable') and self._get_count() < 1 and self._get_count('fight_count') <= 50
 
     async def _enter(self):
         await self._move_to_right_top()
@@ -3335,7 +3338,7 @@ class GaoTaShiLian(Task):
                 await self.player.find_then_click('start_fight')
                 res, _ = await self.player.monitor(['win', 'lose'])
                 await self.player.find_then_click(OK_BUTTONS)
-                self._increate_count('fight_count', validity_period=15)
+                self._increate_count('fight_count', validity_period=10)
                 if res != "win":
                     break
     
