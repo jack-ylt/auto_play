@@ -855,7 +855,7 @@ class GongHui(Task):
 
         await self.player.find_then_click('gong_hui_ling_di')
 
-        if self._get_cfg('fight_boss') and self._get_count('fight_boss') != 0:
+        if self._get_cfg('fight_boss') and self._get_count('fight_boss') < 1:
             await self._gong_hui_fu_ben()
             await self.player.go_back_to('guild_factory')
             self._increate_count('fight_boss')

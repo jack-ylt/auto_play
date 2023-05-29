@@ -178,10 +178,10 @@ def test_text_recognition():
     print(text)
 
 if __name__ == '__main__':
-    names =  ['pi_jiu_icon1', 'an_dong_ni_ao1']
-    asyncio.run(test_eye(names, threshold=0.78, verify=False, bbox = (0, 0, 1920, 1080)))
+    # names =  ['pi_jiu_icon1', 'an_dong_ni_ao1']
+    # asyncio.run(test_eye(names, threshold=0.78, verify=False, bbox = (0, 0, 1920, 1080)))
 
-    # asyncio.run(test_tasks('GaoTaShiLian'))
+    asyncio.run(test_tasks('GongHui'))
     # asyncio.run(test_tasks('GuanJunShiLian', func='_get_enemy_score', args=[0]))
     # asyncio.run(test_gamer('restart'))
 
