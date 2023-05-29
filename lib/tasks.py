@@ -1356,13 +1356,15 @@ class YaoQingYingXion(Task):
             try:
                 _, pos = await self.player.monitor(['guang_san_xing', 'an_san_xing'], threshold=0.9, timeout=2)
                 await self.player.click((pos[0], pos[1] + 80))
+                await self.player.find_then_click('max2')
             except FindTimeout:
+                # 买完了，或者币不够了
                 break
-            await self.player.find_then_click('max2')
+            
             await self.player.find_then_click('gou_mai')
             await self.player.find_then_click(OK_BUTTONS)
         
-            self._increate_count('mai_guang_an_3_xing', validity_period=7)
+        self._increate_count('mai_guang_an_3_xing', validity_period=7)
         
 
 
@@ -2067,7 +2069,7 @@ class YongZheFuBen(Task):
 
         if name == 'next_level4':
             await self.player.click(pos)
-            await self.player.find_then_click('challenge4')
+            await self.player.click_untile_disappear('challenge4')
             return True
         elif name == 'ok':
             await self.player.click(pos)
@@ -2082,7 +2084,7 @@ class YongZheFuBen(Task):
 
         _, (x, y) = await self.player.monitor('current_level', threshold=0.95, timeout=5)
         await self.player.click((x, y + 35), cheat=False)
-        await self.player.find_then_click('challenge4')
+        await self.player.click_untile_disappear('challenge4')
 
     async def _fight_win(self):
         # await self.player.find_then_click('start_fight')
@@ -3296,7 +3298,8 @@ class GaoTaShiLian(Task):
         if not self.test():
             return
 
-        await self._enter()
+        if not await self._enter():
+            return False
 
         await self._do_fight()
         
