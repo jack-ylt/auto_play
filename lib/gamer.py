@@ -42,10 +42,12 @@ class Gamer(object):
     async def login(self, role):
         self._real_gamer = self._get_real_gamer(role)
         await self._real_gamer.login(role)
+        await asyncio.sleep(3)    # 等待游戏加载完成
 
     async def restart(self, role):
         self._real_gamer = self._get_real_gamer(role)
         await self._real_gamer.restart(role)
+        await asyncio.sleep(3)    # 等待游戏加载完成
 
     async def goto_main_ui(self):
         await self._base_gamer.goto_main_ui()
@@ -225,6 +227,7 @@ class GamerBase(object):
         await self._logout()
         await self.player.find_then_click('start_game')
         await self._enter_account_info(role)
+        # TODO 整个登陆过程要综合考虑
         await self._close_ad(timeout=5)
         await self._close_main_ad()
 

@@ -168,7 +168,7 @@ def test_text_recognition():
     # area = (210, 215, 370, 280)
     # area = (220, 335, 335, 370)
     # area = (668, 205, 720, 235)
-    area = (430, 327, 490, 362)
+    area = (654, 170, 707, 200)
 
 
 
@@ -178,10 +178,10 @@ def test_text_recognition():
     print(text)
 
 if __name__ == '__main__':
-    # names =  ['pi_jiu_icon1', 'an_dong_ni_ao1']
+    # names =  ['max3', 'max4']
     # asyncio.run(test_eye(names, threshold=0.78, verify=False, bbox = (0, 0, 1920, 1080)))
 
-    asyncio.run(test_tasks('GongHui'))
+    asyncio.run(test_tasks('YingXiongYuanZheng'))
     # asyncio.run(test_tasks('GuanJunShiLian', func='_get_enemy_score', args=[0]))
     # asyncio.run(test_gamer('restart'))
 

@@ -855,12 +855,12 @@ class GongHui(Task):
 
         await self.player.find_then_click('gong_hui_ling_di')
 
-        if self._get_cfg('fight_boss') and self._get_count('fight_boss') < 1:
-            await self._gong_hui_fu_ben()
-            await self.player.go_back_to('guild_factory')
-            self._increate_count('fight_boss')
-
         await self._gong_hui_gong_chang()
+
+        if self._get_cfg('fight_boss') and self._get_count('fight_boss') < 1:
+            await self.player.go_back_to('guild_factory')
+            await self._gong_hui_fu_ben()
+            self._increate_count('fight_boss')
 
         self._increate_count('count')
 
@@ -894,15 +894,25 @@ class GongHui(Task):
         except FindTimeout:
             return
 
-        # 小号通常不会设置队伍，也最好不要打公会战
-        await self.player.monitor(CLOSE_BUTTONS)  # 等待战斗页面出来
-        try:
-            await self.player.monitor(['empty_box', 'empty_box5'], timeout=1)
-            return
-        except FindTimeout:
-            pass
+        await self.player.monitor('start_fight')    # 确保界面刷出来
+        if self.player.is_exist(['empty_box', 'empty_box5']):
+            await self._equip_team()
 
         await self._fight_guild()
+
+    async def _equip_team(self):
+        await self.player.monitor('start_fight')    # 确保界面刷出来
+        await asyncio.sleep(2)
+        try:
+            await self.player.monitor(['empty_box', 'empty_box5'], timeout=1)
+        except FindTimeout:
+            return
+
+        pos_list = [(x, 230) for x in (190, 255, 365, 435, 500, 570)]
+        await self.player.multi_click(pos_list)
+
+        pos_list = [(x, 450) for x in (120, 185, 250, 320, 380, 450)]
+        await self.player.multi_click(pos_list)
 
     async def _fight_guild(self):
         # next_fight = (520, 425)
@@ -915,7 +925,7 @@ class GongHui(Task):
         await self._go_last()
 
         await self.player.find_then_click('ok')
-        await self.player.monitor('ranking_icon2')
+        await self.player.monitor('ranking_icon2', timeout=15)
 
     async def _go_last(self):
         # go_last 按钮有时候会被boos挡住，所以没用find_then_click
@@ -931,8 +941,6 @@ class GongHui(Task):
             except FindTimeout:
                 self.logger.warning(f"try {i}, go_last failed.")
                 pass
-
-        await self.player.monitor('fight_report', timeout=240)
 
     async def _gong_hui_gong_chang(self):
         await self.player.find_then_click('guild_factory')
@@ -1083,7 +1091,7 @@ class ShengCunJiaYuan(Task):
         await self.player.find_then_click('survival_home')
         await self._collect_resouces()
 
-        await self.player.find_then_click('fight_btn')
+        await self.player.click_untile_disappear('fight_btn')
 
         await self._collect_all_boxes()    # fight 有可能失败，比如点到基地
 
@@ -1596,6 +1604,7 @@ class ShiChang(Task):
                 continue
             else:
                 if name == 'ok8':
+                    # TODO 如果游戏反应太慢，这样可能会误判
                     await self.player.find_then_click(OK_BUTTONS)
                     await self.player.find_then_click(OK_BUTTONS)
                 else:
@@ -2565,27 +2574,41 @@ class YingXiongYuanZheng(Task):
         await self.player.find_then_click(CLOSE_BUTTONS)
 
         await self.player.monitor('kao_gu_tong_xing_zheng')
-        text = self.player.get_text((390, 38, 470, 70))
-        num = int(text.split('/')[0])
-        if num <= 9:
-            return 
+
+        men_piao = self.player.get_text((390, 38, 470, 70))
+        men_piao = int(men_piao.split('/')[0])
+        if men_piao == 0:
+            return
+        
+        ji_fen = int(self.player.get_text((654, 170, 707, 200)))
+        if ji_fen < 3000:
+            if men_piao < 9:
+                return
+            else:
+                num = men_piao
+        else:
+            num = 999
         
         await self.player.find_then_click('sao_dang')
-        await self.player.find_then_click('1_saodan')
-        number = num - 9
-        if number < 10:
-            await self.player.tap_key(str(number))
+
+        if num == 999:
+            await self.player.find_then_click('max4')
         else:
-            await self.player.tap_key(str(number // 10))
-            await self.player.tap_key(str(number % 10))
+            await self.player.find_then_click('1_saodan')
+            number = num - 9
+            if number < 10:
+                await self.player.tap_key(str(number))
+            else:
+                await self.player.tap_key(str(number // 10))
+                await self.player.tap_key(str(number % 10))
+            await self.player.find_then_click('que_ding')
 
-        await self.player.find_then_click('que_ding')
         await self.player.find_then_click(['sao_dang1', 'sao_dang3'])
-
 
         await self.player.find_then_click(OK_BUTTONS)
         await self.player.find_then_click('yuan_gu_mi_zang')
-        await self.player.find_then_click('red_point3')
+        _, (x,y) = await self.player.monitor('red_point3')
+        await self.player.click((x-25, y+25))
         
 
     async def _exit(self):
@@ -2750,7 +2773,9 @@ class KuaiJieZhiNan(Task):
             return
 
         await self.player.find_then_click(['quick_ico', 'quick_ico1'])
-        await self.player.find_then_click('yi_jian_zhi_xing')
+        if not await self.player.click_untile_disappear('yi_jian_zhi_xing'):
+            return
+        
         try:
             await self.player.monitor(['ok_1', 'sao_dang_zhong'], timeout=3)
         except FindTimeout:
