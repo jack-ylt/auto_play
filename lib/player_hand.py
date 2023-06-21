@@ -69,10 +69,11 @@ class Hand(object):
 
             for _ in range(3):
                 sleep(20)
-                self.m.release(x, y)
-                self.m.move(x, y)
-                self.m.click(x, y)
-
+                # self.m.release(x, y)
+                # self.m.move(x, y)
+                # self.m.click(x, y)
+                pyautogui.click(x, y)
+                
                 mouse_pos = self.mouse_pos()
                 if mouse_pos != (x, y):
                     self.logger.error(

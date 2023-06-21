@@ -1935,9 +1935,9 @@ class GuanJunShiLian(Task):
     
     async def _get_enemy_score(self, idx):
         areas = [
-            (430, 245, 490, 280),
-            (430, 327, 490, 362),
-            (430, 409, 490, 444),
+            (430, 246, 495, 280),
+            (430, 327, 495, 362),
+            (430, 409, 495, 444),
         ]
         ji_fen = int(self.player.get_text(areas[idx], format='number'))
         self.logger.info(f"_get_enemy_score: {ji_fen}")
@@ -2636,6 +2636,8 @@ class RenWu(Task):
         try:
             await self.player.monitor('yi_ling_qv', threshold=0.9, timeout=1)
             self._increate_count('count')
+            # 所有任务完成，就没必要再执行KuaiJieZhiNan了
+            self._increate_count('count', val=1, cls_name='KuaiJieZhiNan')
         except FindTimeout:
             pass
 
@@ -2787,10 +2789,10 @@ class KuaiJieZhiNan(Task):
             await self.player.find_then_click('ok_1')
         finally:
             await self.player.find_then_click(CLOSE_BUTTONS)
-            self._increate_count()
+            # self._increate_count()
 
     def test(self):
-        return self._get_cfg()
+        return self._get_cfg() and self._get_count() < 1
 
     async def _update_counter(self):
         self._increate_count('count', val=3, cls_name='XianShiJie')
@@ -3336,7 +3338,7 @@ class GaoTaShiLian(Task):
         self._increate_count()
         
     def test(self):
-        return self._get_cfg('enable') and self._get_count() < 1 and self._get_count('fight_count') <= 50
+        return self._get_cfg('enable') and self._get_count() < 2 and self._get_count('fight_count') <= 30
 
     async def _enter(self):
         await self._move_to_right_top()

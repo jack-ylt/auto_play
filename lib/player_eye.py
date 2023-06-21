@@ -8,7 +8,8 @@
 from lib.cache import Cacher
 from lib.helper import main_dir
 import sys
-from cv2 import cv2
+# from cv2 import cv2
+import cv2
 import re
 import numpy as np
 from PIL import ImageGrab, Image
@@ -379,7 +380,7 @@ class Eye(object):
     def get_text(self, area):
         img_bg = self._screenshot(area)
         text = pytesseract.image_to_string(img_bg)
-        logger.debug(f"get_text: {text}")
+        # logger.debug(f"get_text: {text}")
         return text
 
 async def test(names, bbox=None, threshold=0.8, max_try=1, verify=True):

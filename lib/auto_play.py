@@ -53,6 +53,7 @@ daily_play_tasks = (
     'GaoTaShiLian',
     'JueDiQiuSheng',
     'ShiJieBoss',
+    'KuaiJieZhiNan',
     'RenWu',
 )
 
@@ -205,7 +206,7 @@ async def daily_play(player, role):
     auto = AutoRecover(gamer)
 
     for cls_name in task_list:
-        player.logger.info("Start to run: " + cls_name)
+        player.logger.info("------------------- Start to run: " + cls_name + " -------------------")
         obj = getattr(tasks, cls_name)(player, role.play_setting, counter)
         try:
             if obj.test():

@@ -72,10 +72,15 @@ async def test_tasks(cls_name, func=None, args=[]):
     # player.load_role_cfg()
 
     obj = getattr(tasks, cls_name)(player, role_obj.play_setting, counter)
-    if func:
-        await getattr(obj, func)(*args)
-    else:
-        await obj.run()
+    
+    try:
+        if func:
+            await getattr(obj, func)(*args)
+        else:
+            await obj.run()
+    except Exception as err:
+        player.save_operation_pics(str(err))
+        raise
 
 # async def test_emulator():
 #     window = windows.Window('full')
@@ -169,6 +174,7 @@ def test_text_recognition():
     # area = (220, 335, 335, 370)
     # area = (668, 205, 720, 235)
     area = (654, 170, 707, 200)
+    area =(390, 39, 470, 68)
 
 
 
@@ -181,11 +187,11 @@ if __name__ == '__main__':
     # names =  ['max3', 'max4']
     # asyncio.run(test_eye(names, threshold=0.78, verify=False, bbox = (0, 0, 1920, 1080)))
 
-    asyncio.run(test_tasks('YingXiongYuanZheng'))
+    # asyncio.run(test_tasks('YingXiongYuanZheng'))
     # asyncio.run(test_tasks('GuanJunShiLian', func='_get_enemy_score', args=[0]))
     # asyncio.run(test_gamer('restart'))
 
-    # test_text_recognition()
+    test_text_recognition()
 
 
 

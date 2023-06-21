@@ -467,6 +467,8 @@ class Player(object):
         
         real_area = (x1 + dx, y1 + dy, x2 + dx, y2 + dy)
         text = self.eye.get_text(real_area)
+        self.logger.debug(f"get_text: {text}")
+        self._cache_operation_pic(f'get_text at {real_area}',  new=False)
         # print('text:', text)
 
         if format == '':
