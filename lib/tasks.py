@@ -1888,7 +1888,7 @@ class GuanJunShiLian(Task):
                 zhan_li = await self._get_enemy_power(j)
                 if zhan_li in self.fight_too_much or zhan_li in self.can_not_win:
                     continue
-                if zhan_li > await self._get_self_power():
+                if zhan_li > await self._get_self_power() * 1.2:
                     continue
 
                 # 如果积分太低，后面的人只会更低 (不一定)
