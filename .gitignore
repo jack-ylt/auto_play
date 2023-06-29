@@ -15,9 +15,13 @@ __pycache__
 # My configurations:
 db.ini
 account.cfg
+logs/*
 record
 *.json
 *stats
 res.png
 res.png
 /configs/aip_config.py
+configs/roles_setting/aa592729440.cfg
+configs/roles_setting/CWY4325241.cfg
+configs/roles_setting/yueliangtu16301.cfg
