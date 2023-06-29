@@ -17,7 +17,6 @@ from datetime import datetime
 from operator import itemgetter
 from pickle import NEXT_BUFFER
 
-from cv2 import threshold
 
 
 from lib.helper import is_afternoon, is_monday, is_sunday, is_wednesday, format_text
