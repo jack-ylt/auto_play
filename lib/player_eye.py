@@ -24,6 +24,7 @@ from lib.ui_data import SCREEN_DICT
 from copy import deepcopy
 import pyautogui
 import pytesseract
+from lib.global_vals import FindTimeout
 
 
 import logging
@@ -41,13 +42,6 @@ logger = logging.getLogger(__name__)
 
 sys.path.insert(0, main_dir)
 pic_dir = os.path.join(main_dir, 'pics')
-
-
-class FindTimeout(Exception):
-    """
-    when no found and timeout, raise
-    """
-    pass
 
 
 class Eye(object):

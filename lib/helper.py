@@ -13,6 +13,7 @@ import win32api
 import win32gui
 from win32con import WM_INPUTLANGCHANGEREQUEST
 import re
+from lib.global_vals import *
 
 
 # file_dir = os.path.split(os.path.realpath(__file__))[0]
@@ -126,3 +127,16 @@ def format_text(text, format='str', line=0):
 
     return res
 
+def choose_pos(pos_list, choice):
+    if choice == "first":
+        return pos_list[0]
+    elif choice == "rightmost":
+        return max(pos_list)
+    elif choice == "top":
+        lst = sorted(pos_list, key=lambda x: x[1])
+        return lst[0]
+    elif choice == "bottom":
+        lst = sorted(pos_list, key=lambda x: x[1])
+        return lst[-1]
+    else:
+        raise InternalError(f"invalid args: {choice}")

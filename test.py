@@ -1,33 +1,19 @@
-import logging
-# from logging import handlers
-from lib import tasks
-# from lib import helper
-from lib import ui_data
-from lib.ui_data import OK_BUTTONS
-from lib.gamer import Gamer
-from lib.player import FindTimeout, Player
-from lib import player_eye
-# from lib.read_cfg import read_account_cfg
-# from lib.start_game import start_emulator, game_started
-from lib import emulator
-# from lib import auto_play
-# from lib import auto_play
-from lib import windows
-# import signal
-# import keyboard
-# from multiprocessing import freeze_support
-# from time import sleep
-# import concurrent.futures
+
 import asyncio
+import logging
 import os
 import sys
-import time
-from lib import role
-from lib.windows import Window
-from lib.role import Role
+
+from lib import player_eye, role, ui_data, windows
+from lib.gamer import Gamer
+from lib.player import Player
 from lib.recorder import PlayCounter
-from lib import text_recognition
-from lib import player_eye
+from lib.role import Role
+from lib.windows import Window
+
+# from lib import tasks
+import tasks
+
 
 # 切换到脚本所在目录
 # 否则，基于相对路径的代码会出问题
@@ -71,6 +57,7 @@ async def test_tasks(cls_name, func=None, args=[]):
     counter = PlayCounter(role_obj.game + '_' + role_obj.user)
     # player.load_role_cfg()
 
+    # obj = getattr(tasks, cls_name)(player, role_obj.play_setting, counter)
     obj = getattr(tasks, cls_name)(player, role_obj.play_setting, counter)
     
     try:
@@ -187,11 +174,11 @@ if __name__ == '__main__':
     # names =  ['max3', 'max4']
     # asyncio.run(test_eye(names, threshold=0.78, verify=False, bbox = (0, 0, 1920, 1080)))
 
-    # asyncio.run(test_tasks('YingXiongYuanZheng'))
+    asyncio.run(test_tasks('XianShiJie'))
     # asyncio.run(test_tasks('GuanJunShiLian', func='_get_enemy_score', args=[0]))
     # asyncio.run(test_gamer('restart'))
 
-    test_text_recognition()
+    # test_text_recognition()
 
 
 

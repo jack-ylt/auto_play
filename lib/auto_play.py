@@ -5,7 +5,8 @@
 
 # import asyncio
 # import logging
-from lib import tasks
+# from lib import tasks
+import tasks
 from lib.gamer import Gamer
 from lib.player import FindTimeout
 from lib.recorder import PlayCounter
