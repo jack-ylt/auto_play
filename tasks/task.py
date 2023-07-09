@@ -180,3 +180,41 @@ class Task(object):
             val = val[k]
         return val
 
+    # ----------- 以下是重构后的新函数 ------------
+    # TODO 后续 player 替换成 player2
+
+    async def click(self, targets, timeout=10, interval=1, until_disappear=True):
+        """点击目标
+        
+        pos: 直接点击
+        name: 先find, 再点击
+        names: 先find (匹配度最高的), 再点击
+        """
+        if len(targets) == 2 and isinstance(targets[0], int) and isinstance(targets[1], int):
+            await self.player.click(targets)
+        else:
+            if until_disappear:
+                await self.player.click_untile_disappear(targets)
+            else:
+                await self.player.find_then_click(targets, timeout=timeout, delay=interval)
+
+    async def find(self, target, timeout=10):
+        """查找目标
+        
+        return name, pos
+        """
+        return await self.player.monitor(target, timeout=timeout)
+    
+    async def find_all(self, targes):
+        """查找所有目标
+        
+        return pos_list
+        """
+        return await self.player.find_all_pos(targes)
+    
+    def exist(self, targets):
+        """判断目标是否存在
+        
+        return True/False
+        """
+        return self.player.is_exist(targets)

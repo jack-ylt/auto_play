@@ -13,7 +13,6 @@ from lib.recorder import PlayCounter
 from lib.role import Role
 import time
 import datetime
-from lib.tasks import PlayException
 # from lib import role
 
 # from ui_data import SCREEN_DICT
@@ -26,6 +25,7 @@ shen_yuan_tasks = ('ShenYuanMoKu', )
 
 daily_play_tasks = (
     'KuaiJieZhiNan',
+    'ZhouNianQing5',
     'XianShiJie',
     'YouJian',
     'HaoYou',

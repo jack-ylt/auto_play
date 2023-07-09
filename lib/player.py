@@ -452,11 +452,13 @@ class Player(object):
         return False
 
     async def click_untile_disappear(self, names, max_count=3):
-        await self.find_then_click(names, raise_exception=False)
+        name = await self.find_then_click(names)
         for _ in range(max_count - 1):
-            await asyncio.sleep(2)
+            if not self.is_exist(name):
+                return True
             try:
-                await self.find_then_click(names, timeout=1)
+                await self.find_then_click(name, timeout=1)
+                await asyncio.sleep(1)
             except FindTimeout:
                 return True
         return False
