@@ -37,7 +37,7 @@ class ZhouNianQing5(Task):
 
         # 签到
         await self.click('mei_ri_qiandao')
-        name, _ = await self.find(['qiandao', 'yi_qiandao'])
+        name, _ = await self.find(['yi_qiandao', 'qiandao'])
         if name == 'qiandao':
             await self.click('qiandao')
 

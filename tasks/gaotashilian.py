@@ -33,8 +33,8 @@ class GaoTaShiLian(Task):
     async def _enter(self):
         await self._move_to_right_top()
         await self.player.find_then_click('yong_shi_zhi_ta')
-        await self.player.find_then_click('gao_ta_shi_lian')
         try:
+            await self.player.find_then_click('gao_ta_shi_lian')
             await self.player.monitor('gao_ta_te_quan')
             return True
         except FindTimeout:

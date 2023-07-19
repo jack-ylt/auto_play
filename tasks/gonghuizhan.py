@@ -27,7 +27,10 @@ class GongHuiZhan(Task):
 
         for _ in range(10):
             # 确保回到公会战主界面
-            await self.player.click_untile_disappear(CLOSE_BUTTONS)
+            try:
+                await self.player.click_untile_disappear(CLOSE_BUTTONS)
+            except FindTimeout:
+                pass
             await self.player.monitor('zhu_jun_dui_wu')
             try:
                 await self.player.find_then_click(bao_xiang_guai_list, threshold=0.85, timeout=2, cheat=False)

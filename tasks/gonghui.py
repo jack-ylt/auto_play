@@ -96,6 +96,7 @@ class GongHui(Task):
         # next_fight = (520, 425)
 
         await self.player.click_untile_disappear('start_fight')
+        await asyncio.sleep(5)
         await self._go_last()
 
         # await self.player.click(next_fight)

@@ -34,7 +34,8 @@ class Task(object):
     async def _do_fight(self):
         name_list = ['win', 'lose', 'fast_forward1', 'go_last']
         while True:
-            name = await self.player.find_then_click(name_list, threshold=0.9, timeout=10)
+            # 现世界，前两关不能跳过，所以10s不够
+            name = await self.player.find_then_click(name_list, threshold=0.9, timeout=30)
             if name in ['win', 'lose']:
                 return name
 
