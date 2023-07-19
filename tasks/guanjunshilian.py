@@ -202,7 +202,10 @@ class GuanJunShiLian(Task):
             (430, 327, 495, 362),
             (430, 409, 495, 444),
         ]
-        ji_fen = int(self.player.get_text(areas[idx], format='number'))
+        try:
+            ji_fen = int(self.player.get_text(areas[idx], format='number'))
+        except ValueError:
+            ji_fen = 0
         self.logger.info(f"_get_enemy_score: {ji_fen}")
         return ji_fen
 
@@ -212,7 +215,10 @@ class GuanJunShiLian(Task):
             (239, 330, 360, 360),
             (239, 415, 360, 445),
         ]
-        zhan_li = int(self.player.get_text(areas[idx], format='number'))
+        try:
+            zhan_li = int(self.player.get_text(areas[idx], format='number'))
+        except ValueError:
+            zhan_li = 0
         self.logger.info(f"_get_enemy_power: {zhan_li}")
         return zhan_li
     

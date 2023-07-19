@@ -73,7 +73,7 @@ class GamerBase(object):
 
         # 有些情况下，esc无法退出
         try:
-            name, pos = await self.player.monitor(['cup', 'card', 'ok'], timeout=1)
+            name, pos = await self.player.monitor(['cup', 'card', 'go_last', 'ok'], timeout=1)
         except FindTimeout:
             pass
         else:
@@ -82,6 +82,10 @@ class GamerBase(object):
                 await asyncio.sleep(2)
                 await self.player.click(pos)
                 await self.player.find_then_click('ok')
+            elif name == 'go_last':
+                await self.player.click(pos)
+                await self.player.find_then_click('ok')
+                await asyncio.sleep(3)
             else:
                 await self.player.click(pos)
                 await asyncio.sleep(3)
@@ -205,7 +209,7 @@ class GamerBase(object):
         await self.player.find_then_click('chong_qi')
         await asyncio.sleep(20)
         await self.player.monitor('ye_sheng', timeout=30)
-        await self.player.monitor('liu_lan_qi', timeout=30)
+        # await self.player.monitor('liu_lan_qi', timeout=30)
 
     async def _get_curr_game(self):
         title_to_game = {

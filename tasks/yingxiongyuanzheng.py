@@ -173,11 +173,17 @@ class YingXiongYuanZheng(Task):
         await self.player.monitor('kao_gu_tong_xing_zheng')
 
         men_piao = self.player.get_text((390, 38, 470, 70))
-        men_piao = int(men_piao.split('/')[0])
+        try:
+            men_piao = int(men_piao.split('/')[0])
+        except ValueError:
+            men_piao = 0
         if men_piao == 0:
             return
         
-        ji_fen = int(self.player.get_text((654, 170, 707, 200)))
+        try:
+            ji_fen = int(self.player.get_text((654, 170, 707, 200)))
+        except ValueError:
+            ji_fen = 0
         if ji_fen < 3000:
             if men_piao < 9:
                 return
