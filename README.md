@@ -24,8 +24,8 @@
 注意：如果你玩的平台未支持，可以使用quick_play模式，或者联系作者添加
 
 ## 安装使用
-下载链接和安装教程，详见百度网盘：
-链接：https://pan.baidu.com/s/1dsLz6l6zSygZ4O8zvWB0eQ?pwd=lzmt 
+下载链接和安装教程，详见百度网盘：  
+链接：https://pan.baidu.com/s/1dsLz6l6zSygZ4O8zvWB0eQ?pwd=lzmt   
 提取码：lzmt
 
 ## 联系方式

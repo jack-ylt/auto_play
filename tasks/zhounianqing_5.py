@@ -23,13 +23,20 @@ class ZhouNianQing5(Task):
 
         await asyncio.sleep(3)
         name, _ = await self.find(['mei_ri_qiandao', 'dian_zan_5'])
-        if name == 'dian_zan_5':
-            await self.click('dian_zan_5')
-            # await self.click('cha_5')    # 可能被挡住
-            await self.click((810, 70))
-  
-        await self.click('mei_ri_qiandao')
+        if name == 'mei_ri_qiandao':
+            await self.click('xu_yuang_chi')
 
+        # 点赞, 领奖励
+        await self.click('dian_zan_5')
+        y = 425
+        pos_list = [(x, y) for x in (258, 336, 415, 490, 570, 650, 730, 810)]
+        for p in pos_list:
+            await self.click(p)
+            await self.click(p)
+        await self.click((810, 70))
+
+        # 签到
+        await self.click('mei_ri_qiandao')
         name, _ = await self.find(['qiandao', 'yi_qiandao'])
         if name == 'qiandao':
             await self.click('qiandao')
