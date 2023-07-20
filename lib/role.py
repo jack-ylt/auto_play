@@ -68,7 +68,7 @@ class Roles():
         now = time.time()
         for role in self.all_roles:
             counter = PlayCounter(role.game + '_' + role.user)
-            if now - counter.get_global('done_time') > 3600 * 2:
+            if now - counter.get_global('done_time') > 3600 * 0:
                 self._idle_roles.append(role)
 
     def have_idle_roles(self, game=None):

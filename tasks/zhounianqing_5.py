@@ -33,7 +33,10 @@ class ZhouNianQing5(Task):
         for p in pos_list:
             await self.click(p)
             await self.click(p)
-        await self.click((810, 70))
+        try:
+            await self.click('guan_bi')
+        except FindTimeout:
+            await self.click((810, 70))
 
         # 签到
         await self.click('mei_ri_qiandao')

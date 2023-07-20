@@ -73,7 +73,7 @@ class GamerBase(object):
 
         # 有些情况下，esc无法退出
         try:
-            name, pos = await self.player.monitor(['cup', 'card', 'go_last', 'ok'], timeout=1)
+            name, pos = await self.player.monitor(['cup', 'card', 'ok', 'go_last'], timeout=1)
         except FindTimeout:
             pass
         else:

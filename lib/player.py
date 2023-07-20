@@ -458,7 +458,7 @@ class Player(object):
                 return True
             try:
                 await self.find_then_click(name, timeout=1)
-                await asyncio.sleep(1)
+                await asyncio.sleep(2)
             except FindTimeout:
                 return True
         return False
