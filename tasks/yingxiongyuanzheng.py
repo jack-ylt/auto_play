@@ -175,14 +175,14 @@ class YingXiongYuanZheng(Task):
         men_piao = self.player.get_text((390, 38, 470, 70))
         try:
             men_piao = int(men_piao.split('/')[0])
-        except ValueError:
+        except Exception:
             men_piao = 0
         if men_piao == 0:
             return
         
         try:
             ji_fen = int(self.player.get_text((654, 170, 707, 200)))
-        except ValueError:
+        except Exception:
             ji_fen = 0
         if ji_fen < 3000:
             if men_piao < 9:

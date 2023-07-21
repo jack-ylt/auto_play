@@ -127,7 +127,7 @@ class Player(object):
                 return True
         return False
 
-    async def monitor(self, names, timeout=10, threshold=0.8, filter_func=_get_first, verify=False, interval=0.5):
+    async def monitor(self, names, timeout=15, threshold=0.8, filter_func=_get_first, verify=False, interval=0.5):
         """return (name, pos), all rease timeout_error"""
         if not isinstance(names, list):
             names = [names]
@@ -369,7 +369,7 @@ class Player(object):
         self._cache_operation_pic(msg, pos_list)
 
     # 防止误点击到运动目标，所以verify默认True，monitor通常用于监控目标是否出现，因此默认verify是False
-    async def find_then_click(self, name_list, pos=None, threshold=0.8, timeout=10, delay=1, raise_exception=True, cheat=True, verify=True, interval=0.5):
+    async def find_then_click(self, name_list, pos=None, threshold=0.8, timeout=15, delay=1, raise_exception=True, cheat=True, verify=True, interval=0.5):
         """find a image, then click it ant return its name
 
         if pos given, click the pos instead.

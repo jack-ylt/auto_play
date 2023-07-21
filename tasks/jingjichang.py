@@ -104,7 +104,7 @@ class JingJiChang(Task):
     async def _fight_win(self):
         name_list = ['card', 'fast_forward1', 'go_last']
         while True:
-            name, pos = await self.player.monitor(name_list, threshold=0.9, timeout=10)
+            name, pos = await self.player.monitor(name_list, threshold=0.9)
             if name == 'card':
                 await self.player.click_untile_disappear('card')
                 await self.player.click(pos)

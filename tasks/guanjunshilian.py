@@ -204,7 +204,7 @@ class GuanJunShiLian(Task):
         ]
         try:
             ji_fen = int(self.player.get_text(areas[idx], format='number'))
-        except ValueError:
+        except Exception:
             ji_fen = 0
         self.logger.info(f"_get_enemy_score: {ji_fen}")
         return ji_fen
@@ -217,7 +217,7 @@ class GuanJunShiLian(Task):
         ]
         try:
             zhan_li = int(self.player.get_text(areas[idx], format='number'))
-        except ValueError:
+        except Exception:
             zhan_li = 0
         self.logger.info(f"_get_enemy_power: {zhan_li}")
         return zhan_li

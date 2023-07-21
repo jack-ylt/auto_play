@@ -184,7 +184,7 @@ class Task(object):
     # ----------- 以下是重构后的新函数 ------------
     # TODO 后续 player 替换成 player2
 
-    async def click(self, targets, timeout=10, interval=1, until_disappear=True):
+    async def click(self, targets, timeout=15, interval=1, until_disappear=True):
         """点击目标
         
         pos: 直接点击
@@ -199,7 +199,7 @@ class Task(object):
             else:
                 await self.player.find_then_click(targets, timeout=timeout, delay=interval)
 
-    async def find(self, target, timeout=10):
+    async def find(self, target, timeout=15):
         """查找目标
         
         return name, pos

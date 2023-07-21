@@ -1,3 +1,4 @@
+import datetime
 from lib.global_vals import *
 from tasks.task import Task
 import asyncio
@@ -28,11 +29,14 @@ class ZhouNianQing5(Task):
 
         # 点赞, 领奖励
         await self.click('dian_zan_5')
-        y = 425
-        pos_list = [(x, y) for x in (258, 336, 415, 490, 570, 650, 730, 810)]
-        for p in pos_list:
-            await self.click(p)
-            await self.click(p)
+
+        if self._near_end():
+            y = 425
+            pos_list = [(x, y) for x in (258, 336, 415, 490, 570, 650, 730, 810)]
+            for p in pos_list:
+                await self.click(p)
+                await self.click(p)
+
         try:
             await self.click('guan_bi')
         except FindTimeout:
@@ -45,3 +49,10 @@ class ZhouNianQing5(Task):
             await self.click('qiandao')
 
         self._increate_count()
+
+
+    def _near_end(self):
+        now = t = datetime.datetime.now()
+        end_t = datetime.datetime.strptime('2023-07-31', "%Y-%m-%d")
+        return now > end_t
+
