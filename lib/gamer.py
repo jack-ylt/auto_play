@@ -173,7 +173,7 @@ class GamerBase(object):
             await self.player.double_click(pos)
 
         await asyncio.sleep(30)
-        await self.player.monitor(['close_btn', 'close_btn5', 'start_game'], timeout=120)
+        await self.player.monitor(['close_btn', 'close_btn5', 'start_game'], timeout=180)
 
         await asyncio.sleep(1)
         for _ in range(3):
@@ -268,7 +268,10 @@ class GamerBase(object):
             except FindTimeout:
                 pos_list = await self.player.find_all_pos(names)
                 if len(pos_list) >= 2:    # 没广告遮挡，最少能看到两个
-                    break
+                    await asyncio.sleep(3)
+                    pos_list = await self.player.find_all_pos(names)    # 再看一次, 防止界面反应慢
+                    if len(pos_list) >= 2:
+                        break
                 await self.player.go_back()
 
             await asyncio.sleep(1)
