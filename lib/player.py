@@ -50,7 +50,7 @@ class Player(object):
         msg = re.sub(r'\s+', ' ', msg)
         now = datetime.now().strftime('%H-%M-%S-%f')[:-3]
         time_str = now.replace('-', ':')[:-5]    # 截掉个位秒以后的值，避免取不到日志
-        name = now + ' ' + msg[:50] + ext
+        name = msg[:50] + ext
         img = self.eye.get_lates_screen(area=self.window.bbox, new=new)
         if pos:
             if isinstance(pos, tuple):
@@ -66,17 +66,17 @@ class Player(object):
         self.log_queue.put((time_str, name, img))
 
     def save_operation_pics(self, msg):
-        now = datetime.now().strftime('%Y-%m-%d_%H-%M-%S-%f')[:-3]
+        now = datetime.now().strftime('%H-%M-%S-%f')[:-3]
         msg = re.sub(r'[^a-zA-Z0-9-_]', ' ', msg)
         msg = re.sub(r'\s+', ' ', msg)
-        dir_name = str(self.window.name) + ' ' + msg[:50] + ' ' + now
+        dir_name = msg[:50] + ' ' + now
         # dir_path = os.path.join('./timeout_pics', dir_name)
         dir_path = os.path.join('logs', dir_name)
         os.makedirs(dir_path)
 
         # TODO 这个实现比较粗糙
         time_str, name, img = self.log_queue.get()
-        pic_path = os.path.join(dir_path, name)
+        pic_path = os.path.join(dir_path, '0 ' + name)
         self.eye.save_picture(img, pic_path)
 
         today = datetime.now().strftime(r'%Y-%m-%d')
@@ -85,19 +85,21 @@ class Player(object):
         self.extract_log_text(src_log, time_str, dst_log)
 
         lst = []
+        idx = 1
         while not self.log_queue.empty():
             time_str, name, img = self.log_queue.get()
             lst.append((time_str, name, img))
-            pic_path = os.path.join(dir_path, name)
+            pic_path = os.path.join(dir_path, str(idx) + ' ' + name)
             self.eye.save_picture(img, pic_path)
+            idx += 1
 
+        # 可能下次保持还能用上
         for i in lst:
             self.log_queue.put(i)
 
         # 保存一下最新的屏幕截图
         img = self.eye.get_lates_screen(area=self.window.bbox, new=True)
-        now = datetime.now().strftime('%H-%M-%S-%f')[:-3]
-        name = now + ' ' + 'last_screen.jpg'
+        name = 'last_screen.jpg'
         pic_path = os.path.join(dir_path, name)
         self.eye.save_picture(img, pic_path)
 
