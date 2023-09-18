@@ -23,14 +23,14 @@ sys.path.insert(0, main_dir)
 
 
 logger = logging.getLogger()
-logger.setLevel(logging.DEBUG)
-ch = logging.StreamHandler()
-ch.setLevel(logging.DEBUG)
+# logger.setLevel(logging.DEBUG)
+# ch = logging.StreamHandler()
+# ch.setLevel(logging.DEBUG)
 
-formatter = logging.Formatter(
-    '%(asctime)s   %(levelname)s   %(message)s')
-ch.setFormatter(formatter)
-logger.addHandler(ch)
+# formatter = logging.Formatter(
+#     '%(asctime)s   %(levelname)s   %(message)s')
+# ch.setFormatter(formatter)
+# logger.addHandler(ch)
 
 
 async def test_eye(name=None, threshold=0.8, verify=True, bbox=None):
@@ -170,10 +170,10 @@ def test_text_recognition():
 
 
 if __name__ == '__main__':
-    # names =  ['cup', 'card', 'ok', 'go_last']
+    # names =  ['que_ding', 'que_ding1', 'ok', 'go_last']
     # asyncio.run(test_eye(names, threshold=0.80, verify=False, bbox = (0, 0, 1920, 1080)))
 
-    asyncio.run(test_tasks('ZhouNianQing5'))
+    asyncio.run(test_tasks('YingXiongYuanZheng'))
     # asyncio.run(test_tasks('GuanJunShiLian', func='_get_enemy_score', args=[0]))
     # asyncio.run(test_gamer('restart'))
 

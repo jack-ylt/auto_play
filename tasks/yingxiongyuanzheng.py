@@ -172,7 +172,7 @@ class YingXiongYuanZheng(Task):
 
         await self.player.monitor('kao_gu_tong_xing_zheng')
 
-        men_piao = self.player.get_text((390, 38, 470, 70))
+        men_piao = self.player.get_text((385, 38, 470, 70))
         try:
             men_piao = int(men_piao.split('/')[0])
         except Exception:
@@ -204,7 +204,7 @@ class YingXiongYuanZheng(Task):
             else:
                 await self.player.tap_key(str(number // 10))
                 await self.player.tap_key(str(number % 10))
-            await self.player.find_then_click('que_ding')
+            await self.player.find_then_click(['que_ding', 'que_ding1'])
 
         await self.player.find_then_click(['sao_dang1', 'sao_dang3'])
 
