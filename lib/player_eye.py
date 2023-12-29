@@ -113,6 +113,7 @@ class Eye(object):
                     f"Found {name} at {pos_list}, max_val: {max_val}")
                 if verify:
                     res = await self._verify_monitor(name, pos_list[0], threshold, base_area=area)
+                    # TODO verify 失败，还需要再次find一次
                     if not res:
                         continue
                 all_pos.extend(pos_list)

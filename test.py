@@ -66,7 +66,8 @@ async def test_tasks(cls_name, func=None, args=[]):
         else:
             await obj.run()
     except Exception as err:
-        player.save_operation_pics(str(err))
+        # player.save_operation_pics(str(err))
+        print(err)
         raise
 
 # async def test_emulator():
@@ -170,10 +171,10 @@ def test_text_recognition():
 
 
 if __name__ == '__main__':
-    # names =  ['que_ding', 'que_ding1', 'ok', 'go_last']
-    # asyncio.run(test_eye(names, threshold=0.80, verify=False, bbox = (0, 0, 1920, 1080)))
+    # names =  [ 'hong_bao_ok']
+    # asyncio.run(test_eye(names, threshold=0.9, verify=False, bbox = (0, 0, 1920, 1080)))
 
-    asyncio.run(test_tasks('YingXiongYuanZheng'))
+    asyncio.run(test_tasks('XinChunQingDian'))
     # asyncio.run(test_tasks('GuanJunShiLian', func='_get_enemy_score', args=[0]))
     # asyncio.run(test_gamer('restart'))
 

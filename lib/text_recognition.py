@@ -1,7 +1,11 @@
 # -*-coding:utf-8-*-
 
 from aip import AipOcr
-from configs.aip_config import config
+# from ..configs.aip_config import config
+config = {
+    'appId': '14224264',
+    'apiKey': 'acb29MRO413yLSuTkC2TIfXd',
+    'secretKey': '2abIQ9DTiBaZTK1FrKx1OqGzIbT2pVGW'}
 
 import logging
 logger = logging.getLogger(__name__)
@@ -43,3 +47,21 @@ def find_text_pos(file_path, text, options=options):
 
     return (-1, -1)
 
+if __name__ == '__main__':
+    # image = get_file_content('a.jpg')
+    # text_dict = client.general(image, options)
+    # words_result = text_dict.get('words_result', [])
+    # print(words_result)
+    import pytesseract
+    import cv2
+
+    def test_text(image_file):
+
+        return tesseract.image_to_string(
+                Image.open(image_file),
+                lang=lang,
+                builder=tesseract.DigitBuilder())
+
+    image_file = 'a.jpg'
+
+    test_text(image_file)
