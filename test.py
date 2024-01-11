@@ -174,7 +174,7 @@ if __name__ == '__main__':
     # names =  [ 'hong_bao_ok']
     # asyncio.run(test_eye(names, threshold=0.9, verify=False, bbox = (0, 0, 1920, 1080)))
 
-    asyncio.run(test_tasks('XinChunQingDian'))
+    asyncio.run(test_tasks('KuaiJieZhiNan'))
     # asyncio.run(test_tasks('GuanJunShiLian', func='_get_enemy_score', args=[0]))
     # asyncio.run(test_gamer('restart'))
 
