@@ -150,7 +150,7 @@ async def test_mouse():
         #     player.hand.m.press(450, 20)
         #     player.hand.m.release(450, 20)
 
-def test_text_recognition():
+def test_text_recognition(area):
     # eye = player_eye.Eye()
     # area = (395, 153, 503, 183)
     # text = eye.get_text(area)
@@ -161,7 +161,6 @@ def test_text_recognition():
     # area = (210, 215, 370, 280)
     # area = (220, 335, 335, 370)
     # area = (668, 205, 720, 235)
-    area = (654, 170, 710, 200)
     # area =(390, 39, 470, 68)
 
 
@@ -171,14 +170,15 @@ def test_text_recognition():
 
 
 if __name__ == '__main__':
-    # names =  [ 'hong_bao_ok']
+    # names =  [ 'zuan_shi_ren_wu']
     # asyncio.run(test_eye(names, threshold=0.9, verify=False, bbox = (0, 0, 1920, 1080)))
 
-    asyncio.run(test_tasks('RenWuLan300'))
+    # asyncio.run(test_tasks('RenWuLan300'))
     # asyncio.run(test_tasks('GuanJunShiLian', func='_get_enemy_score', args=[0]))
     # asyncio.run(test_gamer('restart'))
 
-    # test_text_recognition()
+    area = (407, 378, 465, 430)
+    test_text_recognition(area)
 
 
 

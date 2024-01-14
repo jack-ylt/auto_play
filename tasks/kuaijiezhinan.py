@@ -33,5 +33,11 @@ class KuaiJieZhiNan(Task):
         return self._get_cfg() and self._get_count() < 1
 
     def _update_counter(self):
-        for name in ['XianShiJie', 'XingYunZhuanPan', 'TiaoZhanFuben', 'WuQiKu', 'JingJiChang', 'XingCunJiangLi']:
-            self._increate_count('count', val=1, cls_name=name)
+        # 100级以上，就可以执行快捷指南了，后续很多个任务就没必要执行了。
+        self._increate_count('count', val=3, cls_name='XianShiJie')
+        self._increate_count('count', val=2, cls_name='XingYunZhuanPan')
+        self._increate_count('count', val=6, cls_name='TiaoZhanFuben')
+        self._increate_count('count', val=3, cls_name='WuQiKu')
+        self._increate_count('count', val=3, cls_name='JingJiChang')
+        self._increate_count('count', val=2, cls_name='XingCunJiangLi')
+        
