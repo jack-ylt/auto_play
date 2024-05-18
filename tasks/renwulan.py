@@ -3,6 +3,13 @@ import asyncio
 from lib.global_vals import *
 from tasks.task import Task
 
+GOOD_TASKS = [
+            'task_3star',
+            'task_4star',
+            'task_5star',
+            'task_6star',
+            'task_7star'
+        ]
 
 
 class RenWuLan(Task):
@@ -10,13 +17,7 @@ class RenWuLan(Task):
 
     def __init__(self, player, role_setting, counter):
         super().__init__(player, role_setting, counter)
-        self._good_tasks = [
-            'task_3star',
-            'task_4star',
-            'task_5star',
-            'task_6star',
-            'task_7star'
-        ]
+
         self._tasks_to_finish = [
             'task_3star',
             'task_4star',
@@ -35,9 +36,19 @@ class RenWuLan(Task):
             self.logger.info("Skip, there is no receivable task")
             return
 
-        await self._accept_all_tasks()
-        await self._finish_all_tasks()
-        await self._refresh_tasks()
+        try:
+            await self._accept_all_tasks(GOOD_TASKS)
+        except NoEnoughHero:
+            pass
+
+        await self._onekey_finish_tasks()
+
+        try:
+            await self._refresh_tasks()
+            self._increate_count('refresh_num')
+        except NoEnoughZuanShi:
+            pass
+
         await self._accept_and_finish_left_tasks()
 
         self._increate_count('count')
@@ -54,9 +65,9 @@ class RenWuLan(Task):
         await self.player.find_then_click('task_board')
         await self.player.monitor(['unlock', 'lock'])
 
-    async def _accept_all_tasks(self):
+    async def _accept_all_tasks(self, good_tasks='all'):
         for _ in range(5):
-            await self._accept_tasks()
+            await self._accept_tasks(good_tasks)
             await self._swip_to_right()
 
             try:
@@ -77,12 +88,16 @@ class RenWuLan(Task):
                 break
 
         # 到了右边，但可能还有receivable_task
-        await self._accept_tasks()
+        await self._accept_tasks(good_tasks)
 
-    async def _accept_tasks(self):
+    async def _accept_tasks(self, good_tasks='all'):
         list1 = await self.player.find_all_pos('receivable_task')
-        list2 = await self.player.find_all_pos(self._good_tasks, threshold=0.85)
-        pos_list = self._merge_pos_list(list1, list2, dx=10)
+        if good_tasks != 'all':
+            list2 = await self.player.find_all_pos(good_tasks, threshold=0.85)
+            pos_list = self._merge_pos_list(list1, list2, dx=50)
+        else:
+            pos_list = list1
+
         for pos in pos_list:
             await self.player.monitor('receivable_task')
             await self.player.click(pos)
@@ -93,7 +108,7 @@ class RenWuLan(Task):
             try:
                 await self.player.find_then_click(CLOSE_BUTTONS, timeout=1)
                 print("英雄不够")
-                return False
+                raise NoEnoughHero()
             except FindTimeout:
                 pass
         return True
@@ -104,20 +119,20 @@ class RenWuLan(Task):
         await self.player.drag(pos_r, pos_l, speed=0.02, stop=stop)
 
     async def _refresh_tasks(self):
-        if self._get_count('refresh_num') >= int(self._get_cfg('refresh_num')):
-            return False
+        # if self._get_count('refresh_num') >= int(self._get_cfg('refresh_num')):
+        #     return False
         await self.player.find_then_click('refresh4')
         await asyncio.sleep(2)
         try:
             await self.player.monitor('lack_of_diamond', timeout=1)
         except FindTimeout:
-            self._increate_count('refresh_num')
+            
             return True
         else:
             await self.player.find_then_click(CLOSE_BUTTONS)
-            return False
+            raise NoEnoughZuanShi()
 
-    async def _finish_all_tasks(self):
+    async def _onekey_finish_tasks(self):
         # vip finish
         await self.player.find_then_click('one_click_collection2')
         try:

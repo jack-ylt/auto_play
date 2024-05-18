@@ -55,7 +55,6 @@ daily_play_tasks = (
     'JueDiQiuSheng',
     'ShiJieBoss',
     'XinChunQingDian',
-    'KuaiJieZhiNan',
     'RenWu',
 )
 

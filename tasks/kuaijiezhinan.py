@@ -19,7 +19,7 @@ class KuaiJieZhiNan(Task):
 
         await self.click('yi_jian_zhi_xing')
         await asyncio.sleep(5)
-        await self.click('ok_1')
+        await self.click('ok_1', until_disappear=True)
 
         # 游戏有bug，一次不一定能完成所有任务，所以多点一次
         await asyncio.sleep(5)
@@ -27,7 +27,10 @@ class KuaiJieZhiNan(Task):
         await self.click('ok_1')
 
         self._update_counter()
-        self._increate_count()
+
+        # 是否完成了，要看是否完成了所有日常任务
+        # 详见renwu.py
+        # self._increate_count()
 
     def test(self):
         return self._get_cfg() and self._get_count() < 1

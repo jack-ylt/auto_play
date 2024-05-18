@@ -41,6 +41,14 @@ class PlayException(Exception):
 class FindTimeout(Exception):
     pass
 
+class NoEnoughHero(Exception):
+    pass
+
+class NoEnoughXinFeng(Exception):
+    pass
+
+class NoEnoughZuanShi(Exception):
+    pass
 
 ##############################################################################
 # 全局常量

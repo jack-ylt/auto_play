@@ -184,7 +184,7 @@ class Task(object):
     # ----------- 以下是重构后的新函数 ------------
     # TODO 后续 player 替换成 player2
 
-    async def click(self, targets, timeout=15, interval=1, until_disappear=True):
+    async def click(self, targets, timeout=15, interval=1, until_disappear=False):
         """点击目标
         
         pos: 直接点击
