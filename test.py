@@ -10,6 +10,7 @@ from lib.player import Player
 from lib.recorder import PlayCounter
 from lib.role import Role
 from lib.windows import Window
+from lib.global_vals import OK_BUTTONS
 
 # from lib import tasks
 import tasks
@@ -37,10 +38,6 @@ async def test_eye(name=None, threshold=0.8, verify=True, bbox=None):
     if not bbox:
         bbox = (0, 0, 905, 519)
         # bbox = None
-
-    if name is None:
-        name = ['boss', 'boss1', 'boss2']
-        name = ui_data.OK_BUTTONS
 
     # 查找一个，大概0.1s，5个0.23s， 10个0.4s
     await player_eye.test(name, bbox, threshold, verify=verify)
@@ -170,10 +167,10 @@ def test_text_recognition(area):
 
 
 if __name__ == '__main__':
-    # names =  [ 'aaa2']
-    # asyncio.run(test_eye(names, threshold=0.9, verify=False, bbox = (0, 0, 1920, 1080)))
+    names =  OK_BUTTONS
+    asyncio.run(test_eye(names, threshold=0.9, verify=False, bbox = (0, 0, 1920, 1080)))
 
-    asyncio.run(test_tasks('JueDiQiuSheng'))
+    # asyncio.run(test_tasks('JueDiQiuSheng'))
     # asyncio.run(test_tasks('GuanJunShiLian', func='_get_enemy_score', args=[0]))
     # asyncio.run(test_gamer('restart'))
 

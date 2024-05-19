@@ -93,7 +93,7 @@ class Eye(object):
         r, g, b = pyautogui.pixel(*pos)
         return (r, g, b)
 
-    async def find_all_pos(self, names, area=None, threshold=0.8, verify=True):
+    async def find_all_pos(self, names, area=None, threshold=0.8, verify=True, debug=False):
         """return list of pos"""
         self.logger.debug(
             f'Start to find all positions of: {names}')
@@ -109,6 +109,8 @@ class Eye(object):
             pos_list, max_val = self._find_img_pos(
                 img_bg, img_target, threshold=threshold)
             if pos_list:
+                if debug:
+                    print(f"found {name} at {pos_list}")
                 self.logger.debug(
                     f"Found {name} at {pos_list}, max_val: {max_val}")
                 if verify:
@@ -388,7 +390,7 @@ async def test(names, bbox=None, threshold=0.8, max_try=1, verify=True):
     all_res = []
 
     for _ in range(max_try):
-        res = await eye.find_all_pos(names, area=bbox, threshold=threshold, verify=verify)
+        res = await eye.find_all_pos(names, area=bbox, threshold=threshold, verify=verify, debug=True)
         all_res.extend(res)
 
     all_res = eye._de_duplication(all_res)

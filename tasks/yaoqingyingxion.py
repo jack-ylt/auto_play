@@ -71,25 +71,13 @@ class YaoQingYingXion(Task):
         return True
 
     async def _dismiss_heroes(self):
-        await self.player.find_then_click('1xing')
         await self.player.find_then_click('quick_put_in')
-        await self.player.find_then_click('2xing')
-        await self.player.find_then_click('quick_put_in')
+        await self.player.find_then_click('dismiss')
+        name, _ = await self.find(['ok8', 'receive1'])
+        if name == 'ok8':
+            await self.click('ok8')
+        await self.player.find_then_click('receive1')
 
-        # 如果遣散栏为空，就遣散3星英雄
-        try:
-            await self.player.monitor('empty_dismiss', timeout=1)
-        except FindTimeout:
-            await self.player.find_then_click('dismiss')
-            await self.player.find_then_click('receive1')
-        else:
-            await self.player.find_then_click('3xing')
-            await self.player.find_then_click('quick_put_in')
-            await self.player.find_then_click('dismiss')
-            await self.player.find_then_click(OK_BUTTONS)
-            await self.player.find_then_click('receive1')
-
-        # 回到啤酒邀请界面
         await self.player.go_back()
 
 
