@@ -105,13 +105,15 @@ class YiJiMoKu(Task):
                     pos = pos_list[0]
                     pos = (pos[0] + 340, pos[1] + 20)
                     await self.player.click(pos)
-                    name, _ = await self.player.monitor(['lack_of_diamond', 'ok8'], timeout=3)
-                    if name == 'ok8':
-                        await self.player.find_then_click(OK_BUTTONS)
-                        await self.player.find_then_click(OK_BUTTONS)
-                        continue
-                    else:
+                    # fix 魔窟没有 lack_of_diamond
+                    try:
+                        await self.player.monitor('ok8', timeout=3)
+                    except FindTimeout:
                         lack_diamond = True
+                    else:
+                        await self.player.find_then_click(OK_BUTTONS)
+                        await self.player.find_then_click(OK_BUTTONS)
+                        continue                   
 
             if finish_buy:
                 break
