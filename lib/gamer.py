@@ -209,7 +209,7 @@ class GamerBase(object):
         await self.player.find_then_click('chong_qi')
         await asyncio.sleep(20)
         await self.player.monitor('ye_sheng', timeout=30)
-        await self.player.monitor('liu_lan_qi', timeout=30)
+        await self.player.monitor('liu_lan_qi', timeout=90)
 
     async def _get_curr_game(self):
         title_to_game = {
