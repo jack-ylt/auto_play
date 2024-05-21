@@ -110,7 +110,9 @@ async def main(goal):
             # elif status == 'unexpected error':
             #     return stop_play(f"未知错误，请稍后重试")
             elif status == 'game not found':
-                return stop_play(f"未找到{role.game}，请在每个模拟器窗口都安装好游戏")
+                # return stop_play(f"未找到{role.game}，请在每个模拟器窗口都安装好游戏")
+                # 可能是bug，可能是用户没安装好，因此，不要影响其它窗口
+                logger.warning(f"未找到{role.game}，请在每个模拟器窗口都安装好游戏")
             else:
                 # 比如验证码出来了，所以就换个账号登陆
                 logger.warning(f'{role} run error on {window.name}')
