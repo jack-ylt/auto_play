@@ -42,7 +42,7 @@ class Player(object):
 
         self.eye = player_eye.Eye(self.logger)
         self.hand = player_hand.Hand(self.logger)
-        self.log_queue = queue.Queue(20)
+        self.log_queue = queue.Queue(10)
         self.last_click = None
 
     def _cache_operation_pic(self, msg, pos=None, new=True, ext=".jpg"):

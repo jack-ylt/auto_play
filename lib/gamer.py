@@ -158,6 +158,12 @@ class GamerBase(object):
     async def _launch_game(self, role):
         game_icons = GAME_ICONS[role.game]
 
+        # 有可能是点到了搜索框，或者弹出了广告
+        try:
+            _, pos = await self.player.monitor(game_icons, timeout=5)
+        except FindTimeout:
+            self.player.click((750,380))
+
         try:
             _, pos = await self.player.monitor(game_icons)
         except FindTimeout:
