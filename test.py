@@ -3,6 +3,7 @@ import asyncio
 import logging
 import os
 import sys
+from time import sleep
 
 from lib import player_eye, role, ui_data, windows
 from lib.gamer import Gamer
@@ -154,12 +155,6 @@ def test_text_recognition(area):
     # print(text)
     window = windows.Window('left_top')
     player = Player(g_lock=asyncio.Lock(), window=window)
-    # area = (395, 153, 503, 183)
-    # area = (210, 215, 370, 280)
-    # area = (220, 335, 335, 370)
-    # area = (668, 205, 720, 235)
-    # area =(390, 39, 470, 68)
-
 
     text = player.get_text(area)
     print(text)
@@ -167,15 +162,22 @@ def test_text_recognition(area):
 
 
 if __name__ == '__main__':
-    # names =  OK_BUTTONS
-    # asyncio.run(test_eye(names, threshold=0.9, verify=False, bbox = (0, 0, 1920, 1080)))
-
-    asyncio.run(test_tasks('YiJiMoKu'))
-    # asyncio.run(test_tasks('GuanJunShiLian', func='_get_enemy_score', args=[0]))
-    # asyncio.run(test_gamer('restart'))
-
-    # area = (407, 378, 465, 430)
-    # test_text_recognition(area)
+    test_type = 2
+    
+    if test_type == 1:
+        names = [f"sh_{str(i).zfill(2)}_5x" for i in range(1, 30)]
+        # names =  ['10x']
+        asyncio.run(test_eye(names, threshold=0.9, verify=False, bbox = (0, 0, 1920, 1080)))
+        #asyncio.run(test_eye(names, threshold=0.75, verify=False, bbox = (0, 0, 1920, 1080)))
+    elif test_type == 2:
+        asyncio.run(test_tasks('MakeHero'))
+        # asyncio.run(test_tasks('MakeHero', func='get_developing_heroes', args=[]))
+        # asyncio.run(test_gamer('restart'))
+    elif test_type == 3:
+        # area = (407, 378, 465, 430)
+        area = (400, 275, 480, 315)
+        area = (15, 465, 80, 493)
+        test_text_recognition(area)
 
 
 

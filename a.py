@@ -3,78 +3,34 @@
 #
 #############################################
 
+
+
 import cv2
-import os
-import re
-from PIL import Image
+import numpy as np
 
+# 读取图片，并转为灰度图
+img1 = cv2.imread('./aaaa1.jpg')
+img2 = cv2.imread('./aaaa2.jpg')
+gray1 = cv2.cvtColor(img1, cv2.COLOR_BGR2GRAY)
+gray2 = cv2.cvtColor(img2, cv2.COLOR_BGR2GRAY)
 
-def get_video_size(fpath):
-    video = cv2.VideoCapture(fpath)
-    width = int(video.get(cv2.CAP_PROP_FRAME_WIDTH))
-    height = int(video.get(cv2.CAP_PROP_FRAME_HEIGHT))
-    video.release()
-    return width, height
+# 创建orb对象
+orb = cv2.ORB_create()
+# 对ORB进行检测
+kp1, dst1 = orb.detectAndCompute(gray1, None)
+kp2, dst2 = orb.detectAndCompute(gray2, None)
+# 判断描述子的数据类型，若不符合，则进行数据替换
+if dst1.dtype != 'float32':
+    dst1 = dst1.astype('float32')
+if dst2.dtype != 'float32':
+    dst2 = dst2.astype('float32')
 
+# 创建匹配器(FLANN)
+flann = cv2.FlannBasedMatcher()
+# 描述子进行匹配计算
+matches = flann.match(dst1, dst2)
+img3 = cv2.drawMatches(img1, kp1, img2, kp2, matches, None)
 
-def get_image_size(fpath):
-    size = Image.open(fpath).size
-    return size
+cv2.imshow('img3', img3)
 
-
-def simplify_name(fanme):
-    s1 = r"幼女萝莉资源luolihao.com打不开请开VPN-"
-    res = fanme.replace(s1, '')
-    for s in "- _()":
-        res = res.replace(s, '')
-    return res
-
-
-def main():
-    # base_dir = r"E:\资料\zz\xiaoma2"
-    base_dir = r'E:\资料\zz\ztmv'
-    image_num = 0
-    video_num = 0
-
-    for root, dnames, fnames in os.walk(base_dir):
-        for f in fnames:
-            new_f = f
-            # 已经加了分辨率了，不重复加
-            if re.match(r'\d+x\d+_', f):
-                continue
-
-            # # 已经有分辨率了，删除分辨率
-            # if re.match(r'\d+x\d+_', f):
-            #     new_f = re.sub(r'\d+x\d+_', '', new_f)
-
-            new_f = simplify_name(new_f)
-
-            # 添加分辨率前缀
-            if f.endswith('.jpg'):
-                image_num += 1
-                try:
-                    w, h = get_image_size(os.path.join(root, f))
-                    new_f = f"{min(w,h)}x{max(w,h)}_{new_f}"
-                except Exception:
-                    pass
-            elif f.endswith('.txt'):
-                pass
-            else:
-                # 视频格式太多了
-                video_num += 1
-                try:
-                    w, h = get_video_size(os.path.join(root, f))
-                    new_f = f"{min(w,h)}x{max(w,h)}_{new_f}"
-                except Exception:
-                    pass
-
-
-            # 重命名
-            os.rename(os.path.join(root, f), os.path.join(root, new_f))
-
-    print(f"image_num: {image_num}, video_num: {video_num}")
-
-main()
-
-
-# TODO 出了个bug，就是已经简化了，重复简化；已经加了前缀，重复加前缀
+a = input("press any key to quit ...")

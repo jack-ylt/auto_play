@@ -53,7 +53,7 @@ class YiJiMoKu(Task):
             # list1 = await self.player.find_all_pos('gold2')
             list1 = await self.player.find_all_pos('gold3')
             list2 = await self.player.find_all_pos(['zhuan_pan_bi', 'jing_ji_men_piao'])
-            pos_list = self._merge_pos_list(list1, list2, dy=30)
+            pos_list = self._merge_pos_list(list1, list2, dy=(0, 30))
 
             if pos_list:
                 await self.player.click(pos_list[0], cheat=False)

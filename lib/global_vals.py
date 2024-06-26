@@ -50,6 +50,18 @@ class NoEnoughXinFeng(Exception):
 class NoEnoughZuanShi(Exception):
     pass
 
+class NoEnoughSelfHero(Exception):
+    pass
+
+class NoEnoughGouLiang(Exception):
+    pass
+
+class NoEnoughHeroSpace(Exception):
+    pass
+
+class TextRecognitionFailure(Exception):
+    pass
+
 ##############################################################################
 # 全局常量
 #
@@ -106,7 +118,8 @@ OK_BUTTONS = [
     'ok8',
     'ok9',
     'ok10',
-    'ok_btn1'
+    'ok_btn1',
+    'que_ding2'
 ]
 
 CLOSE_BUTTONS = [

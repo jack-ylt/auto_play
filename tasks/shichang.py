@@ -89,11 +89,11 @@ class ShiChang(Task):
                       'xing_pian_bao_xiang']
         list1 = await self.player.find_all_pos('gold')
         list2 = await self.player.find_all_pos(nice_goods)
-        pos_list1 = self._merge_pos_list(list1, list2, dx=50, dy=100)
+        pos_list1 = self._merge_pos_list(list1, list2, dx=50, dy=(0, 100))
 
         list3 = await self.player.find_all_pos('diamond_1000')
         list4 = await self.player.find_all_pos('beer_8')
-        pos_list2 = self._merge_pos_list(list3, list4, dx=50, dy=100)
+        pos_list2 = self._merge_pos_list(list3, list4, dx=50, dy=(0, 100))
 
         for pos in sorted(pos_list1 + pos_list2):
             if await self.player.is_disabled_button(pos):

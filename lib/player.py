@@ -14,7 +14,7 @@ from lib.helper import change_language
 from lib.mylogs import make_logger
 # from lib.read_cfg import read_role_cfg
 # from lib.recorder import PlayCounter
-
+from collections import defaultdict
 import pyperclip
 
 FindTimeout = player_eye.FindTimeout
@@ -23,6 +23,8 @@ FindTimeout = player_eye.FindTimeout
 def _get_first(lst):
     return lst[0]
 
+def _top_match(lst):
+    pass
 
 def _random_offset(pos, dx=10, dy=8):
     x = pos[0] + random.randint(-dx, dx)
@@ -160,6 +162,58 @@ class Player(object):
             # self.logger.debug(msg)
             self._cache_operation_pic(msg, pos_list, new=False)
         return pos_list
+    
+    async def find_all_name(self, names, threshold=0.8):
+        """return name_list, all rease timeout_error"""
+        if not isinstance(names, list):
+            names = [names]
+
+        d = await self.eye.find_all_name_pos(names, area=self.window.bbox, threshold=threshold)
+        name_list = d.keys()
+        pos_list = []
+        for k, v in d.items():
+            pos_list.extend(v)
+        # 如果没找到，就不要记录了
+        if name_list:
+            msg = f"find {name_list} at {pos_list}"
+            # self.logger.debug(msg)
+            self._cache_operation_pic(msg, pos_list, new=False)
+
+        return name_list
+    
+
+    async def find_combo(self, target_names, verify_names, dx=(-500, 500), dy=(-500, 500), ret='name'):
+        def _is_close(p1, p2):
+            x1, y1 = p1
+            x2, y2 = p2
+            if dx[0] < x1 - x2 < dx[1] and dy[0] <= y1 - y2 <= dy[1]:
+                return True
+            return False
+        
+        if not isinstance(target_names, list):
+            target_names = [target_names]
+        if not isinstance(verify_names, list):
+            verify_names = [verify_names]
+
+        d1 = await self.eye.find_all_name_pos(target_names, area=self.window.bbox)
+        verify_pos_lst = await self.find_all_pos(verify_names)
+
+        d2 = defaultdict(list)
+        for name, pos_lst in d1.items():
+            for p1 in pos_lst:
+                for p2 in verify_pos_lst:
+                    if _is_close(p1, p2):
+                        d2[name].append(p1)
+        if ret == 'name':
+            return d2.keys()
+        elif ret == 'pos':
+            all_pos = []
+            for lst in d2.values():
+                all_pos.extend(lst)
+            return sorted(self.eye._de_duplication(all_pos))
+        else:
+            return d2
+
 
     async def _verify_click(self, pos):
         start_t = time.time()
@@ -325,7 +379,7 @@ class Player(object):
 
         return False
 
-    async def information_input(self, pos, info):
+    async def information_input(self, pos, info, double_click=True):
         """click the input box, then input info"""
         msg = f"{self.window.name}: input '{info}' at {pos}"
         self.logger.debug(msg)
@@ -335,20 +389,37 @@ class Player(object):
             pyperclip.copy(info)
 
             pos = self.window.real_pos(pos)
-            await self.hand.double_click(pos)
+            if double_click:
+                await self.hand.double_click(pos)
+            else:
+                self.hand.click(pos)
             await asyncio.sleep(0.3)
             await self.hand.tap_key('backspace')
             await asyncio.sleep(0.1)
 
             # paste
-            await self.hand.press_key('ctrl')
-            await asyncio.sleep(0.1)    # 避免粘贴失败
-            await self.hand.tap_key('v')
-            await asyncio.sleep(0.1)    # 避免粘贴失败
-            await self.hand.release_key('ctrl')
-            await asyncio.sleep(0.3)
+            await self.ctrl_v()
 
         self._cache_operation_pic(msg)
+
+    async def ctrl_c(self):
+        """ctrl-c, 必须要g_lock中调用"""
+        await self.hand.press_key('ctrl')
+        await asyncio.sleep(0.1)    # 避免copy失败
+        await self.hand.tap_key('c')
+        await asyncio.sleep(0.1)    # 避免copy失败
+        await self.hand.release_key('ctrl')
+        await asyncio.sleep(0.3)
+
+
+    async def ctrl_v(self):
+        """ctrl-v, 必须要g_lock中调用"""
+        await self.hand.press_key('ctrl')
+        await asyncio.sleep(0.1)    # 避免粘贴失败
+        await self.hand.tap_key('v')
+        await asyncio.sleep(0.1)    # 避免粘贴失败
+        await self.hand.release_key('ctrl')
+        await asyncio.sleep(0.3)
 
     async def multi_click(self, pos_list, delay=1, cheat=True):
         new_pos_list = []
@@ -440,6 +511,36 @@ class Player(object):
             await asyncio.sleep(0.1)
             text = pyperclip.paste()
         return text
+    
+    async def get_sui_pian_num(self, pos):
+        """获取英雄碎片数量"""
+        async with self.g_lock:
+            pos = self.window.real_pos(pos)
+            self.hand.click(pos)
+            await asyncio.sleep(0.3)
+            await self.ctrl_c()
+            text = pyperclip.paste()
+
+        await self.find_then_click(['que_ding', 'que_ding_L'])
+        self.logger.debug(f"get_sui_pian_num: {text}")
+        return int(text)
+    
+    async def set_sui_pian_num(self, pos, num):
+        """设定邀请英雄碎片的数量"""
+        async with self.g_lock:
+            pos = self.window.real_pos(pos)
+            self.hand.click(pos)
+            await asyncio.sleep(0.3)
+            await self.ctrl_c()
+            max_num = int(pyperclip.paste())
+            input_num = num if max_num > num else max_num
+            pyperclip.copy(input_num)
+            await asyncio.sleep(0.1)
+            await self.ctrl_v()
+
+        await self.find_then_click(['que_ding', 'que_ding_L'])
+        self.logger.debug(f"set_sui_pian_num: {input_num}")
+        return input_num
 
     async def wait_disappear(self, name, check_count=5):
         """wait, until the name disappear"""
@@ -453,13 +554,13 @@ class Player(object):
             f"wait {check_count} times, the {name} still not disapper.")
         return False
 
-    async def click_untile_disappear(self, names, max_count=3):
+    async def click_untile_disappear(self, names, max_count=3, threshold=0.8):
         name = await self.find_then_click(names)
         for _ in range(max_count - 1):
             if not self.is_exist(name):
                 return True
             try:
-                await self.find_then_click(name, timeout=1)
+                await self.find_then_click(name, timeout=1, threshold=threshold)
                 await asyncio.sleep(2)
             except FindTimeout:
                 return True
@@ -471,6 +572,7 @@ class Player(object):
         
         real_area = (x1 + dx, y1 + dy, x2 + dx, y2 + dy)
         text = self.eye.get_text(real_area)
+        text = text.strip()    # 删除前后空格
         self.logger.debug(f"get_text: {text}")
         self._cache_operation_pic(f'get_text at {real_area}',  new=False)
         # print('text:', text)

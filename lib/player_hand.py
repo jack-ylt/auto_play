@@ -51,8 +51,8 @@ class Hand(object):
     def click(self, pos, cheat=True):
         """simulate a player to do a left-click"""
         if cheat:
-            x = pos[0] + random.randint(-10, 10)
-            y = pos[1] + random.randint(-8, 8)
+            x = pos[0] + random.randint(-8, 8)
+            y = pos[1] + random.randint(-6, 6)
         else:
             x = pos[0] + random.randint(-2, 2)
             y = pos[1] + random.randint(-2, 2)
@@ -122,13 +122,12 @@ class Hand(object):
         await asyncio.sleep(0.3)
 
 
-    async def drag_and_keep(self, p1, p2, speed=0.05):
+    async def drag_and_keep(self, p1, p2, speed=0.003, step=500):
         """drag from position 1 to position 2 and keep the mouse"""
-        x1 = p1[0] + random.randint(-5, 5)
-        y1 = p1[1] + random.randint(-3, 3)
-        x2 = p2[0] + random.randint(-5, 5)
-        y2 = p2[1] + random.randint(-3, 3)
-        step = 10
+        x1 = p1[0] + random.randint(-1, 1)
+        y1 = p1[1] + random.randint(-1, 1)
+        x2 = p2[0] + random.randint(-1, 1)
+        y2 = p2[1] + random.randint(-1, 1)
 
         self.m.move(x1, y1)
         self.m.press(x1, y1)
@@ -141,7 +140,7 @@ class Hand(object):
             await asyncio.sleep(speed)
 
         self.m.move(p2[0], p2[1])
-        await asyncio.sleep(0.3)
+        await asyncio.sleep(0.6)
 
     async def release_mouse(self, pos):
         """after drag_and_keep, call this to release mouse"""

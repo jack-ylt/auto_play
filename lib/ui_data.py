@@ -51,7 +51,8 @@ OK_BUTTONS = [
     'ok8',
     'ok9',
     'ok10',
-    'ok_btn1'
+    'ok_btn1',
+    'que_ding2'
 ]
 
 CLOSE_BUTTONS = [

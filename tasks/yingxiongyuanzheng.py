@@ -139,7 +139,7 @@ class YingXiongYuanZheng(Task):
 
         list1 = await self.player.find_all_pos('yan_jiu_bi')
         list2 = await self.player.find_all_pos("ji_ying_zu_jian")
-        pos_list1 = self._merge_pos_list(list1, list2, dx=50, dy=100)
+        pos_list1 = self._merge_pos_list(list1, list2, dx=50, dy=(0, 100))
         for pos in sorted(pos_list1, reverse=True):
             await self.player.click((pos[0]+30, pos[1]))
             try:
@@ -160,7 +160,7 @@ class YingXiongYuanZheng(Task):
         await self.player.find_then_click('plus2')    
         list1 = await self.player.find_all_pos('qi_you')
         list2 = await self.player.find_all_pos("kao_gu_tong_xing_zheng2")
-        pos_list1 = self._merge_pos_list(list1, list2, dx=50, dy=100)
+        pos_list1 = self._merge_pos_list(list1, list2, dx=50, dy=(0, 100))
         for pos in sorted(pos_list1):
             await self.player.click((pos[0]+30, pos[1]))
             try:
@@ -204,7 +204,7 @@ class YingXiongYuanZheng(Task):
             else:
                 await self.player.tap_key(str(number // 10))
                 await self.player.tap_key(str(number % 10))
-            await self.player.find_then_click(['que_ding', 'que_ding1'])
+            await self.player.find_then_click(['que_ding', 'que_ding_L'])
 
         await self.player.find_then_click(['sao_dang1', 'sao_dang3'])
 

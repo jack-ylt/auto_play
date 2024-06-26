@@ -93,6 +93,38 @@ class Eye(object):
         r, g, b = pyautogui.pixel(*pos)
         return (r, g, b)
 
+    async def find_all_name_pos(self, names, area=None, threshold=0.8, verify=True, debug=False):
+        """return dict of name pos"""
+        self.logger.debug(
+            f'Start to find all name and positions of: {names}')
+
+        if not isinstance(names, list):
+            names = [names]
+
+        all_name_pos = {}
+
+        img_bg = self._screenshot(area=area)
+        for name in names:
+            img_target = self._get_img(name)
+            pos_list, max_val = self._find_img_pos(
+                img_bg, img_target, threshold=threshold)
+            if pos_list:
+                if debug:
+                    print(f"found {name} at {pos_list}")
+                self.logger.debug(
+                    f"Found {name} at {pos_list}, max_val: {max_val}")
+                if verify:
+                    res = await self._verify_monitor(name, pos_list[0], threshold, base_area=area)
+                    # TODO verify 失败，还需要再次find一次
+                    if not res:
+                        continue
+                all_name_pos[name] = sorted(self._de_duplication(pos_list)) 
+
+        if not all_name_pos:
+            self.logger.debug(f'No find any pos of {names}')
+
+        return all_name_pos
+
     async def find_all_pos(self, names, area=None, threshold=0.8, verify=True, debug=False):
         """return list of pos"""
         self.logger.debug(
@@ -377,8 +409,9 @@ class Eye(object):
     def get_text(self, area):
         img_bg = self._screenshot(area)
         text = pytesseract.image_to_string(img_bg)
-        # logger.debug(f"get_text: {text}")
-        return text
+        pattern = '[^/_\w\s\d{Han}]'  # 只保留中文、数字、字母、空格
+        return re.sub(pattern, '', text)
+        # return text
 
 async def test(names, bbox=None, threshold=0.8, max_try=1, verify=True):
     if isinstance(names, str):
@@ -394,7 +427,7 @@ async def test(names, bbox=None, threshold=0.8, max_try=1, verify=True):
         all_res.extend(res)
 
     all_res = eye._de_duplication(all_res)
-    print(all_res)
+    # print(all_res)
     
     t2 = time.time()
     print("cost time: {:.2f}".format(t2 - t1))

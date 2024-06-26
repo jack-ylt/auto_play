@@ -34,4 +34,5 @@ from .shijieboss import ShiJieBoss
 from .gaotashilian import GaoTaShiLian
 from .zhounianqing_5 import ZhouNianQing5
 from .xinchunqingdian import XinChunQingDian
+from .makehero import MakeHero
 

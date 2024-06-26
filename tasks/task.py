@@ -4,11 +4,13 @@ import asyncio
 import math
 
 from lib.player import FindTimeout
+from lib.gamer import Gamer
 
 
 class Task(object):
     def __init__(self, player, role_setting, counter):
         self.player = player
+        self.gamer = Gamer(player)
         self.logger = self.player.logger
         self._back_btn = (30, 60)
         self.cfg = role_setting
@@ -96,14 +98,19 @@ class Task(object):
                 pass
         raise FindTimeout()
 
-    def _merge_pos_list(self, btn_list, icon_list, dx=1000, dy=1000):
+    def _merge_pos_list(self, btn_list, icon_list, dx=(-1000, 1000), dy=(-1000, 1000)):
         def _is_close(p1, p2):
             x1, y1 = p1
             x2, y2 = p2
             # dy不试用绝对值，因为按钮一般在图标的下面
-            if math.fabs(x1 - x2) <= dx and 0 <= y1 - y2 <= dy:
+            if dx[0] < x1 - x2 < dx[1] and dy[0] <= y1 - y2 <= dy[1]:
                 return True
             return False
+
+        if not isinstance(dx, tuple):
+            dx = (-int(dx), int(dx))
+        if not isinstance(dy, tuple):
+            dy = (-int(dy), int(dy))
 
         merge_set = set()
         for p1 in btn_list:
@@ -184,7 +191,7 @@ class Task(object):
     # ----------- 以下是重构后的新函数 ------------
     # TODO 后续 player 替换成 player2
 
-    async def click(self, targets, timeout=15, interval=1, until_disappear=False):
+    async def click(self, targets, timeout=15, interval=1, until_disappear=False, threshold=0.8):
         """点击目标
         
         pos: 直接点击
@@ -195,27 +202,34 @@ class Task(object):
             await self.player.click(targets)
         else:
             if until_disappear:
-                await self.player.click_untile_disappear(targets)
+                await self.player.click_untile_disappear(targets, threshold=threshold)
             else:
-                await self.player.find_then_click(targets, timeout=timeout, delay=interval)
+                await self.player.find_then_click(targets, timeout=timeout, delay=interval, threshold=threshold)
 
-    async def find(self, target, timeout=15):
+    async def find(self, target, timeout=15, threshold=0.8):
         """查找目标
         
         return name, pos
         """
-        return await self.player.monitor(target, timeout=timeout)
+        return await self.player.monitor(target, timeout=timeout, threshold=threshold)
     
-    async def find_all(self, targes):
+    async def find_all(self, targes, threshold=0.8):
         """查找所有目标
         
         return pos_list
         """
-        return await self.player.find_all_pos(targes)
+        return await self.player.find_all_pos(targes, threshold=threshold)
     
-    def exist(self, targets):
+    def exist(self, targets, threshold=0.8):
         """判断目标是否存在
         
         return True/False
         """
-        return self.player.is_exist(targets)
+        return self.player.is_exist(targets, threshold=threshold)
+    
+
+    async def drag_then_find(self, p1, p2, pic):
+        await self.player.hand.drag_and_keep(p1, p2)
+        res = self.player.is_exist(pic, threshold=0.9)
+        await self.player.hand.release_mouse(p2)
+        return res
