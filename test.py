@@ -166,7 +166,7 @@ if __name__ == '__main__':
     
     if test_type == 1:
         names = [f"sh_{str(i).zfill(2)}_5x" for i in range(1, 30)]
-        # names =  ['10x']
+        names =  ['reach_down']
         asyncio.run(test_eye(names, threshold=0.9, verify=False, bbox = (0, 0, 1920, 1080)))
         #asyncio.run(test_eye(names, threshold=0.75, verify=False, bbox = (0, 0, 1920, 1080)))
     elif test_type == 2:

@@ -545,11 +545,11 @@ class Player(object):
     async def wait_disappear(self, name, check_count=5):
         """wait, until the name disappear"""
         for _ in range(check_count):
-            try:
-                await self.monitor(name, timeout=1)
+            if self.is_exist(name):
                 await asyncio.sleep(1)
-            except FindTimeout:
+            else:
                 return True
+
         self.logger.warning(
             f"wait {check_count} times, the {name} still not disapper.")
         return False

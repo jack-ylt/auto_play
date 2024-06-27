@@ -31,6 +31,9 @@ class MakeHero(Task):
         return True
 
     async def make_5x_heroes(self, zhen_ying='si_xi'):
+        self.logger.info('make_5x_heroes')
+        num = 0
+
         while True:
             num = await self.get_free_space()
             self.logger.info(f"free space: {num}")
@@ -55,6 +58,7 @@ class MakeHero(Task):
             await self.yao_qing_gouliang_5x(10)
 
     async def make_6x_heroes(self, zhen_yings=SI_XI_ZHEN_YING):
+        self.logger.info('make_6x_heroes')
         await self.gamer.goto_main_ui()
         await self._move_to_left_top()
         await self.click('gai_zao_ying_xiong')
@@ -72,16 +76,17 @@ class MakeHero(Task):
 
             bentis_5x = self.hero_selector(zhen_ying, '5x', gou_liang='9x')
             gou_liang_5x = self.hero_selector(zhen_ying, '5x', gou_liang='6x')
-            exclude_ids = set()
             pos_list = await self.find_all("red_point4", threshold=0.75)
             pos_list = [i for i in pos_list if i[1] > 360]
+
             for pos in pos_list:
                 await asyncio.sleep(1)
                 await self.click((pos[0]-20, pos[1]+20))
 
                 try:
                     name, _ = await self.find(bentis_5x, timeout=2)
-                    exclude_ids.add(name.split('_')[1])
+                    # 不需要，因为狗粮用的都是没有9x潜力的
+                    # exclude_ids.add(name.split('_')[1])
                 except FindTimeout:
                     # 不是狗粮，不合成(避免消耗最新的英雄)
                     continue
@@ -92,11 +97,11 @@ class MakeHero(Task):
 
                 try:
                     await self.click((674, 238))
-                    await self.select_gou_liang(gou_liang_5x, 1, excludes=exclude_ids)
+                    await self.select_gou_liang(gou_liang_5x, 1)
 
                     await self.find('gai_zao1')
                     await self.click((674, 330))
-                    await self.select_gou_liang(gou_liang_5x, 3, excludes=exclude_ids)
+                    await self.select_gou_liang(gou_liang_5x, 3)
                     await self.click('gai_zao1')
                     await self.click(OK_BUTTONS)
                     await self.click(OK_BUTTONS)
@@ -137,6 +142,7 @@ class MakeHero(Task):
         return True
 
     async def make_9x_heroes(self, zhen_yings=SI_XI_ZHEN_YING):
+        self.logger.info('make_9x_heroes')
         await self.gamer.goto_main_ui()
         await self.click('ying_xiong')
         num_9x = 0
@@ -153,6 +159,7 @@ class MakeHero(Task):
             names_6x = self.hero_selector(zhen_ying, '6x')
             names_5x = self.hero_selector(zhen_ying, '5x')
             num_6x = 0
+            num_5x = 0
             while True:
                 if self.exist('6x', threshold=0.9):
                     found = await self.player.find_all_name(names_6x, threshold=0.9)
@@ -161,15 +168,26 @@ class MakeHero(Task):
                     found = await self.player.find_all_name(names_5x, threshold=0.9)
                     heroes_5x.update(set(found))
 
-                num = len(await self.find_all('6x', threshold=0.9))
+                num = len(await self.find_all(names_6x, threshold=0.9))
                 if num > num_6x:
                     num_6x = num
-                    await self.swipe_up('ying_xiong_tong_ji')
-                else:
+
+                num = len(await self.find_all(names_5x, threshold=0.9))
+                if num > num_5x:
+                    num_5x = num
+                    
+                if self.exist(['4x', '3x'], threshold=0.9):
+                    break
+
+                if await self.swipe_up('ying_xiong_tong_ji'):
                     break
 
             if num_6x < 4:
                 self.logger.info(f"skip, no enough 6x heroes ({num_6x} < 4)")
+                continue
+
+            if num_5x < 10:
+                self.logger.info(f"skip, no enough 5x heroes ({num_6x} < 10)")
                 continue
 
             id_10x = set([i.split('_')[1]
@@ -193,12 +211,11 @@ class MakeHero(Task):
                 if await self.swipe_down(mode='ying_xiong_tong_ji'):
                     break
 
-            hero_6x = heroes_to_9x[0]
-            num = hero_6x.split('_')[1]
-            exclude_ids = set([num])    # 避免把自己的5x本体吃掉
-
+            hero_6x = heroes_to_9x[0]     
             await self.click(hero_6x)
 
+            # await self.sheng_xing(zhen_ying, heroid, gou_liang_5x, to='13x')
+            
             # 升100级
             name, _ = await self.find(['jin_jie', 'jue_xing'])
             if name == 'jin_jie':
@@ -207,15 +224,18 @@ class MakeHero(Task):
                     await self.find('sheng_ji')
                     await self.click(pos_upgrade)
                     await self.click(OK_BUTTONS)
+                    # 避免jin_jie点击太快
+                    await self.player.wait_disappear('sheng_ji')
                     await self.click('jin_jie')
                     await self.click('jin_jie1')
 
             # 觉醒到7星
-            gou_liang_5x = self.hero_selector(zhen_ying, '5x')
+            exclude_ids = set([hero_6x.split('_')[1]])    # 避免把自己的5x本体吃掉
+            gou_liang_5x = self.hero_selector(zhen_ying, '5x', excludes=exclude_ids)
             gou_liang_6x = self.hero_selector(zhen_ying, '6x')
             await self.click('jue_xing')
             await self.click('5x1')
-            await self.select_gou_liang_5x(gou_liang_5x, 4, excludes=exclude_ids)
+            await self.select_gou_liang_5x(gou_liang_5x, 4)
             await self.click('jue_xing1')
             await self.click(OK_BUTTONS)
 
@@ -224,7 +244,7 @@ class MakeHero(Task):
             await self.click('6x1')
             await self.select_gou_liang_5x(gou_liang_6x, 1)    # 6x不必担心本体被误吃
             await self.click('5x1')
-            await self.select_gou_liang_5x(gou_liang_5x, 3, excludes=exclude_ids)
+            await self.select_gou_liang_5x(gou_liang_5x, 3)
             await self.click('jue_xing1')
             await self.click(OK_BUTTONS)
 
@@ -236,7 +256,7 @@ class MakeHero(Task):
             await self.click('6x1')
             await self.select_gou_liang_5x(gou_liang_6x, 1)
             await self.click('5x1')
-            await self.select_gou_liang_5x(gou_liang_5x, 2, excludes=exclude_ids)
+            await self.select_gou_liang_5x(gou_liang_5x, 2)
             await self.click('jue_xing1')
             await self.click(OK_BUTTONS)
 
@@ -246,6 +266,7 @@ class MakeHero(Task):
         return num_9x
 
     async def make_13x_heroes(self):
+        self.logger.info('make_13x_heroes')
         developing_heroes = await self.get_developing_heroes()
         if not developing_heroes:
             self.logger.info("Skip, no developing_heroes need to be made")
@@ -257,27 +278,36 @@ class MakeHero(Task):
             benti_list = [
                 i for i in developing_heroes if i.startswith(zhen_ying)]
             benti_ids = [i.split('_')[1] for i in benti_list]
-            self.global_exclude = set(benti_ids)
-            for heroid in benti_ids:
+            while benti_ids:
                 if not await self.prepare_9x_gouliang(require=3):
                     self.logger.warning(f"9星狗粮不足(不足3)")
                     return
 
                 if not await self.prepare_6x_gouliang(zhen_ying, require=5):
-                    self.logger.warning(f"6星狗粮不足(不足5)")
-                    return
-
-                if not await self.prepare_benti(zhen_ying, heroid, require=7):
-                    self.logger.warning(f"本体不足(不足7)")
-                    continue
-
-                await self.make_13x_hero(zhen_ying, heroid)
+                    self.logger.warning(f"本阵营6星狗粮不足(不足5)")
+                    break
+                
+                gou_liang_5x = self.hero_selector(zhen_ying, '5x', gou_liang='9x')
+                if not await self.prepare_5x_gouliang(zhen_ying, gou_liang_5x, require=15):
+                    self.logger.warning(f"本阵营5星狗粮不足(不足5)")
+                    break
+                
+                while benti_ids:
+                    heroid = benti_ids.pop()
+                    if await self.prepare_benti(zhen_ying, heroid, require=7):
+                        try:
+                            await self.make_13x_hero(zhen_ying, heroid)
+                        except Exception as e:
+                            self.logger.warning(f"制作13x失败: {str(e)}")
+                            # 13x如果失败，不管它，继续下一个吧
+                            pass
+                        break
+                
 
     async def make_13x_hero(self, zhen_ying, heroid):
         target = f"{zhen_ying}_{heroid}_2face_ss"
         benti_5x = f"{zhen_ying}_{heroid}_5x"
-        benti_6x = f"{zhen_ying}_{heroid}_6x"
-        gou_liang_5x = self.hero_selector(zhen_ying, '5x', gou_liang='9x')
+        gou_liang_5x = self.hero_selector(zhen_ying, '5x', gou_liang='9x', excludes=set([heroid]))
 
         # 6星
         await self.gamer.goto_main_ui()
@@ -295,6 +325,13 @@ class MakeHero(Task):
         await self.click(OK_BUTTONS)
         await self.click(OK_BUTTONS)
 
+        await self.sheng_xing(zhen_ying, heroid, gou_liang_5x, to='13x')
+
+
+    async def sheng_xing(self, zhen_ying, heroid, gou_liang_5x, to):
+        benti_5x = f"{zhen_ying}_{heroid}_5x"
+        benti_6x = f"{zhen_ying}_{heroid}_6x"
+
         # 100级
         await self.gamer.goto_main_ui()
         await self.click('ying_xiong')
@@ -308,6 +345,7 @@ class MakeHero(Task):
                 await self.find('sheng_ji')
                 await self.click(pos_upgrade)
                 await self.click(OK_BUTTONS)
+                await self.player.wait_disappear('sheng_ji')
                 await self.click('jin_jie')
                 await self.click('jin_jie1')
 
@@ -341,6 +379,9 @@ class MakeHero(Task):
         await self.click('jue_xing1')
         await self.click(OK_BUTTONS)
 
+        if to == '9x':
+            return
+        
         # 10星
         gou_liang_9x = self.hero_selector(SI_XI_ZHEN_YING, '2face')
         await self.click('jue_xing')
@@ -353,6 +394,9 @@ class MakeHero(Task):
         await self.click('jue_xing1')
         await self.click(OK_BUTTONS)
 
+        if to == '10x':
+            return
+        
         # 11星
         await self.click('ji_ying_jin_hua')
         await self.click('9x1')
@@ -435,16 +479,18 @@ class MakeHero(Task):
         await self.click('ying_xiong')
         await self.find('sh_L')
         num_9x = 0
+        hero_names = self.hero_selector(SI_XI_ZHEN_YING, '2face')
+        xing_names = '9x'
         while True:
             if self.exist('9x'):
-                pos_list = await self.find_all(self.hero_selector(SI_XI_ZHEN_YING, '9x'))
+                # pos_list = await self.find_all(self.hero_selector(SI_XI_ZHEN_YING, '9x'))
+                pos_list = await self.player.find_combo(hero_names, xing_names, dx=(-20, 20), dy=(-40, -10), ret='pos')
                 num_9x += len(pos_list)
 
             if self.exist(['6x', '5x', '4x', '3x']):
                 break
             else:
-                res = await self.swipe_up('ying_xiong_tong_ji')
-                if res == 'reach_down':
+                if await self.swipe_up('ying_xiong_tong_ji'):
                     break
         return num_9x
 
@@ -468,18 +514,56 @@ class MakeHero(Task):
         await self.click('ying_xiong')
         await self.click(f'{zhen_ying}_L')
         num_6x = 0
+        reach_down = False
+
         while True:
             if self.exist('6x'):
-                pos_list = await self.find_all(self.hero_selector(zhen_ying, '6x'))
-                num_6x += len(pos_list)
+                num = len(await self.find_all(self.hero_selector(zhen_ying, '6x')))
+                if num > num_6x:
+                    num_6x = num
 
-            if self.exist(['5x', '4x', '3x']):
+            if self.exist(['5x', '4x', '3x']) or reach_down:
                 break
             else:
-                res = await self.swipe_up('ying_xiong_tong_ji')
-                if res == 'reach_down':
-                    break
+                if await self.swipe_up('ying_xiong_tong_ji'):
+                    reach_down = True
+
         return num_6x
+    
+
+    async def prepare_5x_gouliang(self, zhen_ying, gou_liangs, require=10):
+        old_5x = await self.count_5x_gouliang(zhen_ying, gou_liangs)
+        if old_5x > require:
+            self.logger.info(f"Skip, old_5x is: {old_5x} (> {require})")
+            return True
+
+        await self.make_5x_heroes(zhen_ying)
+
+        new_5x = await self.count_5x_gouliang(zhen_ying, gou_liangs)
+        if new_5x >= require:
+            return True
+        else:
+            return False
+
+    async def count_5x_gouliang(self, zhen_ying, gou_liangs):
+        await self.gamer.goto_main_ui()
+        await self.click('ying_xiong')
+        await self.click(f'{zhen_ying}_L')
+        num_5x = 0
+        reach_down = False
+        while True:
+            if self.exist('5x'):
+                num = len(await self.find_all(gou_liangs))
+                if num > num_5x:
+                    num_5x = num
+
+            if self.exist(['4x', '3x']) or reach_down:
+                break
+            else:
+                if await self.swipe_up('ying_xiong_tong_ji'):
+                    reach_down = True
+        return num_5x
+
 
     async def get_developing_heroes(self):
         await self._move_to_center()
@@ -500,7 +584,7 @@ class MakeHero(Task):
 
         return heroes
 
-    def hero_selector(self, zhen_ying, xing, scene='hero', gou_liang='9x'):
+    def hero_selector(self, zhen_ying, xing, scene='hero', gou_liang='9x', excludes=None):
         if not isinstance(zhen_ying, list):
             zhen_ying = [zhen_ying]
         if not isinstance(xing, list):
@@ -531,6 +615,9 @@ class MakeHero(Task):
             pass
         else:
             raise InternalError(f"Unknown cai_liao: {gou_liang}")
+        
+        if excludes:
+            heroes = [i for i in heroes if not i.split('_')[1] in excludes ]
 
         return heroes
 
@@ -613,22 +700,13 @@ class MakeHero(Task):
                 await self.click('ok8')
             await self.player.find_then_click('receive1')
 
-    async def select_gou_liang(self, gou_liang, wanted=1, excludes=None):
+    async def select_gou_liang(self, gou_liang, wanted=1):
         await self.find('xuan_zhong')
         num = 0
         reach_down = False
 
-        if excludes:
-            heroes = []
-            for i in gou_liang:
-                _, id, _ = i.split('_')
-                if not id in excludes:
-                    heroes.append(i)
-        else:
-            heroes = gou_liang[:]
-
         while num < wanted:
-            pos_list = await self.find_all(heroes, threshold=0.85)
+            pos_list = await self.find_all(gou_liang, threshold=0.85)
             # 排好序，选择起来就不会看起来乱
             pos_list.sort(key=lambda x: (round(x[1] / 10), x[0]))
             for pos in pos_list[:wanted]:
@@ -646,7 +724,7 @@ class MakeHero(Task):
         if num < wanted:
             raise NoEnoughGouLiang()
 
-    async def select_gou_liang_5x(self, gou_liang, wanted=1, excludes=None):
+    async def select_gou_liang_5x(self, gou_liang, wanted=1):
         await self.find('fang_ru')
         num = 0
         reach_down = False
@@ -654,22 +732,8 @@ class MakeHero(Task):
         if not isinstance(gou_liang, list):
             gou_liang = [gou_liang]
 
-        exclude_ids = set()
-        # exclude_ids.update(self.global_exclude)
-        if excludes:
-            exclude_ids.update(excludes)
-
-        if exclude_ids:
-            heroes = []
-            for i in gou_liang:
-                _, id, _ = i.split('_')
-                if not id in exclude_ids:
-                    heroes.append(i)
-        else:
-            heroes = gou_liang[:]
-
         while num < wanted:
-            pos_list = await self.find_all(heroes, threshold=0.9)
+            pos_list = await self.find_all(gou_liang, threshold=0.9)
             pos_list.sort(key=lambda x: (round(x[1] / 10), x[0]))
             for pos in pos_list[:wanted]:
                 await self.click(pos)
@@ -707,6 +771,7 @@ class MakeHero(Task):
         await self.click(OK_BUTTONS)
 
     async def kuai_su_he_cheng(self):
+        """合成5x，4x英雄"""
         await self.gamer.goto_main_ui()
         await self._move_to_left_top()
         await self.click('gai_zao_ying_xiong')
@@ -731,6 +796,24 @@ class MakeHero(Task):
             success = True
 
         return success
+    
+    # async def kuai_su_he_cheng_5x(self):
+    #     """合成5x英雄，并返回数量"""
+    #     await self.gamer.goto_main_ui()
+    #     await self._move_to_left_top()
+    #     await self.click('gai_zao_ying_xiong')
+    #     await self.click('kuai_su_gai_zao')
+
+    #     # 合成5星狗粮
+    #     await self.click('5xing_gai_zao')
+    #     await asyncio.sleep(1)
+    #     await self.click('gai_zao')
+    #     if not self.player.is_exist('mei_you_ke_gai'):
+    #         num = len(await self.find_all('5x'))
+    #         await self.click(OK_BUTTONS)
+    #         return num
+    #     else:
+    #         return 0
 
     async def get_hero_num(self, xing_pos):
         """获取碎片数量，得到英雄数量"""
@@ -846,11 +929,11 @@ class MakeHero(Task):
             p1 = (745, 464)
             p2 = (745, 127)
 
-        res = await self.drag_then_find(p1, p2, 'reach_down')
-        if res:
+        reach_down = await self.drag_then_find(p1, p2, 'reach_down')
+        if reach_down:
             await asyncio.sleep(1)
 
-        return res
+        return reach_down
 
     async def swipe_down(self, mode="xuan_gou_liang"):
         if mode == "xuan_gou_liang":
@@ -860,8 +943,8 @@ class MakeHero(Task):
             p1 = (745, 155)
             p2 = (745, 490)
 
-        res = await self.drag_then_find(p1, p2, 'reach_top')
-        if res:
+        reach_top = await self.drag_then_find(p1, p2, 'reach_top')
+        if reach_top:
             await asyncio.sleep(1)
 
-        return res
+        return reach_top
